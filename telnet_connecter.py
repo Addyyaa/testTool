@@ -1,6 +1,7 @@
 import asyncio
 import re
 import telnetlib3
+import logging
 
 # 嘗試導入 telnetlib3 的特定類型，如果失敗也沒關係，後面有檢查
 try:
@@ -99,44 +100,44 @@ class Telnet_connector:
         try:
             # 設置連接超時，由 asyncio.wait_for 控制
             self.reader, self.writer = await asyncio.wait_for(
-                telnetlib3.open_connection(self.host),  # 移除不支持的 connect_timeout 參數
-                timeout=6.0  # 保留總體超時
+                telnetlib3.open_connection(self.host),
+                timeout=6.0  # 超時
             )
             print(f"Successfully connected to {self.host}.")
             # 檢查 writer 類型以確定是否為 Unicode 模式
             # 首先確保 TelnetWriterUnicode 已成功導入且 self.writer 不是 None
             if TelnetWriterUnicode is not None and self.writer is not None:
                 if isinstance(self.writer, TelnetWriterUnicode):  # type: ignore[arg-type]
-                    print("Connection is using Unicode mode.")
+                    logging.debug("Connection is using Unicode mode.")
                     self.is_unicode_mode = True
                 else:
                     # writer 存在但不是 TelnetWriterUnicode，假定為 Bytes 模式
-                    print("Connection is using Bytes mode (standard writer detected).")
+                    logging.debug("Connection is using Bytes mode (standard writer detected).")
                     self.is_unicode_mode = False
             elif self.writer is not None:
                 # TelnetWriterUnicode 導入失敗，但 writer 存在，假定為 Bytes 模式
-                print("Connection is using Bytes mode (TelnetWriterUnicode import failed).")
+                logging.debug("Connection is using Bytes mode (TelnetWriterUnicode import failed).")
                 self.is_unicode_mode = False
             else:
                 # writer 為 None，連接失敗
-                print("Writer is None, connection likely failed earlier.")
+                logging.debug("Writer is None, connection likely failed earlier.")
                 self.is_unicode_mode = False  # 設置為 False 以防萬一
 
             # 可選：如果需要，讀取初始橫幅/提示
             # initial_output = await self.read_until_timeout()
             # print(f"Initial output:\n{initial_output}")
         except asyncio.TimeoutError:
-            print(f"Connection to {self.host} timed out.")
+            logging.debug(f"Connection to {self.host} timed out.")
             self.reader = None
             self.writer = None
             raise ConnectionError(f"Connection timed out to {self.host}")
         except ConnectionRefusedError:
-            print(f"Connection to {self.host} refused.")
+            logging.debug(f"Connection to {self.host} refused.")
             self.reader = None
             self.writer = None
             raise ConnectionError(f"Connection refused by {self.host}")
         except Exception as e:
-            print(f"Failed to connect to {self.host}: {e}")
+            logging.debug(f"Failed to connect to {self.host}: {e}")
             self.reader = None
             self.writer = None
             raise ConnectionError(f"Failed to connect: {e}") from e
@@ -164,19 +165,19 @@ class Telnet_connector:
                     # 根據當前 writer 類型決定如何等待關閉
                     if not is_unicode_writer and hasattr(self.writer, 'wait_closed'):
                         # 標準 StreamWriter
-                        print("Waiting for standard writer closure...")
+                        logging.debug("Waiting for standard writer closure...")
                         await self.writer.wait_closed()
                     elif is_unicode_writer:
                         # TelnetWriterUnicode 可能沒有 wait_closed 或類似方法
                         # close() 可能已經足夠，或者需要短暫等待
-                        print("Closing Unicode writer, assuming close() is sufficient or using fallback sleep.")
+                        logging.debug("Closing Unicode writer, assuming close() is sufficient or using fallback sleep.")
                         await asyncio.sleep(0.1)  # 短暫等待以允許關閉操作完成
                     else:
-                        print("Unknown writer type or mode, using fallback sleep after close().")
+                        logging.debug("Unknown writer type or mode, using fallback sleep after close().")
                         await asyncio.sleep(0.1)  # Fallback
                 print("Connection closed.")
             except Exception as e:
-                print(f"Error during disconnect: {e}")
+                logging.debug(f"Error during disconnect: {e}")
             finally:
                 self.writer = None
                 self.reader = None
@@ -210,7 +211,7 @@ class Telnet_connector:
                 # print(f"DEBUG: Received chunk raw: {chunk!r} (type: {type(chunk)})")
 
                 if not chunk:
-                    print("Connection closed by remote host while reading.")
+                    logging.debug("Connection closed by remote host while reading.")
                     self.reader = None
                     self.writer = None
                     break
@@ -224,26 +225,26 @@ class Telnet_connector:
                     # print("DEBUG: Received string chunk directly.")
                     chunk_str = chunk
                 else:
-                    print(f"!!! WARNING: Received chunk of unexpected type: {type(chunk)}. Skipping.")
+                    logging.debug(f"!!! WARNING: Received chunk of unexpected type: {type(chunk)}. Skipping.")
                     continue
 
                 # 累加字符串
                 output += chunk_str
 
             except asyncio.TimeoutError:
-                # print("DEBUG: Read timeout occurred. Finishing read.")
+                # logging.debug("DEBUG: Read timeout occurred. Finishing read.")
                 break
             except ConnectionAbortedError:
-                print("Connection aborted while reading.")
+                logging.debug("Connection aborted while reading.")
                 self.reader = None
                 self.writer = None
                 break
             except Exception as e:
-                print(f"Error reading stream: {e} (Type: {type(e)})")
+                logging.debug(f"Error reading stream: {e} (Type: {type(e)})")
                 self.reader = None
                 self.writer = None
                 break
-        # print(f"DEBUG: Returning final string output (length={len(output)})")
+        # logging.debug(f"DEBUG: Returning final string output (length={len(output)})")
         return output  # 直接返回累加的字符串
 
     async def send_command(self, command: str, read_timeout: float = 1.0) -> str:
@@ -278,53 +279,52 @@ class Telnet_connector:
         command_str = command + '\r\n'
         command_bytes = command_str.encode('utf-8', errors='ignore')
 
-        # print(f"DEBUG: Prepared str: {command_str!r}, bytes: {command_bytes!r}")
+        # logging.debug(f"DEBUG: Prepared str: {command_str!r}, bytes: {command_bytes!r}")
 
         try:
             write_attempted_type = "string"
             # --- Primary attempt: Send string ---
-            print(f"Attempting to send command as string: {command_str!r}")
+            logging.debug(f"Attempting to send command as string: {command_str!r}")
             self.writer.write(command_str)  # type: ignore # Tolerate str for telnetlib3 unicode mode
 
         except TypeError as te:
             error_msg = str(te).lower()
-            print(f"TypeError sending string: {te}")
+            logging.debug(f"TypeError sending string: {te}")
 
             if "bytes-like object is required" in error_msg:
                 # --- Fallback: Send bytes ---
-                print(f"String write failed, retrying with bytes: {command_bytes!r}")
+                logging.debug(f"String write failed, retrying with bytes: {command_bytes!r}")
                 try:
                     write_attempted_type = "bytes (retry)"
                     self.writer.write(command_bytes)
                 except Exception as retry_e:
                     # Catch potential errors during the retry itself
-                    print(f"!!! Error during byte retry write: {retry_e}")
+                    logging.debug(f"!!! Error during byte retry write: {retry_e}")
                     await self.disconnect()
                     raise ConnectionError(f"Failed to send command on retry: {retry_e}") from retry_e
             elif "encoding without a string argument" in error_msg:
                 # This is unexpected when sending a string first
-                print("!!! Unexpected 'encoding' error when sending string. Telnetlib3 behavior unclear.")
+                logging.debug("!!! Unexpected 'encoding' error when sending string. Telnetlib3 behavior unclear.")
                 await self.disconnect()
                 raise ConnectionError(f"Unexpected encoding error sending string: {te}") from te
             else:
                 # Unknown TypeError
-                print(f"!!! Unknown TypeError during string write: {te}")
+                logging.debug(f"!!! Unknown TypeError during string write: {te}")
                 await self.disconnect()
                 raise ConnectionError(f"Unknown TypeError sending command: {te}") from te
 
         # --- If write succeeded (either string initially or bytes on retry) ---
         try:
-            print(f"Write ({write_attempted_type}) successful, draining buffer...")
+            logging.debug(f"Write ({write_attempted_type}) successful, draining buffer...")
             await self.writer.drain()
-            print("Command sent, reading response...")
+            logging.debug("Command sent, reading response...")
             response = await self.read_until_timeout(read_timeout)
-            print(f"Received response (length: {len(response)})")
             return response
         except ConnectionError as ce:
-            print(f"Connection error after successful write: {ce}")
+            logging.debug(f"Connection error after successful write: {ce}")
             raise  # Re-raise connection errors (e.g., from read_until_timeout)
         except Exception as drain_read_e:
-            print(f"Error during drain/read after write: {drain_read_e}")
+            logging.debug(f"Error during drain/read after write: {drain_read_e}")
             await self.disconnect()
             raise ConnectionError(f"Failed after sending command: {drain_read_e}") from drain_read_e
 
@@ -335,5 +335,5 @@ class Telnet_connector:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """異步上下文管理器的退出方法，斷開連接。"""
+        """异步上下文管理器的退出方法，斷開連接。"""
         await self.disconnect()

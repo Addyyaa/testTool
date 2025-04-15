@@ -31,6 +31,7 @@ class Api_sender:
         self.publish1 = f"{base_url}/api/v1/host/screen/update/pictureV3"
         self.publish2 = f"{base_url}/api/v1/screenPicture/publish"
         self.publish_sync = f"{base_url}/api/v1/screen/picture/sync/publish"
+        self.screen_switch = f"{base_url}/api/v1/host/screen/group/switch"
         self.qiuniutoken = None
         self.header = {
             "Content-Type": "application/json",
@@ -43,11 +44,11 @@ class Api_sender:
 
     def send_api(self, api, data, method="post"):
         try:
-            data = json.dumps(data)
-            if method.upper() == "post":
+            # data = json.dumps(data)
+            if method.upper() == "POST":
                 response1 = requests.post(api, json=data, headers=self.header)
             else:
-                response1 = requests.get(api, params=data, headers=self.header)
+                response1 = requests.get(api, params=data, headers=self.header)  # TODO 需要增加token失效的处理
             return response1
         except Exception as e:
             logging.error(f"请求发生错误：{e}")
