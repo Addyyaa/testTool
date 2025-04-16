@@ -4,6 +4,7 @@ from datetime import datetime
 import asyncio
 from telnet_connecter import Telnet_connector
 from api_sender import Api_sender
+import re
 
 host = ['192.168.1.10']
 config = {
@@ -16,24 +17,44 @@ config = {
 
 class Time_switcher_tester:
 
-    def __init__(self, host1: str, api_sender1: Api_sender, selected_id2: str, selected_name: str):
-        self.account = account
-        self.password = password
+    def __init__(self, host1: str, api_sender1: Api_sender, selected_id2: str, selected_name3: str):
+        # 声明一个变量用来存储tn实例
         self.host = host1
         # 初始化api发送器
         self.api_sender = api_sender1
-        self.tn = None
+        self.tn: Telnet_connector | None = None  # Ensure tn starts as None and has type hint
         self.selected_id = selected_id2
-        self.selected_name = selected_name
+        self.selected_name = selected_name3
+        # DO NOT run async io here
 
     async def check_local_screen_status(self) -> str:
-        await self.tn_initialize()
+        # --- Restore the lazy initialization check --- 
+        if self.tn is None:
+            print(f"[{self.host}] Telnet connection not initialized. Initializing...")
+            await self.tn_initialize()
+            # Add a check after initialization in case tn_initialize failed silently
+            if self.tn is None:
+                raise ConnectionError(f"[{self.host}] Failed to initialize Telnet connection within tn_initialize.")
+        # -------------------------------------------
+
         # 登陆telnet
+        # Now self.tn should be a valid connector object
         await self.tn.send_command(config["user"])
         await self.tn.send_command(config["password"])
-        response: str = await self.tn.send_command('cat /tmp/screen_on_off')
+        while True:
+            response: str = await self.tn.send_command('cat /tmp/screen_on_off', read_timeout=2)
+            print(response)
+            if len(response) <= 0:
+                continue
+            else:
+                break
         lines = response.split('\n')[1:-2]
         screen_status = '\n'.join(lines).strip().replace(' ', '')
+        if len(lines) <= 0:
+            pattern = r'\b(on|off)\b'
+            match = re.search(pattern, response, re.IGNORECASE)
+            if match:
+                screen_status = match.group()
         return screen_status
 
     async def tn_initialize(self):
@@ -123,53 +144,67 @@ class Time_switcher_tester:
         return selected_id1, selected_name1
 
     async def verify_timed_switch_function(self):
-        wait_time = 2
-        times = 100  # 设置测试定时开关的次数
-        # 开始之前先检查屏幕当前的状态，确保屏幕处于开启状态
-        current_screen_status = await self.check_local_screen_status()
-        if str(current_screen_status).upper() == 'OFF':
-            await self.set_screen_on_off(self.selected_id, 'on')
-        for _ in range(times):
-            current_time_hour = datetime.now().hour + 1  # TODO 设备设置了京东时区，所以要快一小时
-            current_time_min = datetime.now().minute + 1  # 1分钟后关机
-            time_off = str(current_time_hour) + ":" + str(current_time_min)
-            time_on = str(current_time_hour + wait_time) + ":" + str(current_time_min)
-            config["off_time"] = time_off
-            config["on_time"] = time_on
-            result = await self.set_timer_screen_on_off('off', self.selected_id)
-            if result:
-                # 等待一分钟后检查屏幕是否已关闭
-                logging.info(f"[{self.host}] 定时关机任务已设置： ({time_off})，等待 {92} 秒...")
-                await asyncio.sleep(92)  # 使用 asyncio.sleep
-                screen_status = await self.check_local_screen_status()
-                if str(screen_status).upper() != 'OFF':
-                    # 使用 logging 记录错误
-                    logging.error(
-                        f"[{self.host}] 第{_ + 1}次测试失败：定时关机时间到达，但屏幕没有关闭 (状态: {screen_status})")
-                    continue  # 记录错误继续下一次测试
-                else:
-                    print(f"[{self.host}] 定时关机成功。")
+        try:
+            wait_time = 2
+            times = 100  # 设置测试定时开关的次数
+            # 开始之前先检查屏幕当前的状态，确保屏幕处于开启状态
+            current_screen_status = await self.check_local_screen_status()
+            if str(current_screen_status).upper() == 'OFF':
+                await self.set_screen_on_off(self.selected_id, 'on')
+                status = await self.check_local_screen_status()
+                await asyncio.sleep(2)
+                if str(status).upper() != 'ON':
+                    logging.error(f"[{self.host}] 测试前设备开启屏幕失败\n屏幕读取的状态为：{status}")
+            for _ in range(times):
+                current_time_hour = datetime.now().hour + 1  # TODO 设备设置了京东时区，所以要快一小时
+                current_time_min = datetime.now().minute + 1  # 1分钟后关机
+                time_off = str(current_time_hour) + ":" + str(current_time_min)
+                time_on = str(current_time_hour + wait_time) + ":" + str(current_time_min)
+                config["off_time"] = time_off
+                config["on_time"] = time_on
+                result = await self.set_timer_screen_on_off('off', self.selected_id)
+                if result:
+                    # 等待一分钟后检查屏幕是否已关闭
+                    logging.info(f"[{self.host}] 定时关机任务已设置： ({time_off})，等待 {92} 秒...")
+                    await asyncio.sleep(92)  # 使用 asyncio.sleep
+                    screen_status = await self.check_local_screen_status()
+                    print(screen_status)
+                    if str(screen_status).upper() != 'OFF':
+                        # 使用 logging 记录错误
+                        logging.error(
+                            f"[{self.host}] 第{_ + 1}次测试失败：定时关机时间到达，但屏幕没有关闭 (状态: {screen_status})")
+                        rs = await self.tn.send_command("ls")
+                        print(rs)
+                        continue  # 记录错误继续下一次测试
+                    else:
+                        print(f"[{self.host}] 定时关机成功。")
 
-                on_delay = wait_time * 3600  # 定時2小時 (秒)
-                await asyncio.sleep(on_delay)  # 使用 asyncio.sleep
-                await asyncio.sleep(70)  # 等待70秒 设备开屏也有延时，近一分钟
-                screen_status = await self.check_local_screen_status()
-                if str(screen_status).upper() == 'OFF':
-                    logging.error(
-                        f"[{self.host}] 第{_ + 1}次测试失败：定时关机时间到达，但屏幕没有开启 (状态: {screen_status})")
-                    continue
+                    on_delay = wait_time * 3600  # 定時2小時 (秒)
+                    await asyncio.sleep(on_delay)  # 使用 asyncio.sleep
+                    await asyncio.sleep(70)  # 等待70秒 设备开屏也有延时，近一分钟
+                    screen_status = await self.check_local_screen_status()
+                    if str(screen_status).upper() == 'OFF':
+                        logging.error(
+                            f"[{self.host}] 第{_ + 1}次测试失败：定时关机时间到达，但屏幕没有开启 (状态: {screen_status})")
+                        continue
+                    else:
+                        print(f"[{self.host}] 第 {_ + 1}/{times} 次测试通过。")
                 else:
-                    print(f"[{self.host}] 第 {_ + 1}/{times} 次测试通过。")
-            else:
-                logging.warning(f"[{self.host}] 第{_ + 1}次测试：定时开关验证失败，跳过本次验证。")
+                    logging.warning(f"[{self.host}] 第{_ + 1}次测试：定时开关验证失败，跳过本次验证。")
 
-        print(f"[{self.host}] 所有 {times} 次定时开关测试完成。")
+            print(f"[{self.host}] 所有 {times} 次定时开关测试完成。")
+        except Exception as e:
+            logging.error(f"测试设备定时开关时发生异常：{e}")
+        finally:
+            # 断开连接
+            logging.info(f"{self.host} 断开连接")
+            await self.tn.disconnect()
 
 
 if __name__ == "__main__":
     # 配置 logging
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s -  %(lineno)d - %(funcName)-%('
-                                                   'message)s')
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s -  %(lineno)d - %(funcName)-%('
+                                                    'message)s')
 
     hosts = ['192.168.1.14', '192.168.1.12', '192.168.1.13', '192.168.1.10']
     # account = input("请输入账号: ") # TODO 取消硬编码
@@ -187,8 +222,10 @@ if __name__ == "__main__":
         # 直接 await 异步函数，而不是再次調用 asyncio.run
         await tester.verify_timed_switch_function()
 
+
     async def run():
         tasks = [test(host2) for host2 in hosts]
         await asyncio.gather(*tasks)
+
 
     asyncio.run(run())

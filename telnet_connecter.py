@@ -233,6 +233,10 @@ class Telnet_connector:
 
             except asyncio.TimeoutError:
                 # logging.debug("DEBUG: Read timeout occurred. Finishing read.")
+                if not output: # 检查 output 是否为空
+                    logging.debug("Read timeout occurred before receiving any data.")
+                else:
+                    logging.debug(f"Read timeout occurred after receiving partial data (length={len(output)}). Finishing read.")
                 break
             except ConnectionAbortedError:
                 logging.debug("Connection aborted while reading.")
