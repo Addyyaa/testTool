@@ -1,6 +1,7 @@
 import logging
 import sys
-
+from datetime import datetime
+import asyncio
 from telnet_connecter import Telnet_connector
 from api_sender import Api_sender
 
@@ -8,27 +9,29 @@ host = ['192.168.1.10']
 config = {
     "user": "root",
     "password": "ya!2dkwy7-934^",
+    "on_time": "09:35",  # 24小时制
+    "off_time": "18:30",
 }
 
 
 class Time_switcher_tester:
 
-    def __init__(self, host1: str):
-        # account = input("请输入账号: ")
-        # password = input("请输入密码: ")
-        self.account = 'test2@tester.com'
-        self.password = 'sf123123'  # TODO 取消硬编码
+    def __init__(self, host1: str, api_sender1: Api_sender, selected_id2: str, selected_name: str):
+        self.account = account
+        self.password = password
         self.host = host1
         # 初始化api发送器
-        self.api_sender = Api_sender(self.account, self.password)
+        self.api_sender = api_sender1
         self.tn = None
+        self.selected_id = selected_id2
+        self.selected_name = selected_name
 
-    async def check_local_screen_status(self):
+    async def check_local_screen_status(self) -> str:
         await self.tn_initialize()
         # 登陆telnet
         await self.tn.send_command(config["user"])
         await self.tn.send_command(config["password"])
-        response: str = await self.tn.send_command('cat customer/screen_on_off')  # TODO 需要改为优化版的路径
+        response: str = await self.tn.send_command('cat /tmp/screen_on_off')
         lines = response.split('\n')[1:-2]
         screen_status = '\n'.join(lines).strip().replace(' ', '')
         return screen_status
@@ -37,25 +40,10 @@ class Time_switcher_tester:
         self.tn = Telnet_connector(self.host)
         await self.tn.connect()
 
-    @staticmethod
-    async def check_multiple_devices(hosts1: list):
-        results1 = {}
-        for host1 in hosts1:
-            tester = Time_switcher_tester(host1)
-            try:
-                status1 = await tester.check_local_screen_status()
-                results1[host1] = status1
-            except Exception as e:
-                results1[host1] = f"Error: {str(e)}"
-            finally:
-                if tester.tn:
-                    await tester.tn.disconnect()
-        return results1
-
     async def set_screen_on_off(self, group_id: str, on_off: str):
         body = {
             "screenGroupId": group_id,
-            "switchType": 1 if on_off == 'on' else 2
+            "switchType": 1 if on_off.upper() == 'ON' else 2
         }
         try:
             response = self.api_sender.send_api(self.api_sender.screen_switch, data=body, method="post")
@@ -68,14 +56,40 @@ class Time_switcher_tester:
         else:
             return False
 
-    async def set_timer_screen_on_off(self, on_off: str):
-        # TODO 完善定时开关设置及相关测试业务
-        pass
+    async def set_timer_screen_on_off(self, on_off: str, group_id: str):
+        on_time = config["on_time"]
+        off_fime = config["off_time"]
+        on_hour = datetime.strptime(on_time, "%H:%M").hour
+        on_min = datetime.strptime(on_time, "%H:%M").minute
+        off_hour = datetime.strptime(off_fime, "%H:%M").hour
+        off_min = datetime.strptime(off_fime, "%H:%M").minute
+        on = on_hour << 8 | on_min
+        off = off_hour << 8 | off_min
+        if on and off:
+            body = {
+                "screenGroupId": group_id,
+                "screenIds": [],
+                "startHour": on,
+                "endHour": off,
+                "switchType": 1 if on_off.upper() == 'ON' else 2
+            }
+            try:
+                response = self.api_sender.send_api(self.api_sender.screen_timer_machine, data=body, method="post")
+                if response.status_code == 200 and response.json()["code"] == 20:
+                    logging.info(f"定时开关已重新设置为：开：{config['on_time']}-关：{config['off_time']}")
+                    return True
+            except Exception as e:
+                logging.error(f"定时开关请求发生错误：{e}")
+                return False
+        else:
+            logging.error("时间格式有误")
+            sys.exit()
 
-    async def get_groupId_name(self):
+    @staticmethod
+    def get_groupId_name(api_sender1: Api_sender):
         group_list = []
         group_option = []
-        response = self.api_sender.send_api(self.api_sender.get_device, data="", method="get")
+        response = api_sender1.send_api(api_sender1.get_device, data="", method="get")
         if response.status_code == 200 and response.json()["code"] == 20:
             group = response.json()["data"]["group"]
             for i in group:
@@ -86,11 +100,12 @@ class Time_switcher_tester:
             input(f"该账号下没有设备，按回车键退出程序")
             sys.exit()
 
-    def display_group_menu(self):
-        id1, name = asyncio.run(self.get_groupId_name())
-        length = len(id1)
+    @staticmethod
+    def display_group_menu(id2: list, name1: list):
+        # 使用 await 调用方法
+        length = len(id2)
         print(f"请选择屏幕组：")
-        for index, _ in enumerate(name):
+        for index, _ in enumerate(name1):
             print(f"{index + 1}.\t{_}")
         option = None
         while True:
@@ -103,20 +118,77 @@ class Time_switcher_tester:
                 print("输入错误，请选择正确的序号")
                 continue
 
-        selected_id = id1[option - 1]
-        selected_name = name[option - 1]
-        return selected_id, selected_name
+        selected_id1 = id2[option - 1]
+        selected_name1 = name1[option - 1]
+        return selected_id1, selected_name1
+
+    async def verify_timed_switch_function(self):
+        wait_time = 2
+        times = 100  # 设置测试定时开关的次数
+        # 开始之前先检查屏幕当前的状态，确保屏幕处于开启状态
+        current_screen_status = await self.check_local_screen_status()
+        if str(current_screen_status).upper() == 'OFF':
+            await self.set_screen_on_off(self.selected_id, 'on')
+        for _ in range(times):
+            current_time_hour = datetime.now().hour + 1  # TODO 设备设置了京东时区，所以要快一小时
+            current_time_min = datetime.now().minute + 1  # 1分钟后关机
+            time_off = str(current_time_hour) + ":" + str(current_time_min)
+            time_on = str(current_time_hour + wait_time) + ":" + str(current_time_min)
+            config["off_time"] = time_off
+            config["on_time"] = time_on
+            result = await self.set_timer_screen_on_off('off', self.selected_id)
+            if result:
+                # 等待一分钟后检查屏幕是否已关闭
+                logging.info(f"[{self.host}] 定时关机任务已设置： ({time_off})，等待 {92} 秒...")
+                await asyncio.sleep(92)  # 使用 asyncio.sleep
+                screen_status = await self.check_local_screen_status()
+                if str(screen_status).upper() != 'OFF':
+                    # 使用 logging 记录错误
+                    logging.error(
+                        f"[{self.host}] 第{_ + 1}次测试失败：定时关机时间到达，但屏幕没有关闭 (状态: {screen_status})")
+                    continue  # 记录错误继续下一次测试
+                else:
+                    print(f"[{self.host}] 定时关机成功。")
+
+                on_delay = wait_time * 3600  # 定時2小時 (秒)
+                await asyncio.sleep(on_delay)  # 使用 asyncio.sleep
+                await asyncio.sleep(70)  # 等待70秒 设备开屏也有延时，近一分钟
+                screen_status = await self.check_local_screen_status()
+                if str(screen_status).upper() == 'OFF':
+                    logging.error(
+                        f"[{self.host}] 第{_ + 1}次测试失败：定时关机时间到达，但屏幕没有开启 (状态: {screen_status})")
+                    continue
+                else:
+                    print(f"[{self.host}] 第 {_ + 1}/{times} 次测试通过。")
+            else:
+                logging.warning(f"[{self.host}] 第{_ + 1}次测试：定时开关验证失败，跳过本次验证。")
+
+        print(f"[{self.host}] 所有 {times} 次定时开关测试完成。")
 
 
 if __name__ == "__main__":
-    import asyncio
+    # 配置 logging
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s -  %(lineno)d - %(funcName)-%('
+                                                   'message)s')
 
-    # 示例：检查多个设备
-    hosts = ['192.168.1.10']  # 可以根据需要添加更多设备
-    results = asyncio.run(Time_switcher_tester.check_multiple_devices(hosts))
-    for host, status in results.items():
-        print(f"设备 {host} 的状态: {status}")
-    test1 = Time_switcher_tester(host)
-    id, name = test1.display_group_menu()
-    print(f"您选择的设备组是：{name}({id})")
-    asyncio.run(test1.set_screen_on_off(id, 'on'))
+    hosts = ['192.168.1.14', '192.168.1.12', '192.168.1.13', '192.168.1.10']
+    # account = input("请输入账号: ") # TODO 取消硬编码
+    # password = input("请输入密码: ")
+    account = 'test2@tester.com'
+    password = 'sf123123'
+    api_sender = Api_sender(account, password)
+    # 获取屏幕组id
+    ids, names = Time_switcher_tester.get_groupId_name(api_sender)
+    selected_id, selected_name = Time_switcher_tester.display_group_menu(ids, names)
+
+
+    async def test(host1: str):
+        tester = Time_switcher_tester(host1, api_sender, selected_id, selected_name)
+        # 直接 await 异步函数，而不是再次調用 asyncio.run
+        await tester.verify_timed_switch_function()
+
+    async def run():
+        tasks = [test(host2) for host2 in hosts]
+        await asyncio.gather(*tasks)
+
+    asyncio.run(run())

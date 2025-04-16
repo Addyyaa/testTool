@@ -32,6 +32,7 @@ class Api_sender:
         self.publish2 = f"{base_url}/api/v1/screenPicture/publish"
         self.publish_sync = f"{base_url}/api/v1/screen/picture/sync/publish"
         self.screen_switch = f"{base_url}/api/v1/host/screen/group/switch"
+        self.screen_timer_machine = f"{base_url}/api/v1/host/screen/group/switch/machine"
         self.qiuniutoken = None
         self.header = {
             "Content-Type": "application/json",
