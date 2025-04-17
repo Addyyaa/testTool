@@ -71,7 +71,7 @@ class Time_switcher_tester:
             logging.error(f"背光请求发生错误：{e}")
             return False
         if response.status_code == 200 and response.json()["code"] == 20:
-            logging.info(f"背光已切换为：{on_off}")
+            logging.info(f"已下发背光开关指令：{on_off}")
             return True
         else:
             return False
@@ -147,13 +147,25 @@ class Time_switcher_tester:
             wait_time = 2  # hour #TODO 设置开机和关机之间的时间间隔
             times = 100  # 设置测试定时开关的次数  #TODO 设置测试次数
             # 开始之前先检查屏幕当前的状态，确保屏幕处于开启状态
-            current_screen_status = await self.check_local_screen_status()
-            if str(current_screen_status).upper() == 'OFF':
-                await self.set_screen_on_off(self.selected_id, 'on')
-                status = await self.check_local_screen_status()
-                await asyncio.sleep(2)
-                if str(status).upper() != 'ON':
-                    logging.error(f"[{self.host}] 测试前设备开启屏幕失败\n屏幕读取的状态为：{status}")
+            enable_times = 0
+            break_time = 3
+            is_retry = False
+            while True:
+                if enable_times > 0:
+                    is_retry = True
+                    logging.error(f"[{self.host}] 测试前，开启屏幕失败，开始重新尝试开启屏幕")
+                current_screen_status = await self.check_local_screen_status()
+                enable_times += 1
+                if str(current_screen_status).upper() == 'OFF':
+                    await self.set_screen_on_off(self.selected_id, 'on')
+                    status = await self.check_local_screen_status()
+                    await asyncio.sleep(2)
+                    if str(status).upper() != 'ON' and is_retry:
+                        logging.error(
+                            f"[{self.host}] 测试前，第{enable_times}次设备开启屏幕失败\t屏幕读取的状态为：{status}")
+                    break
+                if enable_times > break_time:
+                    break
             for _ in range(times):
                 current_time_hour = datetime.now().hour + 1  # TODO 设备设置了京东时区，所以要快一小时
                 if current_time_hour > 24:
@@ -174,8 +186,6 @@ class Time_switcher_tester:
                         # 使用 logging 记录错误
                         logging.error(
                             f"[{self.host}] 第{_ + 1}次测试失败：定时关机时间到达，但屏幕没有关闭 (状态: {screen_status})")
-                        rs = await self.tn.send_command("ls")
-                        print(rs)
                         continue  # 记录错误继续下一次测试
                     else:
                         print(f"[{self.host}] 定时关机成功。")
