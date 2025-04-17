@@ -1,6 +1,6 @@
 import logging
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 import asyncio
 from telnet_connecter import Telnet_connector
 from api_sender import Api_sender
@@ -78,11 +78,11 @@ class Time_switcher_tester:
 
     async def set_timer_screen_on_off(self, on_off: str, group_id: str):
         on_time = config["on_time"]
-        off_fime = config["off_time"]
+        off_time = config["off_time"]
         on_hour = datetime.strptime(on_time, "%H:%M").hour
         on_min = datetime.strptime(on_time, "%H:%M").minute
-        off_hour = datetime.strptime(off_fime, "%H:%M").hour
-        off_min = datetime.strptime(off_fime, "%H:%M").minute
+        off_hour = datetime.strptime(off_time, "%H:%M").hour
+        off_min = datetime.strptime(off_time, "%H:%M").minute
         on = on_hour << 8 | on_min
         off = off_hour << 8 | off_min
         if on and off:
@@ -96,14 +96,24 @@ class Time_switcher_tester:
             try:
                 response = self.api_sender.send_api(self.api_sender.screen_timer_machine, data=body, method="post")
                 if response.status_code == 200 and response.json()["code"] == 20:
-                    logging.info(f"定时开关已重新设置为：开：{config['on_time']}-关：{config['off_time']}")
+                    # Clarified log based on seems switchType usage
+                    log_action = "关机" if on_off.upper() == 'OFF' else "开机"
+                    logging.info(f"定时{log_action}已重新设置为：开：{config['on_time']}-关：{config['off_time']}")
                     return True
+                else:
+                    # Log API failure details
+                    logging.error(f"设置定时开关 API 请求失败。状态码: {response.status_code}, 响应: {response.text}")
+                    return False
             except Exception as e:
                 logging.error(f"定时开关请求发生错误：{e}")
                 return False
         else:
-            logging.error("时间格式有误")
-            sys.exit()
+            # This 'else' might be unreachable if strptime fails first
+            logging.error(
+                f"计算出的 on/off 值无效 (on={on}, off={off}) 或时间格式错误 (on_time={on_time}, off_time={off_time})")
+            # Consider not exiting the whole script here, maybe return False
+            # sys.exit() 
+            return False  # Return False instead of exiting
 
     @staticmethod
     def get_groupId_name(api_sender1: Api_sender):
@@ -163,53 +173,63 @@ class Time_switcher_tester:
                     if str(status).upper() != 'ON' and is_retry:
                         logging.error(
                             f"[{self.host}] 测试前，第{enable_times}次设备开启屏幕失败\t屏幕读取的状态为：{status}")
+                else:
                     break
                 if enable_times > break_time:
                     break
             for _ in range(times):
-                current_time_hour = datetime.now().hour + 1  # TODO 设备设置了京东时区，所以要快一小时
-                if current_time_hour > 24:
-                    current_time_hour = current_time_hour - 24
-                current_time_min = datetime.now().minute + 1  # 1分钟后关机
-                time_off = str(current_time_hour) + ":" + str(current_time_min)
-                time_on = str(current_time_hour + wait_time) + ":" + str(current_time_min)
+                now = datetime.now()
+                off_dt = now + timedelta(minutes=1)
+                # (TODO: 增加1小时，设备是京东时区，比主机快一小时，后续设备其他时区需要响应增加)
+                off_dt_adjusted = off_dt + timedelta(hours=1)
+                time_off = off_dt_adjusted.strftime("%H:%M")
+                wait_delta = timedelta(hours=wait_time)
+                on_dt_adjusted = off_dt_adjusted + wait_delta
+                time_on = on_dt_adjusted.strftime("%H:%M")
+
                 config["off_time"] = time_off
                 config["on_time"] = time_on
+
                 result = await self.set_timer_screen_on_off('off', self.selected_id)
                 if result:
-                    # 等待一分钟后检查屏幕是否已关闭
-                    logging.info(f"[{self.host}] 定时关机任务已设置： ({time_off})，等待 {92} 秒...")
-                    await asyncio.sleep(92)  # 使用 asyncio.sleep
+                    # Wait slightly longer than a minute to ensure the off time has passed
+                    off_wait_seconds = 70  # Wait 70 seconds (more than 1 min)
+                    logging.info(f"[{self.host}] 定时关机任务已设置 ({time_off})，等待 {off_wait_seconds} 秒检查状态...")
+                    await asyncio.sleep(off_wait_seconds)
                     screen_status = await self.check_local_screen_status()
-                    print(screen_status)
                     if str(screen_status).upper() != 'OFF':
-                        # 使用 logging 记录错误
                         logging.error(
-                            f"[{self.host}] 第{_ + 1}次测试失败：定时关机时间到达，但屏幕没有关闭 (状态: {screen_status})")
-                        continue  # 记录错误继续下一次测试
-                    else:
-                        print(f"[{self.host}] 定时关机成功。")
-
-                    on_delay = wait_time * 3600  # 定時2小時 (秒)
-                    await asyncio.sleep(on_delay)  # 使用 asyncio.sleep
-                    await asyncio.sleep(70)  # 等待70秒 设备开屏也有延时，近一分钟
-                    screen_status = await self.check_local_screen_status()
-                    if str(screen_status).upper() == 'OFF':
-                        logging.error(
-                            f"[{self.host}] 第{_ + 1}次测试失败：定时关机时间到达，但屏幕没有开启 (状态: {screen_status})")
+                            f"[{self.host}] 第{_ + 1}次测试失败：定时关机时间 ({time_off}) 到达后，屏幕没有关闭 (状态: {screen_status})")
                         continue
                     else:
+                        logging.info(f"[{self.host}] 定时关机 ({time_off}) 成功。屏幕状态: {screen_status}")
+                    time_until_on = on_dt_adjusted - datetime.now()
+                    on_wait_seconds = max(0.0, time_until_on.total_seconds()) + 70.0
+                    logging.info(
+                        f"[{self.host}] 定时开机任务设置 ({time_on})，等待约 {on_wait_seconds: .0f} 秒检查状态...")
+                    await asyncio.sleep(on_wait_seconds)  # asyncio.sleep accepts float
+                    screen_status = await self.check_local_screen_status()
+                    if str(screen_status).upper() != 'ON':
+                        logging.error(
+                            f"[{self.host}] 第{_ + 1}次测试失败：定时开机时间 ({time_on}) 到达后，屏幕没有开启 (状态: {screen_status})")
+                        continue
+                    else:
+                        logging.info(f"[{self.host}] 定时开机 ({time_on}) 成功。屏幕状态: {screen_status}")
                         print(f"[{self.host}] 第 {_ + 1}/{times} 次测试通过。")
                 else:
-                    logging.warning(f"[{self.host}] 第{_ + 1}次测试：定时开关验证失败，跳过本次验证。")
+                    logging.warning(f"[{self.host}] 第{_ + 1}次测试：设置定时关机 ({time_off}) 失败，跳过本次验证。")
 
             print(f"[{self.host}] 所有 {times} 次定时开关测试完成。")
         except Exception as e:
-            logging.error(f"测试设备定时开关时发生异常：{e}")
+            tb_lineno = e.__traceback__.tb_lineno if hasattr(e, '__traceback__') and e.__traceback__ else 'N/A'
+            logging.error(f"测试设备定时开关时发生异常：{e} - Line: {tb_lineno}",
+                          exc_info=True)  # Added exc_info=True for full traceback in logs
         finally:
             # 断开连接
             logging.info(f"{self.host} 断开连接")
-            await self.tn.disconnect()
+            # Ensure self.tn exists before disconnecting
+            if self.tn:
+                await self.tn.disconnect()
 
 
 if __name__ == "__main__":
