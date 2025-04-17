@@ -156,6 +156,7 @@ class Time_switcher_tester:
         try:
             wait_time = 2  # hour #TODO 设置开机和关机之间的时间间隔
             times = 100  # 设置测试定时开关的次数  #TODO 设置测试次数
+            timezone_offset = 1  # TODO 需要根据设备实际时区修改时区偏移量
             # 开始之前先检查屏幕当前的状态，确保屏幕处于开启状态
             enable_times = 0
             break_time = 3
@@ -177,8 +178,8 @@ class Time_switcher_tester:
             for _ in range(times):
                 now = datetime.now()
                 off_dt = now + timedelta(minutes=1)
-                # (TODO: 增加1小时，设备是京东时区，比主机快一小时，后续设备其他时区需要响应增加)
-                off_dt_adjusted = off_dt + timedelta(hours=1)
+                # (增加1小时，设备是京东时区，比主机快一小时，后续设备其他时区需要响应增加)
+                off_dt_adjusted = off_dt + timedelta(hours=timezone_offset)
                 time_off = off_dt_adjusted.strftime("%H:%M")
                 wait_delta = timedelta(hours=wait_time)
                 on_dt_adjusted = off_dt_adjusted + wait_delta
@@ -189,8 +190,7 @@ class Time_switcher_tester:
 
                 result = await self.set_timer_screen_on_off('off', self.selected_id)
                 if result:
-                    # Wait slightly longer than a minute to ensure the off time has passed
-                    off_wait_seconds = 70  # Wait 70 seconds (more than 1 min)
+                    off_wait_seconds = 70  # 等待70s ，其中10s给屏幕反应
                     logging.info(f"[{self.host}] 定时关机任务已设置 ({time_off})，等待 {off_wait_seconds} 秒检查状态...")
                     await asyncio.sleep(off_wait_seconds)
                     screen_status = await self.check_local_screen_status()
@@ -200,7 +200,7 @@ class Time_switcher_tester:
                         continue
                     else:
                         logging.info(f"[{self.host}] 定时关机 ({time_off}) 成功。屏幕状态: {screen_status}")
-                    time_until_on = on_dt_adjusted - datetime.now()
+                    time_until_on = on_dt_adjusted - datetime.now() - timedelta(hours=timezone_offset)  # 移除增加的一小时，主机是不需要加一小时的
                     on_wait_seconds = max(0.0, time_until_on.total_seconds()) + 70.0
                     logging.info(
                         f"[{self.host}] 定时开机任务设置 ({time_on})，等待约 {on_wait_seconds: .0f} 秒检查状态...")
