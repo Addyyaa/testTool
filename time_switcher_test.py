@@ -43,7 +43,6 @@ class Time_switcher_tester:
         await self.tn.send_command(config["password"])
         while True:
             response: str = await self.tn.send_command('cat /tmp/screen_on_off', read_timeout=2)
-            print(response)
             if len(response) <= 0:
                 continue
             else:
@@ -145,8 +144,8 @@ class Time_switcher_tester:
 
     async def verify_timed_switch_function(self):
         try:
-            wait_time = 2
-            times = 100  # 设置测试定时开关的次数
+            wait_time = 2  # hour #TODO 设置开机和关机之间的时间间隔
+            times = 100  # 设置测试定时开关的次数  #TODO 设置测试次数
             # 开始之前先检查屏幕当前的状态，确保屏幕处于开启状态
             current_screen_status = await self.check_local_screen_status()
             if str(current_screen_status).upper() == 'OFF':
@@ -157,6 +156,8 @@ class Time_switcher_tester:
                     logging.error(f"[{self.host}] 测试前设备开启屏幕失败\n屏幕读取的状态为：{status}")
             for _ in range(times):
                 current_time_hour = datetime.now().hour + 1  # TODO 设备设置了京东时区，所以要快一小时
+                if current_time_hour > 24:
+                    current_time_hour = current_time_hour - 24
                 current_time_min = datetime.now().minute + 1  # 1分钟后关机
                 time_off = str(current_time_hour) + ":" + str(current_time_min)
                 time_on = str(current_time_hour + wait_time) + ":" + str(current_time_min)
