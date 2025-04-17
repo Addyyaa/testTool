@@ -159,24 +159,21 @@ class Time_switcher_tester:
             # 开始之前先检查屏幕当前的状态，确保屏幕处于开启状态
             enable_times = 0
             break_time = 3
-            is_retry = False
-            while True:
-                if enable_times > 0:
-                    is_retry = True
-                    logging.error(f"[{self.host}] 测试前，开启屏幕失败，开始重新尝试开启屏幕")
-                current_screen_status = await self.check_local_screen_status()
-                enable_times += 1
-                if str(current_screen_status).upper() == 'OFF':
-                    await self.set_screen_on_off(self.selected_id, 'on')
-                    status = await self.check_local_screen_status()
-                    await asyncio.sleep(2)
-                    if str(status).upper() != 'ON' and is_retry:
-                        logging.error(
-                            f"[{self.host}] 测试前，第{enable_times}次设备开启屏幕失败\t屏幕读取的状态为：{status}")
-                else:
-                    break
-                if enable_times > break_time:
-                    break
+            current_screen_status = await self.check_local_screen_status()
+            enable_times += 1
+            if str(current_screen_status).upper() == 'OFF':
+                while True:
+                    result = await self.set_screen_on_off(selected_id, "on")
+                    if not result:
+                        continue
+                    await asyncio.sleep(3)
+                    current_screen_status = await self.check_local_screen_status()
+                    if str(current_screen_status).upper() == 'ON':
+                        break
+                    else:
+                        logging.error(f"第{enable_times}次尝试开启屏幕失败")
+                    if enable_times >= break_time:
+                        break
             for _ in range(times):
                 now = datetime.now()
                 off_dt = now + timedelta(minutes=1)
