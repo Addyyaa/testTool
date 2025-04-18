@@ -160,7 +160,8 @@ class Telnet_connector:
                         is_unicode_writer = isinstance(self.writer, TelnetWriterUnicode)  # type: ignore[arg-type]
                 # --- End nested check ---
 
-                if self.writer is not None and not self.writer.is_closing():  # Also ensure writer is not None before is_closing()
+                if self.writer is not None and not self.writer.is_closing():   # Also ensure writer is not None
+                    # before is_closing()
                     self.writer.close()
                     # 根據當前 writer 類型決定如何等待關閉
                     if not is_unicode_writer and hasattr(self.writer, 'wait_closed'):
@@ -216,8 +217,6 @@ class Telnet_connector:
                     self.writer = None
                     break
 
-                # 處理接收到的 chunk，統一轉換為字符串
-                chunk_str = ""
                 if isinstance(chunk, bytes):
                     # print("DEBUG: Decoding received bytes chunk.")
                     chunk_str = chunk.decode('utf-8', errors='ignore')
@@ -233,10 +232,11 @@ class Telnet_connector:
 
             except asyncio.TimeoutError:
                 # logging.debug("DEBUG: Read timeout occurred. Finishing read.")
-                if not output: # 检查 output 是否为空
+                if not output:  # 检查 output 是否为空
                     logging.debug("Read timeout occurred before receiving any data.")
                 else:
-                    logging.debug(f"Read timeout occurred after receiving partial data (length={len(output)}). Finishing read.")
+                    logging.debug(f"Read timeout occurred after receiving partial "
+                                  f"data (length={len(output)}).Finishing read.")
                 break
             except ConnectionAbortedError:
                 logging.debug("Connection aborted while reading.")
@@ -255,6 +255,7 @@ class Telnet_connector:
         """向 Telnet 服務器發送命令並讀取響應。
 
         會自動在命令末尾添加 '\r\n'。
+        增加了重連機制，在發生 ConnectionError 時最多重試 2 次。
         該方法會嘗試智能地處理 telnetlib3 的 Unicode 模式和 Bytes 模式：
         1. 首先嘗試以字符串形式發送命令。
         2. 如果失敗並收到 "bytes-like object is required" 錯誤，則回退到
@@ -270,74 +271,106 @@ class Telnet_connector:
             服務器對命令的響應字符串。
 
         Raises:
-            ConnectionError: 如果連接未建立、已關閉，或在發送/讀取過程中發生連接錯誤。
+            ConnectionError: 如果連接未建立、已關閉，或在發送/讀取過程中發生連接錯誤（包括重試失敗後）。
             TypeError: 如果底層 writer 的行為異常，無法處理字符串或字節串。
         """
-        if not self.writer or not self.reader:
-            raise ConnectionError("Not connected. Call connect() first.")
+        max_retries = 2
+        last_exception: Exception | None = None  # 保存最后一次异常
 
-        # Ensure writer is still usable
-        if self.writer.is_closing():
-            raise ConnectionError("Connection is closing.")
+        for attempt in range(max_retries + 1):
+            try:
+                # --- 每次尝试前检查连接状态 ---
+                if not self.writer or not self.reader:
+                    # 如果没有 writer 或 reader，尝试连接（或重连）
+                    logging.warning(f"[Attempt {attempt+1}/{max_retries+1}] Connection not established. Attempting to "
+                                    f"connect...")
+                    await self.disconnect()  # Ensure clean state before connect
+                    await self.connect()  # connect() raises ConnectionError on failure
+                    # 再次检查，如果 connect 成功但 writer/reader 仍是 None (理论上不应发生)
+                    if not self.writer or not self.reader:
+                        raise ConnectionError("Failed to establish connection components after connect().")
 
-        command_str = command + '\r\n'
-        command_bytes = command_str.encode('utf-8', errors='ignore')
+                # Ensure writer is still usable
+                if self.writer.is_closing():
+                    # 如果正在关闭，也视为连接错误，触发重连
+                    raise ConnectionError("Connection is closing.")
 
-        # logging.debug(f"DEBUG: Prepared str: {command_str!r}, bytes: {command_bytes!r}")
+                # --- 准备命令 ---
+                command_str = command + '\r\n'
+                command_bytes = command_str.encode('utf-8', errors='ignore')
+                write_attempted_type = "string"  # 重置尝试类型
 
-        try:
-            write_attempted_type = "string"
-            # --- Primary attempt: Send string ---
-            logging.debug(f"Attempting to send command as string: {command_str!r}")
-            self.writer.write(command_str)  # type: ignore # Tolerate str for telnetlib3 unicode mode
-
-        except TypeError as te:
-            error_msg = str(te).lower()
-            logging.debug(f"TypeError sending string: {te}")
-
-            if "bytes-like object is required" in error_msg:
-                # --- Fallback: Send bytes ---
-                logging.debug(f"String write failed, retrying with bytes: {command_bytes!r}")
+                # --- 发送命令 (包含原有 str/bytes 尝试逻辑) ---
                 try:
-                    write_attempted_type = "bytes (retry)"
-                    self.writer.write(command_bytes)
-                except Exception as retry_e:
-                    # Catch potential errors during the retry itself
-                    logging.debug(f"!!! Error during byte retry write: {retry_e}")
-                    await self.disconnect()
-                    raise ConnectionError(f"Failed to send command on retry: {retry_e}") from retry_e
-            elif "encoding without a string argument" in error_msg:
-                # This is unexpected when sending a string first
-                logging.debug("!!! Unexpected 'encoding' error when sending string. Telnetlib3 behavior unclear.")
-                await self.disconnect()
-                raise ConnectionError(f"Unexpected encoding error sending string: {te}") from te
-            else:
-                # Unknown TypeError
-                logging.debug(f"!!! Unknown TypeError during string write: {te}")
-                await self.disconnect()
-                raise ConnectionError(f"Unknown TypeError sending command: {te}") from te
+                    logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] "
+                                  f"Attempting to send command as string: {command_str!r}")
+                    self.writer.write(command_str)  # type: ignore
 
-        # --- If write succeeded (either string initially or bytes on retry) ---
-        try:
-            logging.debug(f"Write ({write_attempted_type}) successful, draining buffer...")
-            await self.writer.drain()
-            logging.debug("Command sent, reading response...")
-            response = await self.read_until_timeout(read_timeout)
-            return response
-        except ConnectionError as ce:
-            logging.debug(f"Connection error after successful write: {ce}")
-            raise  # Re-raise connection errors (e.g., from read_until_timeout)
-        except Exception as drain_read_e:
-            logging.debug(f"Error during drain/read after write: {drain_read_e}")
-            await self.disconnect()
-            raise ConnectionError(f"Failed after sending command: {drain_read_e}") from drain_read_e
+                except TypeError as te:
+                    error_msg = str(te).lower()
+                    logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] TypeError sending string: {te}")
+                    if "bytes-like object is required" in error_msg:
+                        logging.debug(f"[Attempt {attempt+1}/{max_retries+1}]"
+                                      f" String write failed, retrying with bytes: {command_bytes!r}")
+                        try:
+                            write_attempted_type = "bytes (retry)"
+                            self.writer.write(command_bytes)
+                        except Exception as retry_e:
+                            logging.debug(f"[Attempt {attempt+1}/{max_retries+1}]"
+                                          f" Error during byte retry write: {retry_e}")
+                            last_exception = ConnectionError(f"Failed to send command on byte retry: {retry_e}")
+                            raise last_exception  # 触发外层 ConnectionError 处理
+                    # Keep other TypeError handling as before, re-raising them
+                    elif "encoding without a string argument" in error_msg:
+                        logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Unexpected 'encoding' error when "
+                                      f"sending string.")
+                        # Raise the original TypeError, do not retry connection for this
+                        raise ConnectionError(f"Unexpected encoding error sending string: {te}") from te
+                    else:
+                        logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Unknown TypeError during string write.")
+                        raise ConnectionError(f"Unknown TypeError sending command: {te}") from te
+
+                # --- Drain and Read ---
+                logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Write ({write_attempted_type}) successful, "
+                              f"draining buffer...")
+                await self.writer.drain()  # May raise ConnectionError
+                logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Command sent, reading response...")
+                response = await self.read_until_timeout(read_timeout)  # May raise ConnectionError
+
+                # --- Success ---
+                logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Command executed successfully.")
+                return response  # 成功，退出循环并返回结果
+
+            except ConnectionError as ce:
+                last_exception = ce  # 保存当前异常
+                logging.warning(f"[Attempt {attempt+1}/{max_retries+1}] ConnectionError occurred: {ce}")
+                if attempt < max_retries:
+                    logging.info(f"Retrying command send ({attempt+1}/{max_retries} retries left)...")
+                    await self.disconnect()  # Disconnect before retrying connection
+                    # Add a small delay before reconnecting
+                    await asyncio.sleep(1.0 + attempt)  # Increasing delay
+                    # connect() is called at the start of the next loop iteration
+                    continue  # 继续下一次循环尝试
+                else:
+                    logging.error(f"Command send failed after {max_retries} retries due to ConnectionError.")
+                    raise last_exception  # 重试次数用尽，抛出最后一次的 ConnectionError
+            except Exception as e:
+                logging.error(f"[Attempt {attempt+1}/{max_retries+1}] "
+                              f"Unexpected error during send_command: {e}", exc_info=True)
+                # For unexpected errors, don't retry, just raise
+                raise ConnectionError(f"Unexpected error during command send: {e}") from e
+
+        # 这部分理论上不应该执行到，因为要么成功返回，要么抛出异常
+        # 但为了代码完整性，如果循环结束还没有返回或抛出异常，则抛出错误
+        raise ConnectionError(f"Command send failed unexpectedly after {max_retries + 1} attempts. Last known error: "
+                              f"{last_exception}")
 
     # 上下文管理器支持自動連接/斷開
     async def __aenter__(self):
-        """異步上下文管理器的進入方法，建立連接。"""
+        """异步上下文管理器的进入方法，建立连接。"""
         await self.connect()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """异步上下文管理器的退出方法，斷開連接。"""
+        """异步上下文管理器的退出方法，断开连接。"""
         await self.disconnect()

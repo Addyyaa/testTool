@@ -154,7 +154,7 @@ class Time_switcher_tester:
 
     async def verify_timed_switch_function(self):
         try:
-            wait_time = 2  # hour #TODO 设置开机和关机之间的时间间隔
+            wait_time = 0.05  # hour #TODO 设置开机和关机之间的时间间隔
             times = 100  # 设置测试定时开关的次数  #TODO 设置测试次数
             timezone_offset = 1  # TODO 需要根据设备实际时区修改时区偏移量
             # 开始之前先检查屏幕当前的状态，确保屏幕处于开启状态
@@ -178,11 +178,12 @@ class Time_switcher_tester:
             for _ in range(times):
                 now = datetime.now()
                 off_dt = now + timedelta(minutes=1)
+                wait_for_off = off_dt + timedelta(minutes=1)  # 不加上时区，是用来本地主机等待的时间
                 # (增加1小时，设备是京东时区，比主机快一小时，后续设备其他时区需要响应增加)
                 off_dt_adjusted = off_dt + timedelta(hours=timezone_offset)
-                time_off = off_dt_adjusted.strftime("%H:%M")
-                wait_delta = timedelta(hours=wait_time)
-                on_dt_adjusted = off_dt_adjusted + wait_delta
+                time_off = off_dt_adjusted.strftime("%H:%M")  # 关机时间（未加等待到开机时间的时间差）已经加上了时区偏移量
+                wait_delta = timedelta(hours=wait_time)  # 开机时间需要等待的时间
+                on_dt_adjusted = off_dt_adjusted + wait_delta  # 开机时间
                 time_on = on_dt_adjusted.strftime("%H:%M")
 
                 config["off_time"] = time_off
@@ -190,7 +191,7 @@ class Time_switcher_tester:
 
                 result = await self.set_timer_screen_on_off('off', self.selected_id)
                 if result:
-                    off_wait_seconds = 70  # 等待70s ，其中10s给屏幕反应
+                    off_wait_seconds = (wait_for_off - datetime.now()).total_seconds()  # 等待70s ，其中10s给屏幕反应
                     logging.info(f"[{self.host}] 定时关机任务已设置 ({time_off})，等待 {off_wait_seconds} 秒检查状态...")
                     await asyncio.sleep(off_wait_seconds)
                     screen_status = await self.check_local_screen_status()
