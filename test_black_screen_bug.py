@@ -90,6 +90,8 @@ class Black_bug_tester:
                     if len(lines) > 1:
                         cmd_response_matches = lines[0]  # 有的时候会存在把命令也列出来的情况，导致匹配不上
                     break
+                # 清空缓冲区
+                await self.tn.reader.read(-1)
         return cmd_response_matches, lines
 
     async def check_screen_backlight(self):
@@ -107,7 +109,7 @@ class Black_bug_tester:
             sys.exit()  # TODO 移除
             return False
 
-    async def screen_checker(self, test_count: int = 100, delay: int = 2):
+    async def screen_checker(self, test_count: int = 10000, delay: int = 2):
         has_circled = 0
         while True:
             if has_circled >= test_count:
@@ -136,7 +138,7 @@ class Black_bug_tester:
                 logging.error(f"{self.host}-第{has_circled + 1}检测失败！屏幕真实状态：{screen_real_status}")
                 sys.exit()  # TODO 移除
             has_circled += 1
-            logging.info(f"第{has_circled}次测试通过")
+            logging.info(f"{self.host}-第{has_circled}次测试通过")
 
     @staticmethod
     def get_groupId_name(api_sender1: Api_sender):
