@@ -1,0 +1,7 @@
+2025-04-30 17:47:47,138 - INFO - 198 - <module> - ========== 程序启动 ==========
+2025-04-30 17:47:47,143 - DEBUG - 244 - _new_conn - Starting new HTTP connection (1): 127.0.0.1:7897
+2025-04-30 17:47:47,190 - DEBUG - 549 - _make_request - http://127.0.0.1:7897 "POST http://139.224.192.36:8082/api/v1/account/login HTTP/1.1" 200 None
+2025-04-30 17:47:47,192 - DEBUG - 244 - _new_conn - Starting new HTTP connection (1): 127.0.0.1:7897
+2025-04-30 17:47:47,405 - DEBUG - 549 - _make_request - http://127.0.0.1:7897 "GET http://139.224.192.36:8082/api/v1/host/screen/group/device/list HTTP/1.1" 200 None
+2025-04-30 17:48:24,505 - INFO - 198 - <module> - ========== 程序启动 ==========
+2025-04-30 17:48:26,287 - INFO - 54 - screen_on - 192.168.1.14-已下发屏幕开关指令：ON

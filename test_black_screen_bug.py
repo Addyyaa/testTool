@@ -82,22 +82,28 @@ class Black_bug_tester:
                 if len(lines) <= 0:
                     pattern = fr'\b({expected_result1}|{expected_result2})\b'
                     match = re.search(pattern, response, re.IGNORECASE)
+                    lines = match
                     if match:
                         cmd_response_matches = match.group()
                         break
                 else:
+                    if len(lines) > 1:
+                        cmd_response_matches = lines[0]  # 有的时候会存在把命令也列出来的情况，导致匹配不上
                     break
         return cmd_response_matches, lines
 
     async def check_screen_backlight(self):
         result1, lines1 = await self.cmd_sender_strict_check('cat /sys/class/gpio/gpio5/value', '1', '0')
         result2, lines2 = await self.cmd_sender_strict_check('cat /sys/class/gpio/gpio69/value', '1', '0')
-        if result1 == '1' and result2 == '0':
+        result1 = result1.strip()
+        result2 = result2.strip()
+        if str(result1) == '1' and str(result2) == '0':
             return 'OFF'
-        elif result1 == '0' and result2 == '1':
+        elif str(result1) == '0' and str(result2) == '1':
             return 'ON'
         else:
             logging.error(f"{self.host}屏幕背光状态检测失败\t-\tGPIO5状态：{result1}\tGPIO69状态：{result2}\tlines{lines1}\t{lines2}")
+            print(f"result1: {result1}\nresult2: {result2}\nlines1: {lines1}\nlines2: {lines2}")
             sys.exit()  # TODO 移除
             return False
 
@@ -110,22 +116,25 @@ class Black_bug_tester:
             time.sleep(delay)
             screen_real_status = await self.check_screen_backlight()
             if not screen_real_status:
-                logging.error(f"第{has_circled + 1}次测试失败！")
+                logging.error(f"{self.host}-第{has_circled + 1}次测试失败！")
+                sys.exit()  # TODO 移除
                 continue
             if screen_real_status.upper() == 'ON':
                 logging.info("检测通过！")
             else:
-                logging.error(f"第{has_circled + 1}检测失败！屏幕真实状态：{screen_real_status}")
+                logging.error(f"{self.host}-第{has_circled + 1}检测失败！屏幕真实状态：{screen_real_status}")
             self.screen_off()
             time.sleep(delay)
             screen_real_status = await self.check_screen_backlight()
             if not screen_real_status:
-                logging.error(f"第{has_circled + 1}次测试失败！")
+                logging.error(f"{self.host}-第{has_circled + 1}次测试失败！")
+                sys.exit()  # TODO 移除
                 continue
             if screen_real_status.upper() == 'OFF':
                 logging.info("检测通过！")
             else:
-                logging.error(f"第{has_circled + 1}检测失败！屏幕真实状态：{screen_real_status}")
+                logging.error(f"{self.host}-第{has_circled + 1}检测失败！屏幕真实状态：{screen_real_status}")
+                sys.exit()  # TODO 移除
             has_circled += 1
             logging.info(f"第{has_circled}次测试通过")
 
@@ -168,7 +177,25 @@ class Black_bug_tester:
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(lineno)d - %(funcName)s - %(message)s')
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    # 创建格式器
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(lineno)d - %(funcName)s - %(message)s')
+    # 文件处理器（'a' 表示追加模式）
+    file_handler = logging.FileHandler('black_screen_test.log', mode='a', encoding='utf-8')
+    file_handler.setFormatter(formatter)
+    file_handler.setLevel(logging.DEBUG)
+    # 控制台处理器（可选）
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    console_handler.setLevel(logging.DEBUG)
+
+    # 添加 handler 到 logger
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+
+    # 主程序逻辑
+    logging.info("========== 程序启动 ==========")
     hosts = ['192.168.1.14', '192.168.1.12', '192.168.1.13', '192.168.1.10']
     account = 'test2@tester.com'
     password = 'sf123123'
