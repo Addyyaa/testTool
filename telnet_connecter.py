@@ -65,11 +65,12 @@ class Telnet_connector:
         is_unicode_mode (bool): 標識當前連接是否處於 Unicode 模式（由 telnetlib3 協商）。
     """
 
-    def __init__(self, host: str):
+    def __init__(self, host: str, port=23):
         """初始化 Telnet_connector。
 
         Args:
             host: 目標 Telnet 服務器的主機名或 IP 地址。
+            port: 目標 Telnet 服務器的端口號，默認為 23。
 
         Raises:
             ValueError: 如果提供的 host 不是有效的 IP 地址或主機名。
@@ -77,12 +78,14 @@ class Telnet_connector:
         if not ip_address_validator(host):
             raise ValueError("Invalid host")
         self.host = host
+        self.port = port
         self.reader: asyncio.StreamReader | None = None
         self.writer: asyncio.StreamWriter | None = None
         self.is_unicode_mode = False  # 添加標誌
+        self.shell = None  # 如果需要的话
         print(f"Telnet_connector initialized for host: {self.host}")
 
-    async def connect(self):
+    async def connect(self, timeout=30):
         """建立到目標主機的 Telnet 連接。
 
         如果已存在連接，則此方法不執行任何操作。
@@ -98,10 +101,9 @@ class Telnet_connector:
             return
         print(f"Connecting to {self.host}...")
         try:
-            # 設置連接超時，由 asyncio.wait_for 控制
             self.reader, self.writer = await asyncio.wait_for(
-                telnetlib3.open_connection(self.host),
-                timeout=6.0  # 超時
+                telnetlib3.open_connection(self.host, self.port, shell=self.shell),
+                timeout=timeout
             )
             print(f"Successfully connected to {self.host}.")
             # 檢查 writer 類型以確定是否為 Unicode 模式
@@ -255,7 +257,7 @@ class Telnet_connector:
         """向 Telnet 服務器發送命令並讀取響應。
 
         會自動在命令末尾添加 '\r\n'。
-        增加了重連機制，在發生 ConnectionError 時最多重試 2 次。
+        增加了重連機制，在發生特定類型的 ConnectionError 時最多重試 2 次。
         該方法會嘗試智能地處理 telnetlib3 的 Unicode 模式和 Bytes 模式：
         1. 首先嘗試以字符串形式發送命令。
         2. 如果失敗並收到 "bytes-like object is required" 錯誤，則回退到
@@ -276,24 +278,28 @@ class Telnet_connector:
         """
         max_retries = 2
         last_exception: Exception | None = None  # 保存最后一次异常
+        base_retry_delay = 1.0  # 基础重试延迟（秒）
+        retry_delay_multiplier = 2.0  # 指数退避倍数
 
         for attempt in range(max_retries + 1):
             try:
                 # --- 每次尝试前检查连接状态 ---
-                if not self.writer or not self.reader:
-                    # 如果没有 writer 或 reader，尝试连接（或重连）
-                    logging.warning(f"[Attempt {attempt+1}/{max_retries+1}] Connection not established. Attempting to "
-                                    f"connect...")
-                    await self.disconnect()  # Ensure clean state before connect
+                if not self.writer or not self.reader or self.writer.is_closing():
+                    # 如果没有 writer 或 reader，或者 writer 正在关闭，尝试连接（或重连）
+                    logging.warning(f"[Attempt {attempt+1}/{max_retries+1}] Connection not established or closing. "
+                                    f"Attempting to connect... (writer: {bool(self.writer)}, reader: {bool(self.reader)}, "
+                                    f"closing: {self.writer.is_closing() if self.writer else 'N/A'})")
+                    # 只有在 writer 存在且未关闭时才尝试优雅断开
+                    if self.writer and not self.writer.is_closing():
+                        await self.disconnect()  # 清理现有连接
                     await self.connect()  # connect() raises ConnectionError on failure
                     # 再次检查，如果 connect 成功但 writer/reader 仍是 None (理论上不应发生)
                     if not self.writer or not self.reader:
                         raise ConnectionError("Failed to establish connection components after connect().")
-
-                # Ensure writer is still usable
-                if self.writer.is_closing():
-                    # 如果正在关闭，也视为连接错误，触发重连
-                    raise ConnectionError("Connection is closing.")
+                    # 连接成功后，尝试读取初始数据以验证连接有效性
+                    logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Connection established, validating with initial read...")
+                    initial_response = await self.read_until_timeout(read_timeout=0.5)
+                    logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Initial read result (length={len(initial_response)}): {initial_response[:50]!r}...")
 
                 # --- 准备命令 ---
                 command_str = command + '\r\n'
@@ -337,22 +343,34 @@ class Telnet_connector:
                 logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Command sent, reading response...")
                 response = await self.read_until_timeout(read_timeout)  # May raise ConnectionError
 
+                # --- 检查响应是否为空且连接已断开 ---
+                if not response and (not self.reader or not self.writer or self.writer.is_closing()):
+                    logging.warning(f"[Attempt {attempt+1}/{max_retries+1}] Empty response received and connection appears broken. Treating as connection error.")
+                    raise ConnectionError("Empty response with broken connection detected.")
+
                 # --- Success ---
-                logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Command executed successfully.")
+                logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Command executed successfully. Response length: {len(response)}")
                 return response  # 成功，退出循环并返回结果
 
             except ConnectionError as ce:
                 last_exception = ce  # 保存当前异常
                 logging.warning(f"[Attempt {attempt+1}/{max_retries+1}] ConnectionError occurred: {ce}")
                 if attempt < max_retries:
-                    logging.info(f"Retrying command send ({attempt+1}/{max_retries} retries left)...")
-                    await self.disconnect()  # Disconnect before retrying connection
-                    # Add a small delay before reconnecting
-                    await asyncio.sleep(1.0 + attempt)  # Increasing delay
+                    # 检查是否为可重试的错误类型
+                    error_str = str(ce).lower()
+                    is_retryable = any(keyword in error_str for keyword in ["timeout", "aborted", "broken", "closing", "not connected"])
+                    if not is_retryable:
+                        logging.error(f"[Attempt {attempt+1}/{max_retries+1}] Non-retryable ConnectionError: {ce}. Aborting retries.")
+                        raise ce  # 非可重试错误，直接抛出
+                    logging.info(f"Retrying command send ({max_retries - attempt}/{max_retries} retries left)...")
+                    # 指数退避延迟
+                    retry_delay = base_retry_delay * (retry_delay_multiplier ** attempt)
+                    logging.info(f"Waiting {retry_delay:.1f} seconds before retry...")
+                    await asyncio.sleep(retry_delay)
                     # connect() is called at the start of the next loop iteration
                     continue  # 继续下一次循环尝试
                 else:
-                    logging.error(f"Command send failed after {max_retries} retries due to ConnectionError.")
+                    logging.error(f"Command send failed after {max_retries} retries due to ConnectionError: {ce}")
                     raise last_exception  # 重试次数用尽，抛出最后一次的 ConnectionError
             except Exception as e:
                 logging.error(f"[Attempt {attempt+1}/{max_retries+1}] "

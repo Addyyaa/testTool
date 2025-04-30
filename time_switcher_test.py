@@ -57,7 +57,7 @@ class Time_switcher_tester:
         return screen_status
 
     async def tn_initialize(self):
-        self.tn = Telnet_connector(self.host)
+        self.tn = Telnet_connector(self.host, port=23)
         await self.tn.connect()
 
     async def set_screen_on_off(self, group_id: str, on_off: str):
@@ -154,8 +154,8 @@ class Time_switcher_tester:
 
     async def verify_timed_switch_function(self):
         try:
-            wait_time = 0.05  # hour #TODO 设置开机和关机之间的时间间隔
-            times = 100  # 设置测试定时开关的次数  #TODO 设置测试次数
+            wait_time = 0.17  # hour #TODO 设置开机和关机之间的时间间隔
+            times = 1000  # 设置测试定时开关的次数  #TODO 设置测试次数
             timezone_offset = 1  # TODO 需要根据设备实际时区修改时区偏移量
             # 开始之前先检查屏幕当前的状态，确保屏幕处于开启状态
             enable_times = 0
