@@ -61,6 +61,8 @@ class Black_bug_tester:
         pass
 
     async def cmd_sender_strict_check(self, cmd: str, expected_result1: str, expected_result2: str = None):
+        cmd_response_matches = None
+        lines = None
         if self.tn is None:
             print(f"[{self.host}] Telnet未进行初始化，开始初始化...")
             await self.tn_initialize()
@@ -75,18 +77,16 @@ class Black_bug_tester:
             elif 'ya!2dkwy7-934' in response:
                 continue
             else:
-                break
-        lines = response.split('\n')[1:-2]
-        cmd_response_matches = '\n'.join(lines).strip().replace(' ', '')
-        while True:
-            if len(lines) <= 0:
-                pattern = fr'\b({expected_result1}|{expected_result2})\b'
-                match = re.search(pattern, response, re.IGNORECASE)
-                if match:
-                    cmd_response_matches = match.group()
+                lines = response.split('\n')[1:-2]
+                cmd_response_matches = '\n'.join(lines).strip().replace(' ', '')
+                if len(lines) <= 0:
+                    pattern = fr'\b({expected_result1}|{expected_result2})\b'
+                    match = re.search(pattern, response, re.IGNORECASE)
+                    if match:
+                        cmd_response_matches = match.group()
+                        break
+                else:
                     break
-            else:
-                break
         return cmd_response_matches, lines
 
     async def check_screen_backlight(self):
