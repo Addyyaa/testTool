@@ -37,7 +37,7 @@ class Black_bug_tester:
         response = self.api_sender.send_api(self.api_sender.screen_switch, body)
         if response.status_code == 200:
             if response.json()["code"] == 20:
-                logging.info("已下发屏幕开关指令：OFF")
+                logging.info(f"{self.host}-已下发屏幕开关指令：OFF")
             else:
                 logging.error(response.text)
         else:
@@ -51,7 +51,7 @@ class Black_bug_tester:
         response = self.api_sender.send_api(self.api_sender.screen_switch, body)
         if response.status_code == 200:
             if response.json()["code"] == 20:
-                logging.info("已下发屏幕开关指令：ON")
+                logging.info(f"{self.host}-已下发屏幕开关指令：ON")
             else:
                 logging.error(response.text)
         else:
@@ -72,29 +72,36 @@ class Black_bug_tester:
             response: str = await self.tn.send_command(cmd, read_timeout=2)
             if len(response) <= 0:
                 continue
+            elif 'ya!2dkwy7-934' in response:
+                continue
             else:
                 break
         lines = response.split('\n')[1:-2]
         cmd_response_matches = '\n'.join(lines).strip().replace(' ', '')
-        if len(lines) <= 0:
-            pattern = fr'\b({expected_result1}|{expected_result2})\b'
-            match = re.search(pattern, response, re.IGNORECASE)
-            if match:
-                cmd_response_matches = match.group()
-        return cmd_response_matches
+        while True:
+            if len(lines) <= 0:
+                pattern = fr'\b({expected_result1}|{expected_result2})\b'
+                match = re.search(pattern, response, re.IGNORECASE)
+                if match:
+                    cmd_response_matches = match.group()
+                    break
+            else:
+                break
+        return cmd_response_matches, lines
 
     async def check_screen_backlight(self):
-        result1 = await self.cmd_sender_strict_check('cat /sys/class/gpio/gpio5/value', '1', '0')
-        result2 = await self.cmd_sender_strict_check('cat /sys/class/gpio/gpio69/value', '1', '0')
+        result1, lines1 = await self.cmd_sender_strict_check('cat /sys/class/gpio/gpio5/value', '1', '0')
+        result2, lines2 = await self.cmd_sender_strict_check('cat /sys/class/gpio/gpio69/value', '1', '0')
         if result1 == '1' and result2 == '0':
             return 'OFF'
         elif result1 == '0' and result2 == '1':
             return 'ON'
         else:
-            logging.error(f"屏幕背光状态检测失败\t-\tGPIO5状态：{result1}\tGPIO69状态：{result2}")
+            logging.error(f"{self.host}屏幕背光状态检测失败\t-\tGPIO5状态：{result1}\tGPIO69状态：{result2}\tlines{lines1}\t{lines2}")
+            sys.exit()  # TODO 移除
             return False
 
-    async def screen_checker(self, test_count: int = 100, delay: int = 5):
+    async def screen_checker(self, test_count: int = 100, delay: int = 2):
         has_circled = 0
         while True:
             if has_circled >= test_count:
