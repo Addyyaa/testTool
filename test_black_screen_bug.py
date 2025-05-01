@@ -92,24 +92,33 @@ class Black_bug_tester:
                     break
                 # 清空缓冲区
                 await self.tn.reader.read(-1)
-        return cmd_response_matches, lines
+        return cmd_response_matches, lines, response
 
     async def check_screen_backlight(self):
-        result1, lines1 = await self.cmd_sender_strict_check('cat /sys/class/gpio/gpio5/value', '1', '0')
-        result2, lines2 = await self.cmd_sender_strict_check('cat /sys/class/gpio/gpio69/value', '1', '0')
-        result1 = result1.strip()
-        result2 = result2.strip()
-        if str(result1) == '1' and str(result2) == '0':
-            return 'OFF'
-        elif str(result1) == '0' and str(result2) == '1':
-            return 'ON'
-        else:
-            logging.error(f"{self.host}屏幕背光状态检测失败\t-\tGPIO5状态：{result1}\tGPIO69状态：{result2}\tlines{lines1}\t{lines2}")
-            print(f"result1: {result1}\nresult2: {result2}\nlines1: {lines1}\nlines2: {lines2}")
-            sys.exit()  # TODO 移除
-            return False
+        retry_times = 2
+        current_time = 0
+        while True:  # 使用循环解决当两个gpio出现值相等的情况时，重新查询（这种情况大概率是检测太快了，两个gpio值还在变动）
+            result1, lines1, response1 = await self.cmd_sender_strict_check('cat /sys/class/gpio/gpio5/value', '1', '0')
+            result2, lines2, response2 = await self.cmd_sender_strict_check('cat /sys/class/gpio/gpio69/value', '1',
+                                                                            '0')
+            result1 = result1.strip()
+            result2 = result2.strip()
+            if str(result1) == '1' and str(result2) == '0':
+                return 'OFF'
+            elif str(result1) == '0' and str(result2) == '1':
+                return 'ON'
+            else:
+                if current_time <= retry_times:
+                    continue
+                else:
+                    logging.error(
+                        f"{self.host}屏幕背光状态检测失败\t-\tGPIO5状态：{result1}\tGPIO69状态：{result2}\tlines{lines1}\t{lines2}")
+                    print(f"result1: {result1}\nresult2: {result2}\nlines1: {lines1}\nlines2: {lines2}")
+                    print(f"response1: {response1}\nresponse2: {response2}")
+                    sys.exit()  # TODO 移除
+                    return False
 
-    async def screen_checker(self, test_count: int = 10000, delay: int = 2):
+    async def screen_checker(self, test_count: int = 10000, delay: int = 2.5):
         has_circled = 0
         while True:
             if has_circled >= test_count:
