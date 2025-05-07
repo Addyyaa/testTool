@@ -65,12 +65,14 @@ class Telnet_connector:
         is_unicode_mode (bool): 標識當前連接是否處於 Unicode 模式（由 telnetlib3 協商）。
     """
 
-    def __init__(self, host: str, port=23):
+    def __init__(self, host: str, port=23, username=None, password=None):
         """初始化 Telnet_connector。
 
         Args:
             host: 目標 Telnet 服務器的主機名或 IP 地址。
             port: 目標 Telnet 服務器的端口號，默認為 23。
+            username: 登錄用戶名，如果需要。
+            password: 登錄密碼，如果需要。
 
         Raises:
             ValueError: 如果提供的 host 不是有效的 IP 地址或主機名。
@@ -83,6 +85,8 @@ class Telnet_connector:
         self.writer: asyncio.StreamWriter | None = None
         self.is_unicode_mode = False  # 添加標誌
         self.shell = None  # 如果需要的话
+        self.username = username
+        self.password = password
         print(f"Telnet_connector initialized for host: {self.host}")
 
     async def connect(self, timeout=30):
@@ -125,6 +129,8 @@ class Telnet_connector:
                 logging.debug("Writer is None, connection likely failed earlier.")
                 self.is_unicode_mode = False  # 設置為 False 以防萬一
 
+            # 自动登录
+            await self._auto_login()
             # 可選：如果需要，讀取初始橫幅/提示
             # initial_output = await self.read_until_timeout()
             # print(f"Initial output:\n{initial_output}")
@@ -143,6 +149,21 @@ class Telnet_connector:
             self.reader = None
             self.writer = None
             raise ConnectionError(f"Failed to connect: {e}") from e
+
+    async def _auto_login(self):
+        """自动检测登录提示并输入用户名和密码"""
+        if not self.username or not self.password:
+            return  # 未设置用户名密码则跳过
+        # 读取初始输出，查找 login/username/password 提示
+        output = await self.read_until_timeout(2)
+        if any(x in output.lower() for x in ["login:", "username:"]):
+            self.writer.write(self.username + "\r\n")
+            await self.writer.drain()
+            output = await self.read_until_timeout(2)
+        if "password:" in output.lower():
+            self.writer.write(self.password + "\r\n")
+            await self.writer.drain()
+            await asyncio.sleep(1)  # 等待登录完成
 
     async def disconnect(self):
         """關閉當前的 Telnet 連接。
