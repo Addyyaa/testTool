@@ -9,7 +9,7 @@ config = {
     "user": "root",
     "password": "ya!2dkwy7-934^",
     "ota_wait_time": 60,  # 升级所需要的时间，单位秒
-    "hosts": ['192.168.1.3'],
+    "hosts": ['192.168.1.3', '192.168.1.5'],
     "test_times": 3
 }
 
@@ -32,9 +32,9 @@ class OTA_test:
         await asyncio.sleep(config["ota_wait_time"])  # 等待升级重启后检查版本号
         has_sucess_ota = await self.check_ota_status(screen_lastest_version_map1)
         if has_sucess_ota:
-            logging.info("升级成功")
+            logging.info(f"{self.host}：升级成功")
         else:
-            logging.error("升级失败")
+            logging.error(f"{self.host}：升级失败")
 
     async def connect_to_device(self):
         self.tn = Telnet_connector(self.host, port=23)
@@ -89,11 +89,11 @@ class OTA_test:
                                 continue
             except ConnectionError as e:
                 if _ < retry_time - 1:
-                    logging.warning(f"连接失败: {e}，等待30秒后重试...")
+                    logging.warning(f"{self.host}：连接失败: {e}，等待30秒后重试...")
                     await asyncio.sleep(30)
                     break
                 else:
-                    logging.error(f"重新连接到设备失败: {e}")
+                    logging.error(f"{self.host}：重新连接到设备失败: {e}")
             return cmd_response_matches
 
     @staticmethod
@@ -193,7 +193,7 @@ class OTA_test:
             current_times = 0
             while True:
                 if current_times >= retry_times:
-                    logging.error("获取本地版本失败")
+                    logging.error(f"{self.host}：获取本地版本失败")
                     sys.exit()
                 current_times += 1
                 local_version = await self.cmd_sender("cat /software/version.ini", "any")
@@ -203,7 +203,7 @@ class OTA_test:
                     break
             print(f"本地版本：{local_version}")
             local_version = local_version.split('=')[1].strip()
-            logging.info(f"本地版本：{local_version}")
+            logging.info(f"{self.host}：本地版本：{local_version}")
         except Exception as e:
             logging.error(e)
             sys.exit()
@@ -212,41 +212,41 @@ class OTA_test:
     async def get_screenId_from_host(self):
         screenId = await self.cmd_sender("cat customer/screenId.ini", "deviceId")
         screenId = screenId.split('=')[1].strip()
-        logging.info(f"屏幕ID：{screenId}")
+        logging.info(f"{self.host}：屏幕ID：{screenId}")
         return screenId
 
     async def restore_factory_settings(self):
         await self.cmd_sender("/software/script/restore_factory_settings.sh", "any")
-        logging.info("已执行恢复出厂设置命令，等待设备重启...")
+        logging.info(f"{self.host}：已执行恢复出厂设置命令，等待设备重启...")
         await asyncio.sleep(100)  # 增加等待时间至120秒
 
         # 添加重试机制
         max_retries = 3
         for retry in range(max_retries):
             try:
-                logging.info(f"尝试重新连接设备，第{retry + 1}次尝试...")
+                logging.info(f"{self.host}：尝试重新连接设备，第{retry + 1}次尝试...")
                 await self.connect_to_device()
-                logging.info("重新连接成功！")
+                logging.info(f"{self.host}：重新连接成功！")
                 break
             except ConnectionError as e:
                 if retry < max_retries - 1:
-                    logging.warning(f"连接失败: {e}，等待30秒后重试...")
+                    logging.warning(f"{self.host}：连接失败: {e}，等待30秒后重试...")
                     await asyncio.sleep(30)
                 else:
-                    logging.error(f"恢复出厂设置后无法重新连接到设备: {e}")
+                    logging.error(f"{self.host}：恢复出厂设置后无法重新连接到设备: {e}")
                     # 不抛出异常，让程序继续执行完成
 
 
 if __name__ == "__main__":
-    account = input("请输入账号: ")
-    password = input("请输入密码: ")
-    # account = 'test2@tester.com'
-    # password = 'sf123123'
+    # account = input("请输入账号: ")
+    # password = input("请输入密码: ")
+    account = 'test2@tester.com'
+    password = 'sf123123'
     api_sender = Api_sender(account, password)
     # 显示菜单
     selected_screens, screen_lastest_version_map = OTA_test.send_ota_request()
     if len(selected_screens[0]['ids']) != len(config['hosts']):
-        logging.error("选择的设备数量与主机host数量不匹配")
+        logging.error(f"选择的设备数量与主机host数量不匹配")
         sys.exit()
     
     async def main():
@@ -256,11 +256,19 @@ if __name__ == "__main__":
         
         for test_round in range(test_times):
             logging.info(f"开始执行第 {test_round + 1} 轮测试")
-            for host in config['hosts']:
-                ota_test = OTA_test(host, api_sender)
-                await ota_test.initialize()
-                await ota_test.test(screen_lastest_version_map)
-                await ota_test.restore_factory_settings()
+            # 创建所有设备的测试任务，实现并行测试
+            async def test_device(host):
+                try:
+                    ota_test = OTA_test(host, api_sender)
+                    await ota_test.initialize()
+                    await ota_test.test(screen_lastest_version_map)
+                    await ota_test.restore_factory_settings()
+                except Exception as e:
+                    logging.error(f"{host}：测试过程中发生错误：{e}")
+            
+            # 使用asyncio.gather同时执行所有设备的测试任务
+            tasks = [test_device(host) for host in config['hosts']]
+            await asyncio.gather(*tasks)
             logging.info(f"第 {test_round + 1} 轮测试完成")
     
     asyncio.run(main())
