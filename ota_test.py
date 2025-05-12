@@ -9,7 +9,7 @@ config = {
     "user": "root",
     "password": "ya!2dkwy7-934^",
     "ota_wait_time": 60,  # 升级所需要的时间，单位秒
-    "hosts": ['192.168.1.3', '192.168.1.5'],
+    "hosts": ['192.168.1.3', '192.168.1.2'],
     "test_times": 3
 }
 
@@ -41,7 +41,8 @@ class OTA_test:
                     await asyncio.sleep((_ + 1) * 2)
                     continue
                 else:
-                    logging.error(f"{self.host}：升级失败, 本地版本号为：{local_version}，待升级版本号：{screen_lastest_version_map1[self.screenId]}")
+                    logging.error(
+                        f"{self.host}：升级失败, 本地版本号为：{local_version}，待升级版本号：{screen_lastest_version_map1[self.screenId]}")
 
     async def connect_to_device(self):
         self.tn = Telnet_connector(self.host, port=23)
@@ -69,14 +70,15 @@ class OTA_test:
                     await self.connect_to_device()
                     if self.tn is None:
                         raise ConnectionError(f"[{self.host}] tn初始化失败.")
-                
+
                 # 检查连接状态，如果连接已关闭则重新连接
-                if not self.tn.writer or not self.tn.reader or (hasattr(self.tn.writer, 'is_closing') and self.tn.writer.is_closing()):
+                if not self.tn.writer or not self.tn.reader or (
+                        hasattr(self.tn.writer, 'is_closing') and self.tn.writer.is_closing()):
                     logging.info(f"{self.host}: 连接已关闭，尝试重新连接...")
                     await self.connect_to_device()
                     if self.tn is None or not self.tn.writer or not self.tn.reader:
                         raise ConnectionError(f"{self.host}: 无法重新建立连接")
-                
+
                 await self.tn.send_command(config["user"])
                 await self.tn.send_command(config["password"])
                 while True:
@@ -109,7 +111,7 @@ class OTA_test:
                     continue
                 else:
                     logging.error(f"{self.host}：重新连接到设备失败: {e}")
-        
+
         return cmd_response_matches
 
     @staticmethod
@@ -194,14 +196,15 @@ class OTA_test:
     @staticmethod
     def send_ota_request():
         selected_screens1, screen_lastest_version_map1 = OTA_test.show_screen_menus()
+        print(f"+++++===>{selected_screens1}")
         for _ in selected_screens1:
             response = api_sender.send_api(api_sender.confirm_to_ota, data=_, method="post")
             if response.status_code == 200 and response.json()["code"] == 20:
                 logging.info("已发送升级请求")
-                return selected_screens1, screen_lastest_version_map1
             else:
                 logging.error(response.text)
                 sys.exit()
+        return selected_screens1, screen_lastest_version_map1
 
     async def get_current_local_version(self):
         try:
@@ -269,17 +272,20 @@ if __name__ == "__main__":
     api_sender = Api_sender(account, password)
     # 显示菜单
     selected_screens, screen_lastest_version_map = OTA_test.send_ota_request()
+    print(f"数量：{len(selected_screens[0]['ids']), selected_screens[0]['ids']}, id列表：{len(config['hosts'])}")
     if len(selected_screens[0]['ids']) != len(config['hosts']):
         logging.error(f"选择的设备数量与主机host数量不匹配")
         sys.exit()
-    
+
+
     async def main():
         # 根据config中的test_times参数执行对应次数的测试
         test_times = config.get("test_times", 1)  # 默认执行1次
         logging.info(f"将执行 {test_times} 次测试")
-        
+
         for test_round in range(test_times):
             logging.info(f"开始执行第 {test_round + 1} 轮测试")
+
             # 创建所有设备的测试任务，实现并行测试
             async def test_device(host):
                 try:
@@ -289,10 +295,11 @@ if __name__ == "__main__":
                     await ota_test.restore_factory_settings()
                 except Exception as e:
                     logging.error(f"{host}：测试过程中发生错误：{e}")
-            
+
             # 使用asyncio.gather同时执行所有设备的测试任务
             tasks = [test_device(host) for host in config['hosts']]
             await asyncio.gather(*tasks)
             logging.info(f"第 {test_round + 1} 轮测试完成")
-    
+
+
     asyncio.run(main())
