@@ -30,11 +30,18 @@ class OTA_test:
 
     async def test(self, screen_lastest_version_map1: dict):
         await asyncio.sleep(config["ota_wait_time"])  # 等待升级重启后检查版本号
-        has_sucess_ota = await self.check_ota_status(screen_lastest_version_map1)
-        if has_sucess_ota:
-            logging.info(f"{self.host}：升级成功")
-        else:
-            logging.error(f"{self.host}：升级失败")
+        has_sucess_ota, local_version = await self.check_ota_status(screen_lastest_version_map1)
+        if_failed_retry_query_times = 3
+        for _ in range(if_failed_retry_query_times):
+            if has_sucess_ota:
+                logging.info(f"{self.host}：升级成功")
+                break
+            else:
+                if _ < if_failed_retry_query_times - 1:
+                    await asyncio.sleep((_ + 1) * 2)
+                    continue
+                else:
+                    logging.error(f"{self.host}：升级失败, 本地版本号为：{local_version}，待升级版本号：{screen_lastest_version_map1[self.screenId]}")
 
     async def connect_to_device(self):
         self.tn = Telnet_connector(self.host, port=23)
@@ -47,9 +54,9 @@ class OTA_test:
         screenId = self.screenId
         lastest_version = screen_lastest_version_map1[screenId]
         if local_version == lastest_version:
-            return True
+            return True, local_version
         else:
-            return False
+            return False, local_version
 
     async def cmd_sender(self, cmd: str, expect_response: str):
         retry_time = 3
