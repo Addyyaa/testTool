@@ -321,6 +321,26 @@ class Telnet_connector:
                     logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Connection established, validating with initial read...")
                     initial_response = await self.read_until_timeout(read_timeout=0.5)
                     logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Initial read result (length={len(initial_response)}): {initial_response[:50]!r}...")
+                    
+                    # 检查是否需要登录
+                    if initial_response and ("login:" in initial_response.lower() or "username:" in initial_response.lower()):
+                        if self.username:
+                            logging.info(f"检测到登录提示，发送用户名: {self.username}")
+                            login_response = await self._send_raw_command(self.username)
+                            # 等待密码提示
+                            await asyncio.sleep(0.5)
+                        else:
+                            logging.warning("检测到登录提示，但未设置用户名")
+                    
+                    # 检查是否需要输入密码
+                    if initial_response and "password:" in initial_response.lower():
+                        if self.password:
+                            logging.info("检测到密码提示，发送密码")
+                            pwd_response = await self._send_raw_command(self.password)
+                            # 等待登录完成
+                            await asyncio.sleep(1)
+                        else:
+                            logging.warning("检测到密码提示，但未设置密码")
 
                 # --- 准备命令 ---
                 command_str = command + '\r\n'
@@ -368,6 +388,24 @@ class Telnet_connector:
                 if not response and (not self.reader or not self.writer or self.writer.is_closing()):
                     logging.warning(f"[Attempt {attempt+1}/{max_retries+1}] Empty response received and connection appears broken. Treating as connection error.")
                     raise ConnectionError("Empty response with broken connection detected.")
+                
+                # --- 检查响应中是否含有登录提示 ---
+                if response and ("login:" in response.lower() or "username:" in response.lower() or "password:" in response.lower()):
+                    logging.warning(f"[Attempt {attempt+1}/{max_retries+1}] Login prompt detected in response. Attempting to login.")
+                    # 尝试登录
+                    if "login:" in response.lower() or "username:" in response.lower():
+                        if self.username:
+                            await self._send_raw_command(self.username)
+                            await asyncio.sleep(0.5)
+                    if "password:" in response.lower():
+                        if self.password:
+                            await self._send_raw_command(self.password)
+                            await asyncio.sleep(1)
+                    # 重新发送原命令
+                    logging.info(f"[Attempt {attempt+1}/{max_retries+1}] Re-sending command after login")
+                    self.writer.write(command_str)
+                    await self.writer.drain()
+                    response = await self.read_until_timeout(read_timeout)
 
                 # --- Success ---
                 logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Command executed successfully. Response length: {len(response)}")
@@ -403,6 +441,27 @@ class Telnet_connector:
         # 但为了代码完整性，如果循环结束还没有返回或抛出异常，则抛出错误
         raise ConnectionError(f"Command send failed unexpectedly after {max_retries + 1} attempts. Last known error: "
                               f"{last_exception}")
+
+    async def _send_raw_command(self, command: str) -> str:
+        """发送原始命令，不包含重试逻辑，仅用于内部调用
+
+        Args:
+            command: 要发送的命令
+
+        Returns:
+            命令响应
+        """
+        if not self.writer or not self.reader:
+            raise ConnectionError("Not connected")
+        
+        command_str = command + '\r\n'
+        try:
+            self.writer.write(command_str)
+            await self.writer.drain()
+            return await self.read_until_timeout(0.5)
+        except Exception as e:
+            logging.error(f"Error in _send_raw_command: {e}")
+            raise ConnectionError(f"Failed to send raw command: {e}")
 
     # 上下文管理器支持自動連接/斷開
     async def __aenter__(self):

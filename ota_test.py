@@ -70,7 +70,7 @@ class OTA_test:
                     await self.connect_to_device()
                     if self.tn is None:
                         raise ConnectionError(f"[{self.host}] tn初始化失败.")
-
+                
                 # 检查连接状态，如果连接已关闭则重新连接
                 if not self.tn.writer or not self.tn.reader or (
                         hasattr(self.tn.writer, 'is_closing') and self.tn.writer.is_closing()):
@@ -79,8 +79,21 @@ class OTA_test:
                     if self.tn is None or not self.tn.writer or not self.tn.reader:
                         raise ConnectionError(f"{self.host}: 无法重新建立连接")
 
-                await self.tn.send_command(config["user"])
-                await self.tn.send_command(config["password"])
+                # 先发送用户名和密码，处理可能的登录状态
+                login_response = await self.tn.send_command("", read_timeout=0.5)  # 发送空命令获取当前提示
+                if "login:" in login_response:
+                    logging.info(f"{self.host}: 检测到登录提示，发送用户名...")
+                    await self.tn.send_command(config["user"])
+                    login_response = await self.tn.send_command("", read_timeout=0.5)
+                
+                if "Password:" in login_response or "password:" in login_response:
+                    logging.info(f"{self.host}: 检测到密码提示，发送密码...")
+                    await self.tn.send_command(config["password"])
+                    await asyncio.sleep(1)  # 等待登录处理完成
+                else:
+                    # 如果没有检测到登录提示，发送一个换行符刷新提示符
+                    await self.tn.send_command("")
+                
                 while True:
                     if current_time >= retry_time:
                         break
@@ -111,7 +124,7 @@ class OTA_test:
                     continue
                 else:
                     logging.error(f"{self.host}：重新连接到设备失败: {e}")
-
+        
         return cmd_response_matches
 
     @staticmethod
@@ -214,16 +227,19 @@ class OTA_test:
                     logging.error(f"{self.host}：获取本地版本失败")
                     sys.exit()
                 current_times += 1
-                local_version = await self.cmd_sender("cat /software/version.ini", "any")
-                if not local_version:
+                local_version1 = await self.cmd_sender("cat /software/version.ini", "any")
+                if not local_version1:
                     continue
                 else:
                     break
-            print(f"本地版本：{local_version}")
-            local_version = local_version.split('=')[1].strip()
+            local_version = local_version1.split('=')[1].strip()
             logging.info(f"{self.host}：本地版本：{local_version}")
         except Exception as e:
-            logging.error(e)
+            # 确保错误信息完整，防止索引错误
+            error_msg = f"{self.host}：获取版本出错: {str(e)}"
+            if 'local_version1' in locals():
+                error_msg += f", 返回内容: {local_version1}"
+            logging.error(error_msg)
             sys.exit()
         return local_version
 
