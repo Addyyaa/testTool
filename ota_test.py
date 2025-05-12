@@ -18,7 +18,8 @@ class OTA_test:
     def __init__(self, host1: str, api_sender1: Api_sender):
         self.host = host1
         self.api_sender = api_sender1
-        self.tn: Telnet_connector | None = None
+        # 初始化时就创建Telnet_connector实例，并传入用户名和密码
+        self.tn = Telnet_connector(self.host, port=23, username=config["user"], password=config["password"])
         self.local_version = None
         self.screenId = None
 
@@ -45,7 +46,6 @@ class OTA_test:
                         f"{self.host}：升级失败, 本地版本号为：{local_version}，待升级版本号：{screen_lastest_version_map1[self.screenId]}")
 
     async def connect_to_device(self):
-        self.tn = Telnet_connector(self.host, port=23)
         await self.tn.connect()
 
     async def check_ota_status(self, screen_lastest_version_map1: dict):
@@ -70,7 +70,7 @@ class OTA_test:
                     await self.connect_to_device()
                     if self.tn is None:
                         raise ConnectionError(f"[{self.host}] tn初始化失败.")
-                
+
                 # 检查连接状态，如果连接已关闭则重新连接
                 if not self.tn.writer or not self.tn.reader or (
                         hasattr(self.tn.writer, 'is_closing') and self.tn.writer.is_closing()):
@@ -85,7 +85,7 @@ class OTA_test:
                     logging.info(f"{self.host}: 检测到登录提示，发送用户名...")
                     await self.tn.send_command(config["user"])
                     login_response = await self.tn.send_command("", read_timeout=0.5)
-                
+
                 if "Password:" in login_response or "password:" in login_response:
                     logging.info(f"{self.host}: 检测到密码提示，发送密码...")
                     await self.tn.send_command(config["password"])
@@ -93,7 +93,7 @@ class OTA_test:
                 else:
                     # 如果没有检测到登录提示，发送一个换行符刷新提示符
                     await self.tn.send_command("")
-                
+
                 while True:
                     if current_time >= retry_time:
                         break
@@ -124,7 +124,7 @@ class OTA_test:
                     continue
                 else:
                     logging.error(f"{self.host}：重新连接到设备失败: {e}")
-        
+
         return cmd_response_matches
 
     @staticmethod
@@ -224,8 +224,9 @@ class OTA_test:
             current_times = 0
             while True:
                 if current_times >= retry_times:
-                    logging.error(f"{self.host}：获取本地版本失败")
-                    sys.exit()
+                    error_msg = f"{self.host}：获取本地版本失败，已达到最大重试次数"
+                    logging.error(error_msg)
+                    raise RuntimeError(error_msg)
                 current_times += 1
                 local_version1 = await self.cmd_sender("cat /software/version.ini", "any")
                 if not local_version1:
@@ -235,12 +236,10 @@ class OTA_test:
             local_version = local_version1.split('=')[1].strip()
             logging.info(f"{self.host}：本地版本：{local_version}")
         except Exception as e:
-            # 确保错误信息完整，防止索引错误
-            error_msg = f"{self.host}：获取版本出错: {str(e)}"
-            if 'local_version1' in locals():
-                error_msg += f", 返回内容: {local_version1}"
+            error_msg = f"{self.host}：获取版本号失败: {e}"
             logging.error(error_msg)
-            sys.exit()
+            # 捕获异常但重新抛出，不使用sys.exit()
+            raise RuntimeError(error_msg)
         return local_version
 
     async def get_screenId_from_host(self):
@@ -308,12 +307,27 @@ if __name__ == "__main__":
                     await ota_test.test(screen_lastest_version_map)
                     await ota_test.restore_factory_settings()
                 except Exception as e:
-                    logging.error(f"{host}：测试过程中发生错误：{e}")
+                    logging.error(f"{host}：测试过程中发生错误：{str(e)}")
+                    # 不再抛出异常，让其他设备继续测试
 
             # 使用asyncio.gather同时执行所有设备的测试任务
             tasks = [test_device(host) for host in config['hosts']]
-            await asyncio.gather(*tasks)
+            # 使用return_exceptions=True确保一个任务失败不会影响其他任务
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+
+            # 检查是否有任务异常
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    host = config['hosts'][i] if i < len(config['hosts']) else f"未知设备({i})"
+                    logging.error(f"{host}：任务执行失败: {str(result)}")
             logging.info(f"第 {test_round + 1} 轮测试完成")
 
 
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+        logging.info("所有测试完成")
+    except KeyboardInterrupt:
+        logging.info("测试被用户中断")
+    except Exception as e:
+        logging.error(f"测试过程中发生未处理的错误: {e}")
+        sys.exit(1)

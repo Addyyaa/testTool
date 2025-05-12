@@ -330,7 +330,9 @@ class Telnet_connector:
                             # 等待密码提示
                             await asyncio.sleep(0.5)
                         else:
-                            logging.warning("检测到登录提示，但未设置用户名")
+                            error_msg = "检测到登录提示，但未设置用户名，无法继续"
+                            logging.error(error_msg)
+                            raise ConnectionError(error_msg)
                     
                     # 检查是否需要输入密码
                     if initial_response and "password:" in initial_response.lower():
@@ -340,7 +342,9 @@ class Telnet_connector:
                             # 等待登录完成
                             await asyncio.sleep(1)
                         else:
-                            logging.warning("检测到密码提示，但未设置密码")
+                            error_msg = "检测到密码提示，但未设置密码，无法继续"
+                            logging.error(error_msg)
+                            raise ConnectionError(error_msg)
 
                 # --- 准备命令 ---
                 command_str = command + '\r\n'
@@ -390,22 +394,44 @@ class Telnet_connector:
                     raise ConnectionError("Empty response with broken connection detected.")
                 
                 # --- 检查响应中是否含有登录提示 ---
-                if response and ("login:" in response.lower() or "username:" in response.lower() or "password:" in response.lower()):
+                # 添加一个标志来限制登录检测次数，防止无限循环
+                login_retry_count = getattr(self, '_login_retry_count', 0)
+                max_login_retries = 2  # 最大登录重试次数
+                
+                if response and ("login:" in response.lower() or "username:" in response.lower() or "password:" in response.lower()) and login_retry_count < max_login_retries:
+                    # 递增登录重试计数
+                    self._login_retry_count = login_retry_count + 1
                     logging.warning(f"[Attempt {attempt+1}/{max_retries+1}] Login prompt detected in response. Attempting to login.")
                     # 尝试登录
                     if "login:" in response.lower() or "username:" in response.lower():
                         if self.username:
                             await self._send_raw_command(self.username)
                             await asyncio.sleep(0.5)
+                        else:
+                            error_msg = "响应中检测到登录提示，但未设置用户名，无法继续"
+                            logging.error(error_msg)
+                            raise ConnectionError(error_msg)
                     if "password:" in response.lower():
                         if self.password:
                             await self._send_raw_command(self.password)
                             await asyncio.sleep(1)
+                        else:
+                            error_msg = "响应中检测到密码提示，但未设置密码，无法继续"
+                            logging.error(error_msg)
+                            raise ConnectionError(error_msg)
                     # 重新发送原命令
                     logging.info(f"[Attempt {attempt+1}/{max_retries+1}] Re-sending command after login")
                     self.writer.write(command_str)
                     await self.writer.drain()
                     response = await self.read_until_timeout(read_timeout)
+                elif response and ("login:" in response.lower() or "username:" in response.lower() or "password:" in response.lower()):
+                    # 超过最大登录重试次数
+                    error_msg = f"达到最大登录重试次数({max_login_retries})，但仍检测到登录提示"
+                    logging.error(error_msg)
+                    raise ConnectionError(error_msg)
+                else:
+                    # 重置登录重试计数
+                    self._login_retry_count = 0
 
                 # --- Success ---
                 logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Command executed successfully. Response length: {len(response)}")
