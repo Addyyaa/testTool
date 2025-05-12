@@ -238,22 +238,29 @@ class OTA_test:
 
 
 if __name__ == "__main__":
-    account = 'test2@tester.com'
-    password = 'sf123123'
+    account = input("请输入账号: ")
+    password = input("请输入密码: ")
+    # account = 'test2@tester.com'
+    # password = 'sf123123'
     api_sender = Api_sender(account, password)
     # 显示菜单
     selected_screens, screen_lastest_version_map = OTA_test.send_ota_request()
     if len(selected_screens[0]['ids']) != len(config['hosts']):
         logging.error("选择的设备数量与主机host数量不匹配")
         sys.exit()
-
-
+    
     async def main():
-        for host in config['hosts']:
-            ota_test = OTA_test(host, api_sender)
-            await ota_test.initialize()
-            await ota_test.test(screen_lastest_version_map)
-            await ota_test.restore_factory_settings()
-
-
+        # 根据config中的test_times参数执行对应次数的测试
+        test_times = config.get("test_times", 1)  # 默认执行1次
+        logging.info(f"将执行 {test_times} 次测试")
+        
+        for test_round in range(test_times):
+            logging.info(f"开始执行第 {test_round + 1} 轮测试")
+            for host in config['hosts']:
+                ota_test = OTA_test(host, api_sender)
+                await ota_test.initialize()
+                await ota_test.test(screen_lastest_version_map)
+                await ota_test.restore_factory_settings()
+            logging.info(f"第 {test_round + 1} 轮测试完成")
+    
     asyncio.run(main())
