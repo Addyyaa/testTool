@@ -31,9 +31,9 @@ class OTA_test:
 
     async def test(self, screen_lastest_version_map1: dict):
         await asyncio.sleep(config["ota_wait_time"])  # 等待升级重启后检查版本号
-        has_sucess_ota, local_version = await self.check_ota_status(screen_lastest_version_map1)
         if_failed_retry_query_times = 3
         for _ in range(if_failed_retry_query_times):
+            has_sucess_ota, local_version = await self.check_ota_status(screen_lastest_version_map1)
             if has_sucess_ota:
                 logging.info(f"{self.host}：升级成功")
                 break
