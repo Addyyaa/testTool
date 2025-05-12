@@ -33,6 +33,8 @@ class Api_sender:
         self.publish_sync = f"{base_url}/api/v1/screen/picture/sync/publish"
         self.screen_switch = f"{base_url}/api/v1/host/screen/group/switch"
         self.screen_timer_machine = f"{base_url}/api/v1/host/screen/group/switch/machine"
+        self.ota_list = f"{base_url}/api/v1/otaUpgradeRecord/list"
+        self.confirm_to_ota = f"{base_url}/api/v1/otaUpgradeRecord/confirm"
         self.qiuniutoken = None
         self.header = {
             "Content-Type": "application/json",
