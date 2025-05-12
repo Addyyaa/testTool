@@ -69,6 +69,14 @@ class OTA_test:
                     await self.connect_to_device()
                     if self.tn is None:
                         raise ConnectionError(f"[{self.host}] tn初始化失败.")
+                
+                # 检查连接状态，如果连接已关闭则重新连接
+                if not self.tn.writer or not self.tn.reader or (hasattr(self.tn.writer, 'is_closing') and self.tn.writer.is_closing()):
+                    logging.info(f"{self.host}: 连接已关闭，尝试重新连接...")
+                    await self.connect_to_device()
+                    if self.tn is None or not self.tn.writer or not self.tn.reader:
+                        raise ConnectionError(f"{self.host}: 无法重新建立连接")
+                
                 await self.tn.send_command(config["user"])
                 await self.tn.send_command(config["password"])
                 while True:
@@ -98,10 +106,11 @@ class OTA_test:
                 if _ < retry_time - 1:
                     logging.warning(f"{self.host}：连接失败: {e}，等待30秒后重试...")
                     await asyncio.sleep(30)
-                    break
+                    continue
                 else:
                     logging.error(f"{self.host}：重新连接到设备失败: {e}")
-            return cmd_response_matches
+        
+        return cmd_response_matches
 
     @staticmethod
     def get_ota_data() -> list[dict]:
@@ -226,6 +235,14 @@ class OTA_test:
         await self.cmd_sender("/software/script/restore_factory_settings.sh", "any")
         logging.info(f"{self.host}：已执行恢复出厂设置命令，等待设备重启...")
         await asyncio.sleep(100)  # 增加等待时间至120秒
+
+        # 确保关闭旧连接
+        if self.tn:
+            try:
+                await self.tn.disconnect()
+            except Exception as e:
+                logging.error(f"{self.host}：关闭旧连接时发生错误：{e}")
+            self.tn = None
 
         # 添加重试机制
         max_retries = 3
