@@ -35,6 +35,9 @@ class OTA_test:
         self.send_ota_request()
         await asyncio.sleep(config["ota_wait_time"])  # 等待升级重启后检查版本号
         if_failed_retry_query_times = 3
+        has_sucess_ota = False
+        local_version = None
+        
         for _ in range(if_failed_retry_query_times):
             has_sucess_ota, local_version = await self.check_ota_status(screen_lastest_version_map2)
             if has_sucess_ota:
@@ -54,7 +57,7 @@ class OTA_test:
     async def check_ota_status(self, screen_lastest_version_map2: dict):
         if not self.local_version or not self.screenId:
             await self.initialize()
-        local_version = self.get_current_local_version()
+        local_version = await self.get_current_local_version()
         screenId = self.screenId
         lastest_version = screen_lastest_version_map2[screenId]
         if local_version == lastest_version:
@@ -215,8 +218,9 @@ class OTA_test:
             if response.status_code == 200 and response.json()["code"] == 20:
                 logging.info(f"{self.host}-已发送升级请求")
             else:
-                logging.error(response.text)
-                sys.exit()
+                error_msg = f"{self.host}-发送升级请求失败: {response.text}"
+                logging.error(error_msg)
+                raise RuntimeError(error_msg)
         return self.selected_screens1, self.screen_lastest_version_map1
 
     async def get_current_local_version(self):
