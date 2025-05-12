@@ -15,13 +15,15 @@ config = {
 
 
 class OTA_test:
-    def __init__(self, host1: str, api_sender1: Api_sender):
+    def __init__(self, host1: str, api_sender1: Api_sender, selected_screens2: list, screen_lastest_version_map2: dict):
         self.host = host1
         self.api_sender = api_sender1
         # 初始化时就创建Telnet_connector实例，并传入用户名和密码
         self.tn = Telnet_connector(self.host, port=23, username=config["user"], password=config["password"])
         self.local_version = None
         self.screenId = None
+        self.selected_screens1 = selected_screens2
+        self.screen_lastest_version_map1 = screen_lastest_version_map2
 
     async def initialize(self):
         await self.connect_to_device()
@@ -29,11 +31,12 @@ class OTA_test:
         self.screenId = await self.get_screenId_from_host()
         return self
 
-    async def test(self, screen_lastest_version_map1: dict):
+    async def test(self, screen_lastest_version_map2: dict):
+        self.send_ota_request()
         await asyncio.sleep(config["ota_wait_time"])  # 等待升级重启后检查版本号
         if_failed_retry_query_times = 3
         for _ in range(if_failed_retry_query_times):
-            has_sucess_ota, local_version = await self.check_ota_status(screen_lastest_version_map1)
+            has_sucess_ota, local_version = await self.check_ota_status(screen_lastest_version_map2)
             if has_sucess_ota:
                 logging.info(f"{self.host}：升级成功")
                 break
@@ -43,17 +46,17 @@ class OTA_test:
                     continue
                 else:
                     logging.error(
-                        f"{self.host}：升级失败, 本地版本号为：{local_version}，待升级版本号：{screen_lastest_version_map1[self.screenId]}")
+                        f"{self.host}：升级失败, 本地版本号为：{local_version}，待升级版本号：{screen_lastest_version_map2[self.screenId]}")
 
     async def connect_to_device(self):
         await self.tn.connect()
 
-    async def check_ota_status(self, screen_lastest_version_map1: dict):
+    async def check_ota_status(self, screen_lastest_version_map2: dict):
         if not self.local_version or not self.screenId:
             await self.initialize()
-        local_version = self.local_version
+        local_version = self.get_current_local_version()
         screenId = self.screenId
-        lastest_version = screen_lastest_version_map1[screenId]
+        lastest_version = screen_lastest_version_map2[screenId]
         if local_version == lastest_version:
             return True, local_version
         else:
@@ -206,17 +209,15 @@ class OTA_test:
                 print("输入错误，请使用数字序号")
                 continue
 
-    @staticmethod
-    def send_ota_request():
-        selected_screens1, screen_lastest_version_map1 = OTA_test.show_screen_menus()
-        for _ in selected_screens1:
+    def send_ota_request(self):
+        for _ in self.selected_screens1:
             response = api_sender.send_api(api_sender.confirm_to_ota, data=_, method="post")
             if response.status_code == 200 and response.json()["code"] == 20:
-                logging.info("已发送升级请求")
+                logging.info(f"{self.host}-已发送升级请求")
             else:
                 logging.error(response.text)
                 sys.exit()
-        return selected_screens1, screen_lastest_version_map1
+        return self.selected_screens1, self.screen_lastest_version_map1
 
     async def get_current_local_version(self):
         try:
@@ -285,8 +286,8 @@ if __name__ == "__main__":
     password = 'sf123123'
     api_sender = Api_sender(account, password)
     # 显示菜单
-    selected_screens, screen_lastest_version_map = OTA_test.send_ota_request()
-    if len(selected_screens) != len(config['hosts']):
+    selected_screens1, screen_lastest_version_map1 = OTA_test.show_screen_menus()
+    if len(selected_screens1) != len(config['hosts']):
         logging.error(f"选择的设备数量与主机host数量不匹配")
         sys.exit()
 
@@ -302,9 +303,9 @@ if __name__ == "__main__":
             # 创建所有设备的测试任务，实现并行测试
             async def test_device(host):
                 try:
-                    ota_test = OTA_test(host, api_sender)
+                    ota_test = OTA_test(host, api_sender, selected_screens1, screen_lastest_version_map1)
                     await ota_test.initialize()
-                    await ota_test.test(screen_lastest_version_map)
+                    await ota_test.test(screen_lastest_version_map1)
                     await ota_test.restore_factory_settings()
                 except Exception as e:
                     logging.error(f"{host}：测试过程中发生错误：{str(e)}")
