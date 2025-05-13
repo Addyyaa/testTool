@@ -22,14 +22,18 @@ logging.basicConfig(
     handlers=[
         logging.FileHandler(log_filename, encoding='utf-8'),
         logging.StreamHandler(sys.stdout)
-    ]
+    ],
+    force=True  # 强制重新配置，移除所有现有处理器
 )
+
+# 添加一个测试日志
+logging.info("OTA测试程序启动")
 
 config = {
     "user": "root",
     "password": "ya!2dkwy7-934^",
     "ota_wait_time": 60,  # 升级所需要的时间，单位秒
-    "hosts": ['192.168.1.3', '192.168.1.6'],
+    "hosts": ['192.168.1.4', '192.168.1.5'],
     "test_times": 1000
 }
 
@@ -408,6 +412,8 @@ if __name__ == "__main__":
                     host = config['hosts'][i] if i < len(config['hosts']) else f"未知设备({i})"
                     logging.error(f"{host}：任务执行失败: {str(result)}")
             logging.info(f"第 {test_round + 1} 轮测试完成---【{success_times}/{test_times}】")
+
+            logging.getLogger().handlers[0].flush()  # 强制刷新文件处理器的缓冲
 
 
     try:

@@ -14,10 +14,16 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - [%(levelname)s] - %(module)s:%(filename)s:%(lineno)d - %(funcName)s() - %(message)s',
     handlers=[
-        logging.FileHandler("sql_test.log", encoding='utf-8'),
+        logging.FileHandler(log_filename, encoding='utf-8', mode='w'),  # 使用 'w' 模式
         logging.StreamHandler(sys.stdout)
     ]
 )
+
+# 获取根日志记录器并设置立即刷新
+root_logger = logging.getLogger()
+for handler in root_logger.handlers:
+    if isinstance(handler, logging.FileHandler):
+        handler.flush()
 
 # 创建.env文件（如果不存在）
 def create_env_file():
