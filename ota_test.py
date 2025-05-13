@@ -28,7 +28,7 @@ config = {
     "user": "root",
     "password": "ya!2dkwy7-934^",
     "ota_wait_time": 60,  # 升级所需要的时间，单位秒
-    "hosts": ['192.168.1.3', '192.168.1.2'],
+    "hosts": ['192.168.1.3', '192.168.1.6'],
     "test_times": 1000
 }
 
@@ -314,7 +314,10 @@ if __name__ == "__main__":
     api_sender = Api_sender(account, password)
     # 显示菜单
     selected_screens1, screen_lastest_version_map1 = OTA_test.show_screen_menus()
-    if len(selected_screens1) != len(config['hosts']):
+    screen_counts = 0
+    for screen_count in selected_screens1:
+        screen_counts += len(screen_count['ids'])
+    if screen_counts != len(config['hosts']):
         logging.error(f"选择的设备数量与主机host数量不匹配")
         sys.exit()
 
