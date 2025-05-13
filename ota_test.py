@@ -1,9 +1,28 @@
 import logging
 import sys
 import asyncio
+import os
+from datetime import datetime
 
 from telnet_connecter import Telnet_connector
 from api_sender import Api_sender
+
+# 创建logs目录（如果不存在）
+if not os.path.exists('logs'):
+    os.makedirs('logs')
+
+# 生成日志文件名，包含时间戳
+log_filename = os.path.join('logs', f'ota_test_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log')
+
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - [%(levelname)s] - %(module)s:%(filename)s:%(lineno)d - %(funcName)s() - %(message)s',
+    handlers=[
+        logging.FileHandler(log_filename, encoding='utf-8'),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 config = {
     "user": "root",
@@ -13,6 +32,8 @@ config = {
     "test_times": 1000
 }
 
+# 添加全局变量用于跟踪成功次数
+success_times = 0
 
 class OTA_test:
     def __init__(self, host1: str, api_sender1: Api_sender, selected_screens2: list, screen_lastest_version_map2: dict):
@@ -32,6 +53,7 @@ class OTA_test:
         return self
 
     async def test(self, screen_lastest_version_map2: dict):
+        global success_times
         self.send_ota_request()
         await asyncio.sleep(config["ota_wait_time"])  # 等待升级重启后检查版本号
         if_failed_retry_query_times = 3
@@ -42,6 +64,7 @@ class OTA_test:
             has_sucess_ota, local_version = await self.check_ota_status(screen_lastest_version_map2)
             if has_sucess_ota:
                 logging.info(f"{self.host}：升级成功")
+                success_times += 1  # 升级成功时增加计数
                 break
             else:
                 if _ < if_failed_retry_query_times - 1:
@@ -295,7 +318,6 @@ if __name__ == "__main__":
         logging.error(f"选择的设备数量与主机host数量不匹配")
         sys.exit()
 
-
     async def main():
         # 根据config中的test_times参数执行对应次数的测试
         test_times = config.get("test_times", 1)  # 默认执行1次
@@ -325,7 +347,7 @@ if __name__ == "__main__":
                 if isinstance(result, Exception):
                     host = config['hosts'][i] if i < len(config['hosts']) else f"未知设备({i})"
                     logging.error(f"{host}：任务执行失败: {str(result)}")
-            logging.info(f"第 {test_round + 1} 轮测试完成")
+            logging.info(f"第 {test_round + 1} 轮测试完成---【{success_times}/{test_times}】")
 
 
     try:
