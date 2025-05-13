@@ -3,6 +3,7 @@ import sys
 import asyncio
 import os
 from datetime import datetime
+from sql_connecter import DatabaseConnectionPool
 
 from telnet_connecter import Telnet_connector
 from api_sender import Api_sender
@@ -35,7 +36,10 @@ config = {
 # 添加全局变量用于跟踪成功次数
 success_times = 0
 
+
 class OTA_test:
+    _db_pool = None  # 类级别的数据库连接池
+
     def __init__(self, host1: str, api_sender1: Api_sender, selected_screens2: list, screen_lastest_version_map2: dict):
         self.host = host1
         self.api_sender = api_sender1
@@ -45,6 +49,26 @@ class OTA_test:
         self.screenId = None
         self.selected_screens1 = selected_screens2
         self.screen_lastest_version_map1 = screen_lastest_version_map2
+
+    @classmethod
+    def get_db_pool(cls):
+        """获取或初始化数据库连接池"""
+        if cls._db_pool is None:
+            cls._db_pool = DatabaseConnectionPool()
+        return cls._db_pool
+
+    @classmethod
+    def query_sql(cls, sql: str, params: tuple = None) -> list:
+        """执行SQL查询"""
+        try:
+            # 不需要再传递数据库配置，直接获取连接
+            with cls.get_db_pool().get_connection('mysql') as db:
+                results = db.execute(sql, params) if params else db.execute(sql)
+                return results
+        except Exception as e:
+            logging.error(f"数据库查询出错: {str(e)}")
+            # 不要抛出异常，返回空结果
+            return []
 
     async def initialize(self):
         await self.connect_to_device()
@@ -59,7 +83,7 @@ class OTA_test:
         if_failed_retry_query_times = 3
         has_sucess_ota = False
         local_version = None
-        
+
         for _ in range(if_failed_retry_query_times):
             has_sucess_ota, local_version = await self.check_ota_status(screen_lastest_version_map2)
             if has_sucess_ota:
@@ -92,6 +116,20 @@ class OTA_test:
         retry_time = 3
         current_time = 0
         cmd_response_matches = None
+
+        # 确保 cmd 是字符串类型
+        if cmd is None:
+            cmd = ""
+            logging.warning(f"{self.host}: 命令为None，使用空字符串")
+        elif not isinstance(cmd, str):
+            try:
+                old_cmd = cmd
+                cmd = str(cmd)
+                logging.warning(f"{self.host}: 命令类型不是字符串 (type: {type(old_cmd)})，已转换为: {cmd}")
+            except Exception as e:
+                logging.error(f"{self.host}: 无法将命令转换为字符串: {e}")
+                cmd = ""
+
         for _ in range(retry_time):
             try:
                 if self.tn is None:
@@ -235,6 +273,21 @@ class OTA_test:
                 print("输入错误，请使用数字序号")
                 continue
 
+    async def set_sql_need_to_update(self):
+        try:
+            # noinspection SqlResolve
+            sql = "UPDATE t_ota_upgrade_record SET status = %s WHERE device_id = %s"
+            if not self.screenId:
+                self.screenId = await self.get_screenId_from_host()
+
+            result = self.query_sql(sql=sql, params=(1, self.screenId))
+            print(f"+++++>{result}")
+            if result is not None:
+                logging.info(f"{self.host}：更新设备 {self.screenId} 的OTA状态成功")
+        except Exception as e:
+            logging.error(f"{self.host}：更新ota状态失败: {e}")
+            # 继续执行，不让数据库错误影响主要功能
+
     def send_ota_request(self):
         for _ in self.selected_screens1:
             response = api_sender.send_api(api_sender.confirm_to_ota, data=_, method="post")
@@ -279,7 +332,9 @@ class OTA_test:
     async def restore_factory_settings(self):
         await self.cmd_sender("/software/script/restore_factory_settings.sh", "any")
         logging.info(f"{self.host}：已执行恢复出厂设置命令，等待设备重启...")
-        await asyncio.sleep(100)  # 增加等待时间至120秒
+        # 更新ota状态
+        await self.set_sql_need_to_update()
+        await asyncio.sleep(120)  # 增加等待时间至120秒
 
         # 确保关闭旧连接
         if self.tn:
@@ -312,6 +367,7 @@ if __name__ == "__main__":
     account = 'test2@tester.com'
     password = 'sf123123'
     api_sender = Api_sender(account, password)
+    pool = DatabaseConnectionPool()
     # 显示菜单
     selected_screens1, screen_lastest_version_map1 = OTA_test.show_screen_menus()
     screen_counts = 0
@@ -320,6 +376,7 @@ if __name__ == "__main__":
     if screen_counts != len(config['hosts']):
         logging.error(f"选择的设备数量与主机host数量不匹配")
         sys.exit()
+
 
     async def main():
         # 根据config中的test_times参数执行对应次数的测试
