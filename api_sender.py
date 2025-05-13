@@ -49,9 +49,9 @@ class Api_sender:
         try:
             # data = json.dumps(data)
             if method.upper() == "POST":
-                response1 = requests.post(api, json=data, headers=self.header)
+                response1 = requests.post(api, json=data, headers=self.header, proxies=None)
             else:
-                response1 = requests.get(api, params=data, headers=self.header)  # TODO 需要增加token失效的处理
+                response1 = requests.get(api, params=data, headers=self.header, proxies=None)
             return response1
         except Exception as e:
             logging.error(f"请求发生错误：{e}")
