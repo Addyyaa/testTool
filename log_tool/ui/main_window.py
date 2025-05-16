@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
 
         # 中部：日志类型选择
         self.log_list = QListWidget()
-        self.log_list.addItems(["视频", "图片", "mqtt", "daemon", "screen", "蓝牙", "misc"])
+        self.log_list.addItems(["视频", "图片", "mqtt", "daemon", "screen", "蓝牙", "misc", "所有日志"])
         self.log_list.setSelectionMode(QAbstractItemView.SingleSelection)
         main_layout.addWidget(QLabel("选择日志类型:"))
         main_layout.addWidget(self.log_list)

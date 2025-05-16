@@ -5,6 +5,7 @@ from service.history_service import HistoryService
 from service.telnet_service import TelnetService
 from service.http_service import download_log
 
+
 class MainController:
     def __init__(self, window):
         self.window = window
@@ -60,8 +61,10 @@ class MainController:
 
         asyncio.ensure_future(task())
 
+
 if __name__ == "__main__":
     import asyncio
+
     app = QApplication(sys.argv)
     window = MainWindow(controller=None)
     controller = MainController(window)
@@ -69,6 +72,7 @@ if __name__ == "__main__":
     # 让asyncio和Qt事件循环兼容
     try:
         from qasync import QEventLoop
+
         loop = QEventLoop(app)
         asyncio.set_event_loop(loop)
         with loop:

@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['log_tool\\main.py'],
+    ['log_getter.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -21,7 +21,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='main',
+    name='log_getter',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -34,5 +34,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['resource\\logo\\log.ico'],
+    icon=['../resource/logo/log.ico'],
 )
