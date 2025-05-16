@@ -235,7 +235,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s -  %(lineno)d - %(funcName)-%('
                                                     'message)s')
 
-    hosts = ['192.168.1.14', '192.168.1.12', '192.168.1.13', '192.168.1.10']
+    hosts = ['192.168.1.3', '192.168.1.4', '192.168.1.5', '192.168.1.6']
     # account = input("请输入账号: ") # TODO 取消硬编码
     # password = input("请输入密码: ")
     account = 'test2@tester.com'

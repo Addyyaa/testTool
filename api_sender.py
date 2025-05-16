@@ -33,6 +33,8 @@ class Api_sender:
         self.publish_sync = f"{base_url}/api/v1/screen/picture/sync/publish"
         self.screen_switch = f"{base_url}/api/v1/host/screen/group/switch"
         self.screen_timer_machine = f"{base_url}/api/v1/host/screen/group/switch/machine"
+        self.ota_list = f"{base_url}/api/v1/otaUpgradeRecord/list"
+        self.confirm_to_ota = f"{base_url}/api/v1/otaUpgradeRecord/confirm"
         self.qiuniutoken = None
         self.header = {
             "Content-Type": "application/json",
@@ -47,9 +49,9 @@ class Api_sender:
         try:
             # data = json.dumps(data)
             if method.upper() == "POST":
-                response1 = requests.post(api, json=data, headers=self.header)
+                response1 = requests.post(api, json=data, headers=self.header, proxies=None)
             else:
-                response1 = requests.get(api, params=data, headers=self.header)  # TODO 需要增加token失效的处理
+                response1 = requests.get(api, params=data, headers=self.header, proxies=None)
             return response1
         except Exception as e:
             logging.error(f"请求发生错误：{e}")

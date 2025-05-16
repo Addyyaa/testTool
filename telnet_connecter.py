@@ -65,12 +65,14 @@ class Telnet_connector:
         is_unicode_mode (bool): 標識當前連接是否處於 Unicode 模式（由 telnetlib3 協商）。
     """
 
-    def __init__(self, host: str, port=23):
+    def __init__(self, host: str, port=23, username=None, password=None):
         """初始化 Telnet_connector。
 
         Args:
             host: 目標 Telnet 服務器的主機名或 IP 地址。
             port: 目標 Telnet 服務器的端口號，默認為 23。
+            username: 登錄用戶名，如果需要。
+            password: 登錄密碼，如果需要。
 
         Raises:
             ValueError: 如果提供的 host 不是有效的 IP 地址或主機名。
@@ -83,6 +85,8 @@ class Telnet_connector:
         self.writer: asyncio.StreamWriter | None = None
         self.is_unicode_mode = False  # 添加標誌
         self.shell = None  # 如果需要的话
+        self.username = username
+        self.password = password
         print(f"Telnet_connector initialized for host: {self.host}")
 
     async def connect(self, timeout=30):
@@ -125,6 +129,8 @@ class Telnet_connector:
                 logging.debug("Writer is None, connection likely failed earlier.")
                 self.is_unicode_mode = False  # 設置為 False 以防萬一
 
+            # 自动登录
+            await self._auto_login()
             # 可選：如果需要，讀取初始橫幅/提示
             # initial_output = await self.read_until_timeout()
             # print(f"Initial output:\n{initial_output}")
@@ -143,6 +149,21 @@ class Telnet_connector:
             self.reader = None
             self.writer = None
             raise ConnectionError(f"Failed to connect: {e}") from e
+
+    async def _auto_login(self):
+        """自动检测登录提示并输入用户名和密码"""
+        if not self.username or not self.password:
+            return  # 未设置用户名密码则跳过
+        # 读取初始输出，查找 login/username/password 提示
+        output = await self.read_until_timeout(2)
+        if any(x in output.lower() for x in ["login:", "username:"]):
+            self.writer.write(self.username + "\r\n")
+            await self.writer.drain()
+            output = await self.read_until_timeout(2)
+        if "password:" in output.lower():
+            self.writer.write(self.password + "\r\n")
+            await self.writer.drain()
+            await asyncio.sleep(1)  # 等待登录完成
 
     async def disconnect(self):
         """關閉當前的 Telnet 連接。
@@ -300,6 +321,30 @@ class Telnet_connector:
                     logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Connection established, validating with initial read...")
                     initial_response = await self.read_until_timeout(read_timeout=0.5)
                     logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Initial read result (length={len(initial_response)}): {initial_response[:50]!r}...")
+                    
+                    # 检查是否需要登录
+                    if initial_response and ("login:" in initial_response.lower() or "username:" in initial_response.lower()):
+                        if self.username:
+                            logging.info(f"检测到登录提示，发送用户名: {self.username}")
+                            login_response = await self._send_raw_command(self.username)
+                            # 等待密码提示
+                            await asyncio.sleep(0.5)
+                        else:
+                            error_msg = "检测到登录提示，但未设置用户名，无法继续"
+                            logging.error(error_msg)
+                            raise ConnectionError(error_msg)
+                    
+                    # 检查是否需要输入密码
+                    if initial_response and "password:" in initial_response.lower():
+                        if self.password:
+                            logging.info("检测到密码提示，发送密码")
+                            pwd_response = await self._send_raw_command(self.password)
+                            # 等待登录完成
+                            await asyncio.sleep(1)
+                        else:
+                            error_msg = "检测到密码提示，但未设置密码，无法继续"
+                            logging.error(error_msg)
+                            raise ConnectionError(error_msg)
 
                 # --- 准备命令 ---
                 command_str = command + '\r\n'
@@ -347,6 +392,46 @@ class Telnet_connector:
                 if not response and (not self.reader or not self.writer or self.writer.is_closing()):
                     logging.warning(f"[Attempt {attempt+1}/{max_retries+1}] Empty response received and connection appears broken. Treating as connection error.")
                     raise ConnectionError("Empty response with broken connection detected.")
+                
+                # --- 检查响应中是否含有登录提示 ---
+                # 添加一个标志来限制登录检测次数，防止无限循环
+                login_retry_count = getattr(self, '_login_retry_count', 0)
+                max_login_retries = 2  # 最大登录重试次数
+                
+                if response and ("login:" in response.lower() or "username:" in response.lower() or "password:" in response.lower()) and login_retry_count < max_login_retries:
+                    # 递增登录重试计数
+                    self._login_retry_count = login_retry_count + 1
+                    logging.warning(f"[Attempt {attempt+1}/{max_retries+1}] Login prompt detected in response. Attempting to login.")
+                    # 尝试登录
+                    if "login:" in response.lower() or "username:" in response.lower():
+                        if self.username:
+                            await self._send_raw_command(self.username)
+                            await asyncio.sleep(0.5)
+                        else:
+                            error_msg = "响应中检测到登录提示，但未设置用户名，无法继续"
+                            logging.error(error_msg)
+                            raise ConnectionError(error_msg)
+                    if "password:" in response.lower():
+                        if self.password:
+                            await self._send_raw_command(self.password)
+                            await asyncio.sleep(1)
+                        else:
+                            error_msg = "响应中检测到密码提示，但未设置密码，无法继续"
+                            logging.error(error_msg)
+                            raise ConnectionError(error_msg)
+                    # 重新发送原命令
+                    logging.info(f"[Attempt {attempt+1}/{max_retries+1}] Re-sending command after login")
+                    self.writer.write(command_str)
+                    await self.writer.drain()
+                    response = await self.read_until_timeout(read_timeout)
+                elif response and ("login:" in response.lower() or "username:" in response.lower() or "password:" in response.lower()):
+                    # 超过最大登录重试次数
+                    error_msg = f"达到最大登录重试次数({max_login_retries})，但仍检测到登录提示"
+                    logging.error(error_msg)
+                    raise ConnectionError(error_msg)
+                else:
+                    # 重置登录重试计数
+                    self._login_retry_count = 0
 
                 # --- Success ---
                 logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Command executed successfully. Response length: {len(response)}")
@@ -382,6 +467,27 @@ class Telnet_connector:
         # 但为了代码完整性，如果循环结束还没有返回或抛出异常，则抛出错误
         raise ConnectionError(f"Command send failed unexpectedly after {max_retries + 1} attempts. Last known error: "
                               f"{last_exception}")
+
+    async def _send_raw_command(self, command: str) -> str:
+        """发送原始命令，不包含重试逻辑，仅用于内部调用
+
+        Args:
+            command: 要发送的命令
+
+        Returns:
+            命令响应
+        """
+        if not self.writer or not self.reader:
+            raise ConnectionError("Not connected")
+        
+        command_str = command + '\r\n'
+        try:
+            self.writer.write(command_str)
+            await self.writer.drain()
+            return await self.read_until_timeout(0.5)
+        except Exception as e:
+            logging.error(f"Error in _send_raw_command: {e}")
+            raise ConnectionError(f"Failed to send raw command: {e}")
 
     # 上下文管理器支持自動連接/斷開
     async def __aenter__(self):
