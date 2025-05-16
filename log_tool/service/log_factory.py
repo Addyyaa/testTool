@@ -6,8 +6,11 @@ class LogTypeStrategy:
     def get_pack_cmd(self):
         if self.name == "daemon":
             return f"tar czf {self.name}.tar.gz {self.path}"
+        elif self.name == "log":
+            return f"tar czf {self.name}.tar.gz {self.path}"
         else:
             return f"tar czf {self.name}.tar.gz {self.path}/"
+
 
 class LogFactory:
     _log_types = {
@@ -18,6 +21,7 @@ class LogFactory:
         "screen": LogTypeStrategy("screen", "screen"),
         "蓝牙": LogTypeStrategy("ble", "ble"),
         "misc": LogTypeStrategy("misc", "misc"),
+        "所有日志": LogTypeStrategy("log", "./*"),
     }
 
     @classmethod
