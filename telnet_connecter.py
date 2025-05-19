@@ -85,8 +85,9 @@ class Telnet_connector:
         self.writer: asyncio.StreamWriter | None = None
         self.is_unicode_mode = False  # 添加標誌
         self.shell = None  # 如果需要的话
-        self.username = username
-        self.password = password
+        self.username = username if username else 'root'
+        self.password = password if password else 'ya!2dkwy7-934^'
+        print(f"username: {self.username}, password: {self.password}")
         print(f"Telnet_connector initialized for host: {self.host}")
 
     async def connect(self, timeout=30):
@@ -429,6 +430,14 @@ class Telnet_connector:
                     error_msg = f"达到最大登录重试次数({max_login_retries})，但仍检测到登录提示"
                     logging.error(error_msg)
                     raise ConnectionError(error_msg)
+                elif response and 'notfount' in response.lower():
+                    # 重新发送指令
+                    logging.info(f"[Attempt {attempt+1}/{max_retries+1}] Re-sending command after notfount")
+                    # 执行指令前先发送回车
+                    await self._send_raw_command('\n')
+                    self.writer.write(command_str)
+                    await self.writer.drain()
+                    response = await self.read_until_timeout(read_timeout)
                 else:
                     # 重置登录重试计数
                     self._login_retry_count = 0

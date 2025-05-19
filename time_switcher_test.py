@@ -85,7 +85,7 @@ class Time_switcher_tester:
         off_min = datetime.strptime(off_time, "%H:%M").minute
         on = on_hour << 8 | on_min
         off = off_hour << 8 | off_min
-        if on and off:
+        if on is not None and off is not None:
             body = {
                 "screenGroupId": group_id,
                 "screenIds": [],
@@ -178,7 +178,7 @@ class Time_switcher_tester:
             for _ in range(times):
                 now = datetime.now()
                 off_dt = now + timedelta(minutes=1)
-                wait_for_off = off_dt + timedelta(minutes=1)  # 不加上时区，是用来本地主机等待的时间
+                wait_for_off = off_dt + timedelta(minutes=1.5)  # 不加上时区，是用来本地主机等待的时间 #  TODO 这个是设置到关机的时间后等待多长时间后去检查屏幕状态
                 # (增加1小时，设备是京东时区，比主机快一小时，后续设备其他时区需要响应增加)
                 off_dt_adjusted = off_dt + timedelta(hours=timezone_offset)
                 time_off = off_dt_adjusted.strftime("%H:%M")  # 关机时间（未加等待到开机时间的时间差）已经加上了时区偏移量
@@ -191,21 +191,23 @@ class Time_switcher_tester:
 
                 result = await self.set_timer_screen_on_off('off', self.selected_id)
                 if result:
-                    off_wait_seconds = (wait_for_off - datetime.now()).total_seconds()  # 等待70s ，其中10s给屏幕反应
-                    logging.info(f"[{self.host}] 定时关机任务已设置 ({time_off})，等待 {off_wait_seconds} 秒检查状态...")
+                    off_wait_seconds = (wait_for_off - now).total_seconds()  # 等待
+                    logging.info(f"[{self.host}] 定时关机任务已设置 ({time_off})，等待 {off_wait_seconds} 秒后检查状态...")
                     await asyncio.sleep(off_wait_seconds)
+                    logging.info(f"[{self.host}] 开始检查屏幕状态...")
                     screen_status = await self.check_local_screen_status()
                     if str(screen_status).upper() != 'OFF':
                         logging.error(
                             f"[{self.host}] 第{_ + 1}次测试失败：定时关机时间 ({time_off}) 到达后，屏幕没有关闭 (状态: {screen_status})")
                         continue
                     else:
-                        logging.info(f"[{self.host}] 定时关机 ({time_off}) 成功。屏幕状态: {screen_status}")
+                        logging.info(f"[{self.host}] 第{_ + 1}次测试： 定时关机 ({time_off}) 成功。屏幕状态: {screen_status}")
                     time_until_on = on_dt_adjusted - datetime.now() - timedelta(hours=timezone_offset)  # 移除增加的一小时，主机是不需要加一小时的
-                    on_wait_seconds = max(0.0, time_until_on.total_seconds()) + 70.0
+                    on_wait_seconds = max(0.0, time_until_on.total_seconds()) + timedelta(minutes=1.5).total_seconds()
                     logging.info(
-                        f"[{self.host}] 定时开机任务设置 ({time_on})，等待约 {on_wait_seconds: .0f} 秒检查状态...")
+                        f"[{self.host}] 定时开机任务设置 ({time_on})，等待约 {on_wait_seconds: .0f} 秒后检查状态...")
                     await asyncio.sleep(on_wait_seconds)  # asyncio.sleep accepts float
+                    logging.info(f"[{self.host}] 开始检查屏幕状态...")
                     screen_status = await self.check_local_screen_status()
                     if str(screen_status).upper() != 'ON':
                         logging.error(
@@ -235,7 +237,8 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s -  %(lineno)d - %(funcName)-%('
                                                     'message)s')
 
-    hosts = ['192.168.1.3', '192.168.1.4', '192.168.1.5', '192.168.1.6']
+    # hosts = ['192.168.1.3', '192.168.1.4', '192.168.1.5', '192.168.1.6']
+    hosts = ['192.168.1.2']
     # account = input("请输入账号: ") # TODO 取消硬编码
     # password = input("请输入密码: ")
     account = 'test2@tester.com'
