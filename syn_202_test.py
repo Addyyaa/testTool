@@ -4,7 +4,9 @@ import sys
 
 class Syn_202_test:
     def __init__(self):
-        self.user, self.passwd = self.ask_login_info()
+        # self.user, self.passwd = self.ask_login_info()
+        self.user = "test2@tester.com"
+        self.passwd = "sf123123"
         self.api_sender = Api_sender(self.user, self.passwd)
 
     def ask_login_info(self):
@@ -23,8 +25,10 @@ class Syn_202_test:
 
     def show_screen_menus(self):
         group_device_relation = self.get_ota_data()
+        print(f"group_device_relation: {group_device_relation}")
         # 屏幕最新版本对照表
         screen_lastest_version_map1 = {}
+        screen_current_version_map1 = {}
 
         # 创建屏幕列表
         all_screens = []
@@ -38,6 +42,7 @@ class Syn_202_test:
                     'lastestVersion': screen['lastestVersion']
                 })
                 screen_lastest_version_map1[screen['screenId']] = screen['lastestVersion']
+                screen_current_version_map1[screen['screenId']] = screen['version']
 
         while True:
             print(f"\n请选择要升级的设备（选择序号，多选请使用空格分隔）")
@@ -84,7 +89,7 @@ class Syn_202_test:
                 
                 print(f"result: {result}\nscreen_lastest_version_map1: {screen_lastest_version_map1}")
 
-                return result, screen_lastest_version_map1
+                return result, screen_lastest_version_map1, screen_current_version_map1
 
             except ValueError:
                 print("输入错误，请使用数字序号")
@@ -103,7 +108,7 @@ class Syn_202_test:
         need_cloud_sync_screen_id = []
         for screen_dic in screen_id:
             for screen in screen_dic['ids']:
-                if screen_lastest_version_map1[screen].startswith('2.'):
+                if screen_lastest_version_map1[screen].startswith('2.01'):
                     need_cloud_sync_screen_id.append(screen)
                 else:
                     print(f"设备{screen}版本为{screen_lastest_version_map1[screen]}, 不支持云同步")
@@ -120,15 +125,18 @@ class Syn_202_test:
         for screen in screen_id:
             result = send_request(screen)
             if result:
-                print(f"设备{screen}云同步请求发送成功")
+                print(f"设备{screen}云同步请求发送成功") 
+
+
+                
             else:
                 print(f"设备{screen}云同步请求发送失败")
 
     
     
     def main(self):
-        user_choice_screen_id, screen_lastest_version_map1 = self.show_screen_menus()
-        need_cloud_sync_screen_id = self.check_device_suitability_for_cloud_sync(user_choice_screen_id, screen_lastest_version_map1)
+        user_choice_screen_id, screen_lastest_version_map1, screen_current_version_map1 = self.show_screen_menus()
+        need_cloud_sync_screen_id = self.check_device_suitability_for_cloud_sync(user_choice_screen_id, screen_current_version_map1)
         if len(need_cloud_sync_screen_id) > 0:
             print(f"需要云同步的设备: {need_cloud_sync_screen_id}")
             self.send_sync_request(need_cloud_sync_screen_id)
