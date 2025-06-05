@@ -207,7 +207,7 @@ if __name__ == '__main__':
 
     # 主程序逻辑
     logging.info("========== 程序启动 ==========")
-    hosts = ['192.168.1.14', '192.168.1.12', '192.168.1.13', '192.168.1.10']
+    hosts = ['192.168.1.6', '192.168.1.65']
     account = 'test2@tester.com'
     password = 'sf123123'
     api_sender = Api_sender(account, password)
