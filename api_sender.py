@@ -18,6 +18,7 @@ class Api_sender:
         self.screen_list = f"{base_url}/api/v1/host/screen/group/list/relationWithVersion?screenGroupId="
         self.display = f"{base_url}/api/v1/host/screen/update/display"
         self.album_list = f"{base_url}/api/v1/photo/list"
+        self.album_picture_list = f"{base_url}/api/v1/photo/album/list?albumId="
         self.qiniu_filesystem = "http://up-z2.qiniup.com"
         self.qiniu_token = f"{base_url}/api/v1/files/token?code=86"
         self.meta_api = f"{base_url}/api/v1/capacity/file/meta"
