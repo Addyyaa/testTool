@@ -65,8 +65,10 @@ class Upload_pic_size_test:
     
     def get_screen_picture(self, selected_screen: list[dict]):
         screen_pictures = {}
+        screen_group_relation = {}
         for screen in selected_screen:
             hasTF_card = self.judge_hasTF_card(screen['screenId'])
+            screen_group_relation[screen['screenId']] = screen['groupId']
             if hasTF_card:
                 screen['hasTF_card'] = True
             else:
@@ -90,9 +92,9 @@ class Upload_pic_size_test:
         # 拼接图片地址
         for screen in screen_pictures:
             screen_pictures[screen] = [f"{self.protocol}://{self.file_domian}/{screen_picture['fileId']}" for screen_picture in screen_pictures[screen] if screen_picture['fileId'] != ""]
-        return screen_pictures
+        return screen_pictures, screen_group_relation
     
-    def get_picture_info(self, screen_pictures: dict):
+    def get_picture_info(self, screen_pictures: dict, screen_group_relation: dict):
         """
         获取图片的文件大小和分辨率信息
         
@@ -245,10 +247,10 @@ class Upload_pic_size_test:
     
     def main(self):
         selected_screens = self.show_screen_menus()
-        screen_pictures = self.get_screen_picture(selected_screens)
+        screen_pictures, screen_group_relation = self.get_screen_picture(selected_screens)
         
         # 显示详细的图片信息
-        self.get_picture_info(screen_pictures)
+        self.get_picture_info(screen_pictures, screen_group_relation)
         
         # 显示统计信息
         # self.get_detailed_picture_stats(screen_pictures)
