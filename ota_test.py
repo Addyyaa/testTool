@@ -33,7 +33,7 @@ config = {
     "user": "root",
     "password": "ya!2dkwy7-934^",
     "ota_wait_time": 60,  # 升级所需要的时间，单位秒
-    "hosts": ['192.168.1.4', '192.168.1.5'],
+    "hosts": ['192.168.1.45'],
     "test_times": 1000
 }
 
