@@ -68,6 +68,8 @@ class TelnetService:
                         target_file = f"{log_strategy.name}.tar.gz"
                         if any(target_file in line for line in lines):
                             print(f"找到目标文件: {target_file}")
+                            await conn.send_command("killall -9 httpd")
+                            await asyncio.sleep(0.5)
                             # 启动 HTTP 服务（忽略端口已被使用的错误）
                             http_result = await conn.send_command("httpd -p 88")
                             if "Address already in use" in http_result:

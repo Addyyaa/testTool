@@ -11,9 +11,9 @@ logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %
 
 class Upload_pic_size_test:
     def __init__(self):
-        # self.user, self.passwd = self.ask_login_info()
-        self.user = "test2@tester.com"
-        self.passwd = "sf123123"
+        self.user, self.passwd = self.ask_login_info()
+        # self.user = "test2@tester.com"
+        # self.passwd = "sf123123"
         self.api_sender = Api_sender(self.user, self.passwd)
         self.base_url = "http://192.168.1.100"
         self.port = 8080
@@ -22,8 +22,9 @@ class Upload_pic_size_test:
         self.detect_item = {"detect_file_size": self.detect_file_size_info, "detect_screen_resolution": self.detect_picture_resolution_item}
         self.alubm_detect_item = {"detect_album_file_size": self.detect_album_file_size_info, "detect_album_picture_resolution": self.detect_album_picture_resolution_item}
         self.test_flag = True
-        self.android_file_all_smaller_than_2 = False
-        self.album_file_all_smaller_than_1 = False
+        self.android_file_all_smaller_than_2 = True
+        self.album_file_all_smaller_than_1 = True
+        self.android_picture_resolution_all_smaller_than_1920 = True
         self.album_picture_max_size = 2
         self.max_short_size = 1920
     def show_screen_menus(self):
@@ -131,6 +132,7 @@ class Upload_pic_size_test:
             screen_type_info (dict): 屏幕类型信息
             screen_resolution_info (dict): 屏幕分辨率信息
         """
+        has_android_screen = False
         
         while True:
             enable_pic_info = input("是否打印所有图片信息？（y/n）")
@@ -142,6 +144,8 @@ class Upload_pic_size_test:
                 print("输入错误，请重新输入")
                 continue
         for screen in screen_pictures:
+            if screen_type_info[screen] == "Android":
+                has_android_screen = True
             for picture_url in screen_pictures[screen]:
                 try:
                     response = requests.get(picture_url)
@@ -186,9 +190,12 @@ class Upload_pic_size_test:
         else:
             print("测试不通过，请检查图片大小是否符合要求")
         
-        if self.android_file_all_smaller_than_2:
-            logging.warning("Android图片大小均小于2MB，可能压缩参数设置问题，请检查参数上限是否为6M")
-        
+        if has_android_screen:
+            if self.android_file_all_smaller_than_2:
+                logging.warning("Android图片大小均小于2MB，可能压缩参数设置问题，请检查参数上限是否为6M")
+
+            if self.android_picture_resolution_all_smaller_than_1920:
+                logging.warning(f"Android图片分辨率均小于{self.max_short_size}，可能压缩参数设置问题，请检查参数上限是否为{self.max_short_size}")
         
     
     def detect_file_size_info(self, args: dict):
@@ -238,6 +245,8 @@ class Upload_pic_size_test:
                     self.test_flag = False
                     print("分辨率测试")
                     print_picture_info(msg)
+                if max(picture_resolution_list) > self.max_short_size:
+                    self.android_picture_resolution_all_smaller_than_1920 = False
             else:
                 logging.error(f"屏幕类型错误: {screen_type}")
                 sys.exit()
