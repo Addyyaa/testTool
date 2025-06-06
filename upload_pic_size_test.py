@@ -185,6 +185,7 @@ class Upload_pic_size_test:
                 except Exception as e:
                     logging.error(f"处理图片时发生错误: {picture_url}, 错误: {str(e)}")
                     print(f"  ❌ 处理图片时发生错误: {picture_url}")
+            logging.info(f"屏幕：{screen} 总计测试 {len(screen_pictures[screen])} 张图片")
         if self.test_flag:
             print("测试通过，所有图片大小均符合要求")
         else:
@@ -450,6 +451,7 @@ class Upload_pic_size_test:
             except Exception as e:
                 logging.error(f"处理图片时发生错误: {url}, 错误: {str(e)}")
                 print(f"  ❌ 处理图片时发生错误: {url}")
+        logging.info(f"相册：{album_name} 总计测试 {len(album_picture_url)} 张图片")
         if self.album_file_all_smaller_than_1:
             logging.warning("相册图片大小均小于1MB，可能压缩参数设置问题，请检查参数上限是否为2M")
 
