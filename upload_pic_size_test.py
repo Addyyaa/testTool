@@ -408,7 +408,13 @@ class Upload_pic_size_test:
                     picture_size_mb = picture_size_bytes / (1024 * 1024)
                     
                     # 获取图片分辨率
-                    img = Image.open(BytesIO(response.content))
+                    try:
+                        img = Image.open(BytesIO(response.content))
+                    except Exception as e:
+                        location1 = (album_picture_url.index(url) + 1) // 3
+                        location2 = (album_picture_url.index(url) + 1) % 3
+                        logging.error(f"第{location1}行第{location2}列的图片，处理时发生错误: {url}, 错误: {str(e)}\t请手工确认该图片是否正常")
+                        continue
                     width, height = img.size
                     picture_resolution = f"{width} * {height}"
                     format_type = img.format if img.format else "未知"
