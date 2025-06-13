@@ -1,24 +1,26 @@
-from api_sender import Api_sender
 import logging
+# 设置日志
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s %(filename)s:%(lineno)d')
+from api_sender import Api_sender
 import sys
 import requests
 from PIL import Image
 from io import BytesIO
 
 
-# 设置日志
-logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s %(filename)s:%(lineno)d')
+
 
 class Upload_pic_size_test:
     def __init__(self):
-        self.user, self.passwd = self.ask_login_info()
-        # self.user = "test2@tester.com"
-        # self.passwd = "sf123123"
-        self.api_sender = Api_sender(self.user, self.passwd)
-        self.base_url = "http://192.168.1.100"
+        # self.user, self.passwd = self.ask_login_info()
+        self.user = "15250996938"
+        self.passwd = "sf123123"
         self.port = 8080
         self.protocol = "http"
-        self.file_domian = "files-static-test.austinelec.com"
+        self.server = "cloud-service.austinelec.com"
+        self.base_url = f"{self.protocol}://{self.server}"
+        self.api_sender = Api_sender(self.user, self.passwd, self.server, self.port)
+        self.file_domian = "files-static.austinelec.com"  # 环境切换需要更换
         self.detect_item = {"detect_file_size": self.detect_file_size_info, "detect_screen_resolution": self.detect_picture_resolution_item}
         self.alubm_detect_item = {"detect_album_file_size": self.detect_album_file_size_info, "detect_album_picture_resolution": self.detect_album_picture_resolution_item}
         self.test_flag = True
@@ -355,7 +357,6 @@ class Upload_pic_size_test:
         response = api_sender1.send_api(api_sender1.album_list, data="", method="get")
         if response.status_code == 200 and response.json()["code"] == 20:
             album_list = response.json()["data"]
-            print(f"album_list: {album_list}")
             return album_list
         else:
             logging.error(response.text)

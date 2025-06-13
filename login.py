@@ -16,19 +16,19 @@ class Login:
                       "like Gecko) Version/4.0 Chrome/115.0.5790.166 Mobile Safari/537.36 uni-app Html5Plus/1.0 ("
                       "Immersed/34.909092)",
     }
-    server = "139.224.192.36"
-    port = "8082"
     body_data = {
         "account": "",
         "password": "",
         "areaCode": "+86",
         "loginType": "2"
     }
-    login_interface = "http://" + server + ":" + port + "/api/v1/account/login"
 
-    def __init__(self, account: str, password: str):
+    def __init__(self, account: str, password: str, server: str = "139.224.192.36", port: str = "8082"):
         self.account = account
         self.password = password
+        self.server = server
+        self.port = port
+        self.login_interface = f"http://{self.server}:{self.port}/api/v1/account/login"
 
     def login(self):
         if '@' in self.account:

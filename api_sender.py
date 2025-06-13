@@ -5,13 +5,13 @@ import sys
 import requests
 from login import Login
 
-
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s %(filename)s:%(lineno)d')
 class Api_sender:
-    def __init__(self, user, passwd):
+    def __init__(self, user, passwd, server="139.224.192.36", port="8082"):
         self.user = user
         self.passwd = passwd
-        server = "139.224.192.36"
-        port = "8082"
+        self.server = server 
+        self.port = port     
         base_url = f"http://{server}:{port}"
         self.login_interface = f"{base_url}/api/v1/account/login"
         self.get_device = f"{base_url}/api/v1/host/screen/group/device/list"
@@ -57,12 +57,23 @@ class Api_sender:
                 response1 = requests.post(api, json=data, headers=self.header, proxies=None)
             else:
                 response1 = requests.get(api, params=data, headers=self.header, proxies=None)
-            return response1
+            if response1.status_code == 401:
+                raise Exception("401")
+            if response1.status_code == 200:
+                return response1
+            return response1  # 返回其他状态码的响应，让调用者处理
         except Exception as e:
-            logging.error(f"请求发生错误：{e}")
+            if str(e) == "401":  # 修改这里，使用str(e)来比较
+                self.__set_token()
+                return self.send_api(api, data, method)
+            else:
+                logging.error(f"请求发生错误：{e}")
+                return None
+    
+            
 
     def __set_token(self):
-        token = Login(self.user, self.passwd).login()
+        token = Login(self.user, self.passwd, self.server, self.port).login()
         self.header['X-TOKEN'] = token
 
 
