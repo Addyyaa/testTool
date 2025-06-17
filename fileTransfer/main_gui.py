@@ -4,6 +4,12 @@
 现代化文件传输工具主程序
 
 集成GUI界面、HTTP服务器、Telnet客户端和文件传输控制器
+
+修复说明：
+- 已修复连接后UI卡死问题：使用回调方式替代阻塞的future.result()
+- 已修复异步嵌套调用问题：简化连接成功后的处理逻辑
+- 已修复事件循环锁创建问题：确保telnet锁在正确的上下文中创建
+- 已修复传输和目录刷新的UI阻塞问题：全面采用回调方式处理异步结果
 """
 
 import asyncio
@@ -372,11 +378,11 @@ class ModernFileTransferGUI:
         # 连接按钮 - 现代化样式
         self.connect_button = tk.Button(self.connection_frame, text="🔗 连接设备", 
                                       command=self._on_connect_clicked,
-                                      bg=self.colors['bg_button'], fg=self.colors['text_button'],
-                                      font=('Microsoft YaHei UI', 9, 'bold'),
+                                      bg=self.colors['bg_button'], fg='#ffffff',
+                                      font=('Microsoft YaHei UI', 10, 'bold'),
                                       relief='flat', borderwidth=0,
                                       activebackground=self.colors['bg_button_hover'], 
-                                      activeforeground=self.colors['text_button'],
+                                      activeforeground='#ffffff',
                                       cursor='hand2')
         self.connect_button.place(relx=0, rely=0.76, relwidth=1.0, relheight=0.12)
         
@@ -448,46 +454,48 @@ class ModernFileTransferGUI:
         # 现代化按钮 - 使用图标
         self.refresh_button = tk.Button(buttons_container, text="🔄 刷新", 
                                        command=self._safe_refresh_directory,
-                                       bg=self.colors['bg_button'], fg=self.colors['text_button'],
-                                       font=('Microsoft YaHei UI', 8, 'bold'),
+                                       bg=self.colors['bg_button'], fg='#ffffff',
+                                       font=('Microsoft YaHei UI', 9, 'bold'),
                                        relief='flat', borderwidth=0,
                                        activebackground=self.colors['bg_button_hover'], 
-                                       activeforeground=self.colors['text_button'],
+                                       activeforeground='#ffffff',
                                        cursor='hand2')
         self.refresh_button.place(relx=0, rely=0, relwidth=0.32, relheight=1.0)
         
         self.parent_button = tk.Button(buttons_container, text="⬆️ 上级", 
                                      command=self._go_parent_directory,
-                                     bg=self.colors['bg_button'], fg=self.colors['text_button'],
-                                     font=('Microsoft YaHei UI', 8, 'bold'),
+                                     bg=self.colors['bg_button'], fg='#ffffff',
+                                     font=('Microsoft YaHei UI', 9, 'bold'),
                                      relief='flat', borderwidth=0,
                                      activebackground=self.colors['bg_button_hover'], 
-                                     activeforeground=self.colors['text_button'],
+                                     activeforeground='#ffffff',
                                      cursor='hand2')
         self.parent_button.place(relx=0.34, rely=0, relwidth=0.32, relheight=1.0)
         
-        self.quick_transfer_button = tk.Button(buttons_container, text="⚡ 快传", 
-                                             command=self._quick_start_transfer,
-                                             bg=self.colors['error'], fg=self.colors['text_button'],
-                                             font=('Microsoft YaHei UI', 8, 'bold'),
-                                             relief='flat', borderwidth=0,
-                                             activebackground='#b91c1c', activeforeground=self.colors['text_button'],
-                                             cursor='hand2')
-        self.quick_transfer_button.place(relx=0.68, rely=0, relwidth=0.32, relheight=1.0)
+        self.delete_file_button = tk.Button(buttons_container, text="🗑️ 删除", 
+                                           command=self._delete_selected_file,
+                                           bg=self.colors['error'], fg='#ffffff',
+                                           font=('Microsoft YaHei UI', 9, 'bold'),
+                                           relief='flat', borderwidth=0,
+                                           activebackground='#b91c1c', activeforeground='#ffffff',
+                                           cursor='hand2', state='disabled')
+        self.delete_file_button.place(relx=0.68, rely=0, relwidth=0.32, relheight=1.0)
         
-        # 为传输按钮添加右键菜单（测试功能）
-        self.transfer_context_menu = tk.Menu(self.root, tearoff=0)
-        self.transfer_context_menu.add_command(label="🔧 测试传输设置", command=self._test_transfer_setup)
-        self.transfer_context_menu.add_separator()
-        self.transfer_context_menu.add_command(label="📊 显示传输状态", command=self._show_transfer_status)
+        # 为删除按钮添加右键菜单（调试功能）
+        self.delete_context_menu = tk.Menu(self.root, tearoff=0)
+        self.delete_context_menu.add_command(label="🔍 调试选择状态", command=self._debug_selection_status)
+        self.delete_context_menu.add_separator()
+        self.delete_context_menu.add_command(label="🔧 测试传输设置", command=self._test_transfer_setup)
+        self.delete_context_menu.add_command(label="📊 显示传输状态", command=self._show_transfer_status)
         
-        def show_transfer_menu(event):
+        def show_delete_menu(event):
             try:
-                self.transfer_context_menu.tk_popup(event.x_root, event.y_root)
+                self.delete_context_menu.tk_popup(event.x_root, event.y_root)
             finally:
-                self.transfer_context_menu.grab_release()
+                self.delete_context_menu.grab_release()
         
-        self.quick_transfer_button.bind("<Button-3>", show_transfer_menu)  # 右键
+        # 为删除按钮绑定右键菜单（调试功能）
+        self.delete_file_button.bind("<Button-3>", show_delete_menu)  # 右键
     
     def _create_transfer_queue_panel(self):
         """创建现代化传输队列面板 - 占侧边栏20%高度"""
@@ -521,19 +529,19 @@ class ModernFileTransferGUI:
         # 紧凑的控制按钮 - 占容器70%高度
         self.start_transfer_button = tk.Button(self.queue_card, text="▶️ 开始", 
                                              command=self._start_transfer,
-                                             bg=self.colors['error'], fg=self.colors['text_button'],
-                                             font=('Microsoft YaHei UI', 8, 'bold'),
+                                             bg=self.colors['error'], fg='#ffffff',
+                                             font=('Microsoft YaHei UI', 9, 'bold'),
                                              relief='flat', borderwidth=0,
-                                             activebackground='#b91c1c', activeforeground=self.colors['text_button'],
+                                             activebackground='#b91c1c', activeforeground='#ffffff',
                                              cursor='hand2')
         self.start_transfer_button.place(relx=0.04, rely=0.32, relwidth=0.44, relheight=0.63)
         
         self.clear_queue_button = tk.Button(self.queue_card, text="🗑️ 清空", 
                                           command=self._clear_transfer_queue,
-                                          bg=self.colors['text_muted'], fg=self.colors['text_button'],
-                                          font=('Microsoft YaHei UI', 8, 'bold'),
+                                          bg=self.colors['text_muted'], fg='#ffffff',
+                                          font=('Microsoft YaHei UI', 9, 'bold'),
                                           relief='flat', borderwidth=0,
-                                          activebackground='#4b5563', activeforeground=self.colors['text_button'],
+                                          activebackground='#4b5563', activeforeground='#ffffff',
                                           cursor='hand2')
         self.clear_queue_button.place(relx=0.52, rely=0.32, relwidth=0.44, relheight=0.63)
     
@@ -673,7 +681,7 @@ class ModernFileTransferGUI:
     def _setup_logging(self):
         """配置日志系统"""
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.setLevel(logging.DEBUG)  # 设置为DEBUG级别以查看详细信息
+        self.logger.setLevel(logging.INFO)  # 设置为DEBUG级别以查看详细信息
         
         # 创建自定义日志处理器
         class GUILogHandler(logging.Handler):
@@ -695,39 +703,54 @@ class ModernFileTransferGUI:
             self.logger.addHandler(gui_handler)
     
     def _start_event_loop(self):
-        """启动异步事件循环"""
+        """启动异步事件循环 - 修复版本"""
         def run_loop():
             try:
                 self.loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(self.loop)
-                # 创建telnet锁
-                self.telnet_lock = asyncio.Lock()
+                
+                # 在事件循环中创建telnet锁
+                async def create_lock():
+                    self.telnet_lock = asyncio.Lock()
+                    self.logger.info("异步事件循环和telnet锁已创建")
+                
+                # 创建锁并运行事件循环
+                self.loop.run_until_complete(create_lock())
                 self.logger.info("异步事件循环已启动")
                 self.loop.run_forever()
             except Exception as e:
                 self.logger.error(f"异步事件循环启动失败: {e}")
+                import traceback
+                self.logger.error(f"详细错误: {traceback.format_exc()}")
         
         self.loop_thread = threading.Thread(target=run_loop, daemon=True)
         self.loop_thread.start()
         
         # 等待事件循环启动，增加超时保护
         wait_count = 0
-        max_wait = 100  # 最多等待1秒
+        max_wait = 50  # 最多等待0.5秒
         while (self.loop is None or self.telnet_lock is None) and wait_count < max_wait:
             time.sleep(0.01)
             wait_count += 1
         
         if wait_count >= max_wait:
             self.logger.error("异步事件循环启动超时")
+            # 即使超时也继续运行，但记录错误
         else:
             self.logger.info(f"异步事件循环启动完成，等待了 {wait_count * 10}ms")
     
     def _run_async(self, coro):
-        """在事件循环中运行异步任务"""
-        if self.loop and not self.loop.is_closed():
-            future = asyncio.run_coroutine_threadsafe(coro, self.loop)
-            return future
-        return None
+        """在事件循环中运行异步任务 - 修复版本"""
+        try:
+            if self.loop and not self.loop.is_closed():
+                future = asyncio.run_coroutine_threadsafe(coro, self.loop)
+                return future
+            else:
+                self.logger.error("事件循环不可用")
+                return None
+        except Exception as e:
+            self.logger.error(f"创建异步任务失败: {e}")
+            return None
     
     # 其他事件处理方法将在下一部分继续...
     
@@ -787,7 +810,7 @@ class ModernFileTransferGUI:
             messagebox.showerror("连接错误", f"连接失败: {str(e)}")
     
     def _connect_async(self):
-        """异步连接"""
+        """异步连接 - 修复版本，避免UI阻塞"""
         try:
             from telnetTool.telnetConnect import CustomTelnetClient
             self.telnet_client = CustomTelnetClient(
@@ -796,15 +819,24 @@ class ModernFileTransferGUI:
                 timeout=30.0
             )
             
+            # 使用回调方式避免阻塞UI线程
             future = self._run_async(self._do_connect())
             if future:
-                result = future.result(timeout=15)
-                if result:
-                    self.root.after(0, self._on_connect_success)
-                else:
-                    self.root.after(0, self._on_connect_failed, "连接失败")
+                # 使用add_done_callback避免阻塞
+                future.add_done_callback(self._on_connect_result)
             else:
                 self.root.after(0, self._on_connect_failed, "无法启动异步任务")
+        except Exception as e:
+            self.root.after(0, self._on_connect_failed, str(e))
+    
+    def _on_connect_result(self, future):
+        """处理连接结果回调"""
+        try:
+            result = future.result()
+            if result:
+                self.root.after(0, self._on_connect_success)
+            else:
+                self.root.after(0, self._on_connect_failed, "连接失败")
         except Exception as e:
             self.root.after(0, self._on_connect_failed, str(e))
     
@@ -825,30 +857,133 @@ class ModernFileTransferGUI:
             return False
     
     def _on_connect_success(self):
-        """连接成功"""
-        self.is_connected = True
-        self.connect_button.configure(state='normal', text='断开连接')
-        
-        # 更新状态指示器
-        self.status_indicator.delete('all')
-        self.status_indicator.create_oval(2, 2, 10, 10, fill=self.colors['success'], outline='')
-        self.connection_status_label.configure(text=f"已连接 ({self.connection_config['host']})", 
-                                             fg=self.colors['success'])
-        
-        # 保存IP到历史记录
-        current_ip = self.connection_config['host']
-        if current_ip:
-            # 异步读取设备ID并保存
-            self._run_async(self._save_ip_with_device_id(current_ip))
-        
-        self._update_status(f"成功连接到 {self.connection_config['host']}")
-        
-        # 启动HTTP服务器
-        self._start_http_server()
-        
-        # 连接成功后不自动刷新目录，让用户手动点击刷新
-        self.logger.info("连接成功！请点击'刷新'按钮来获取目录列表")
-        self._update_status("连接成功！请点击刷新按钮获取目录")
+        """连接成功 - 添加自动刷新目录功能"""
+        try:
+            self.logger.info("开始处理连接成功...")
+            
+            self.is_connected = True
+            self.connect_button.configure(state='normal', text='断开连接')
+            
+            # 更新状态指示器
+            self.status_indicator.delete('all')
+            self.status_indicator.create_oval(2, 2, 10, 10, fill=self.colors['success'], outline='')
+            self.connection_status_label.configure(text=f"已连接 ({self.connection_config['host']})", 
+                                                 fg=self.colors['success'])
+            
+            # 最简化的IP保存
+            current_ip = self.connection_config['host']
+            if current_ip:
+                try:
+                    self.ip_history_manager.add_ip(current_ip, None)
+                    self.logger.info(f"已保存IP到历史记录: {current_ip}")
+                except Exception as e:
+                    self.logger.debug(f"保存IP失败: {e}")
+            
+            # 更新状态
+            self._update_status(f"成功连接到 {self.connection_config['host']}")
+            
+            # 连接成功提示
+            self.logger.info("连接成功！正在自动获取目录列表...")
+            self._update_status("连接成功！正在获取目录列表...")
+            
+            # 延迟自动刷新目录（避免与连接过程冲突）
+            self.root.after(200, self._auto_refresh_directory)
+            
+            self.logger.info("连接成功处理完成！")
+            
+        except Exception as e:
+            self.logger.error(f"连接成功处理过程中出错: {e}")
+            import traceback
+            self.logger.error(f"详细错误: {traceback.format_exc()}")
+    
+    def _auto_refresh_directory(self):
+        """自动刷新目录（连接成功后调用）"""
+        try:
+            self.logger.info("开始自动刷新目录...")
+            
+            # 重置当前路径为根目录
+            self.current_remote_path = "/"
+            self.current_path_var.set(self.current_remote_path)
+            
+            # 调用目录刷新
+            self._refresh_directory()
+            
+        except Exception as e:
+            self.logger.error(f"自动刷新目录失败: {e}")
+            # 如果自动刷新失败，提示用户手动刷新
+            self._update_status("连接成功！请手动点击刷新按钮获取目录")
+    
+    def _start_http_server_delayed(self):
+        """延迟启动HTTP服务器，避免阻塞UI"""
+        try:
+            self.logger.info("开始启动HTTP服务器...")
+            threading.Thread(target=self._start_http_server_background, daemon=True).start()
+        except Exception as e:
+            self.logger.error(f"延迟启动HTTP服务器失败: {e}")
+    
+    def _start_http_server_background(self):
+        """在后台线程中启动HTTP服务器"""
+        try:
+            if not self.http_server:
+                self.http_server = FileHTTPServer(port=88)
+                self.http_server.start()
+                
+                # 获取本机IP地址
+                local_ip = self._get_local_ip()
+                temp_dir = self.http_server.temp_dir
+                
+                # 在主线程中更新UI
+                self.root.after(0, lambda: self.http_status_var.set(f"HTTP服务: 运行中 (端口88)"))
+                self.root.after(0, lambda: self.logger.info(f"HTTP服务器已启动 - IP: {local_ip}:88"))
+                
+        except Exception as e:
+            self.logger.error(f"后台启动HTTP服务器失败: {str(e)}")
+            # 在主线程中显示错误
+            self.root.after(0, lambda: messagebox.showerror("服务器错误", f"无法启动HTTP服务器:\n{str(e)}"))
+    
+    def _save_device_id_background(self, ip):
+        """完全在后台保存设备ID，不影响UI"""
+        try:
+            self.logger.debug(f"开始后台获取设备ID: {ip}")
+            # 这里不调用异步方法，避免任何可能的阻塞
+            # 设备ID获取可以稍后实现，现在先确保连接稳定
+        except Exception as e:
+            self.logger.debug(f"后台保存设备ID失败: {e}")
+    
+    # 暂时注释掉可能导致问题的异步方法
+    # def _save_device_id_async(self, ip):
+    #     """异步保存设备ID到历史记录（后台操作）"""
+    #     try:
+    #         future = self._run_async(self._read_and_save_device_id(ip))
+    #         if future:
+    #             # 不等待结果，让它在后台执行
+    #             future.add_done_callback(lambda f: self._on_device_id_saved(f, ip))
+    #     except Exception as e:
+    #         self.logger.debug(f"后台保存设备ID失败: {e}")
+    # 
+    # def _on_device_id_saved(self, future, ip):
+    #     """设备ID保存完成回调"""
+    #     try:
+    #         device_id = future.result()
+    #         if device_id:
+    #             self.current_device_id = device_id
+    #             self.logger.info(f"设备ID已更新: {ip} -> {device_id}")
+    #     except Exception as e:
+    #         self.logger.debug(f"设备ID保存回调失败: {e}")
+    # 
+    # async def _read_and_save_device_id(self, ip):
+    #     """读取并保存设备ID"""
+    #     try:
+    #         # 使用锁保护telnet连接
+    #         async with self.telnet_lock:
+    #             device_id = await read_device_id_from_remote(self.telnet_client)
+    #             if device_id:
+    #                 # 更新历史记录中的设备ID
+    #                 self.ip_history_manager.add_ip(ip, device_id)
+    #                 return device_id
+    #     except Exception as e:
+    #         self.logger.debug(f"读取设备ID失败: {e}")
+    #     return None
     
     def _on_connect_failed(self, error_msg):
         """连接失败"""
@@ -896,30 +1031,9 @@ class ModernFileTransferGUI:
             self.connect_button.configure(state='normal', text='连接设备')
     
     def _start_http_server(self):
-        """启动HTTP服务器"""
-        try:
-            if not self.http_server:
-                self.http_server = FileHTTPServer(port=88)
-                self.http_server.start()
-                
-                # 获取本机IP地址
-                local_ip = self._get_local_ip()
-                temp_dir = self.http_server.temp_dir
-                
-                self.http_status_var.set(f"HTTP服务: 运行中 (端口88)")
-                self.logger.info(f"HTTP服务器已启动")
-                self.logger.info(f"本机IP地址: {local_ip}")
-                self.logger.info(f"HTTP服务器临时目录: {temp_dir}")
-                self.logger.info(f"访问地址: http://{local_ip}:88/")
-                
-                # 在状态栏显示服务器信息
-                self._update_status(f"HTTP服务器已启动 - IP: {local_ip}:88")
-                
-        except Exception as e:
-            self.logger.error(f"启动HTTP服务器失败: {str(e)}")
-            import traceback
-            self.logger.error(f"详细错误: {traceback.format_exc()}")
-            messagebox.showerror("服务器错误", f"无法启动HTTP服务器:\n{str(e)}")
+        """启动HTTP服务器 - 简化版本（备用）"""
+        # 这个方法暂时不使用，避免阻塞
+        pass
     
     def _safe_refresh_directory(self):
         """安全的刷新目录（用户手动触发）"""
@@ -939,7 +1053,7 @@ class ModernFileTransferGUI:
         threading.Thread(target=self._refresh_directory_async, daemon=True).start()
     
     def _refresh_directory_async(self):
-        """异步刷新目录"""
+        """异步刷新目录 - 修复版本，避免UI阻塞"""
         try:
             self.logger.info(f"开始异步刷新目录: {self.current_remote_path}")
             
@@ -957,18 +1071,8 @@ class ModernFileTransferGUI:
             
             future = self._run_async(self._get_directory_listing(self.current_remote_path))
             if future:
-                try:
-                    # 使用较短的超时时间，避免界面冻结
-                    items = future.result(timeout=5)
-                    self.logger.info(f"异步操作完成，获得 {len(items)} 个项目")
-                    # 使用after确保在主线程中更新GUI
-                    self.root.after(0, lambda: self._update_directory_tree(items))
-                except asyncio.TimeoutError:
-                    self.logger.error("目录列表获取超时")
-                    self.root.after(0, lambda: self._update_status("目录列表获取超时"))
-                except Exception as result_error:
-                    self.logger.error(f"获取异步结果失败: {result_error}")
-                    self.root.after(0, lambda: self._update_status(f"获取结果失败: {result_error}"))
+                # 使用回调方式处理结果
+                future.add_done_callback(self._on_directory_result)
             else:
                 self.logger.error("无法创建异步任务")
                 self.root.after(0, lambda: self._update_status("无法创建异步任务"))
@@ -979,6 +1083,20 @@ class ModernFileTransferGUI:
             self.logger.error(f"完整错误信息: {traceback.format_exc()}")
             # 显示错误信息到状态栏
             self.root.after(0, lambda: self._update_status(f"刷新目录失败: {str(e)}"))
+    
+    def _on_directory_result(self, future):
+        """处理目录刷新结果回调"""
+        try:
+            items = future.result()
+            self.logger.info(f"异步操作完成，获得 {len(items)} 个项目")
+            # 使用after确保在主线程中更新GUI
+            self.root.after(0, lambda: self._update_directory_tree(items))
+            # 延迟启动HTTP服务器（如果还没启动）
+            if not self.http_server:
+                self.root.after(100, self._start_http_server_delayed)
+        except Exception as e:
+            self.logger.error(f"目录刷新结果处理失败: {e}")
+            self.root.after(0, lambda: self._update_status(f"目录刷新失败: {str(e)}"))
     
     def _clean_ansi_codes(self, text):
         """清理ANSI转义序列和颜色代码"""
@@ -1070,35 +1188,53 @@ class ModernFileTransferGUI:
     def _configure_tree_colors(self):
         """配置treeview的颜色标签"""
         try:
-            # 目录 - 蓝色
-            self.directory_tree.tag_configure('directory', foreground='#3b82f6')
+            self.logger.debug("开始配置目录树颜色...")
             
-            # 可执行文件 - 绿色
-            self.directory_tree.tag_configure('executable', foreground='#10b981')
+            # 目录 - 蓝色，加粗
+            self.directory_tree.tag_configure('directory', 
+                                            foreground='#1e40af', 
+                                            font=('Microsoft YaHei UI', 9, 'bold'))
             
-            # 符号链接 - 紫色
-            self.directory_tree.tag_configure('link', foreground='#8b5cf6')
+            # 可执行文件 - 绿色，加粗
+            self.directory_tree.tag_configure('executable', 
+                                            foreground='#059669', 
+                                            font=('Microsoft YaHei UI', 9, 'bold'))
+            
+            # 符号链接 - 紫色，斜体
+            self.directory_tree.tag_configure('link', 
+                                            foreground='#7c3aed', 
+                                            font=('Microsoft YaHei UI', 9, 'italic'))
             
             # 图片文件 - 橙色
-            self.directory_tree.tag_configure('image', foreground='#f59e0b')
+            self.directory_tree.tag_configure('image', 
+                                            foreground='#ea580c')
             
             # 文档文件 - 灰色
-            self.directory_tree.tag_configure('document', foreground='#6b7280')
+            self.directory_tree.tag_configure('document', 
+                                            foreground='#4b5563')
             
             # 压缩文件 - 红色
-            self.directory_tree.tag_configure('archive', foreground='#dc2626')
+            self.directory_tree.tag_configure('archive', 
+                                            foreground='#dc2626')
             
             # 配置文件 - 青色
-            self.directory_tree.tag_configure('config', foreground='#0891b2')
+            self.directory_tree.tag_configure('config', 
+                                            foreground='#0891b2')
             
             # 脚本文件 - 翠绿色
-            self.directory_tree.tag_configure('script', foreground='#059669')
+            self.directory_tree.tag_configure('script', 
+                                            foreground='#059669')
             
             # 普通文件 - 深灰色
-            self.directory_tree.tag_configure('file', foreground='#374151')
+            self.directory_tree.tag_configure('file', 
+                                            foreground='#374151')
+            
+            self.logger.debug("目录树颜色配置完成")
             
         except Exception as e:
-            self.logger.debug(f"配置treeview颜色失败: {e}")
+            self.logger.error(f"配置treeview颜色失败: {e}")
+            import traceback
+            self.logger.error(f"详细错误: {traceback.format_exc()}")
     
     async def _get_directory_listing(self, path):
         """获取目录列表"""
@@ -1242,7 +1378,7 @@ class ModernFileTransferGUI:
                 return []
     
     def _update_directory_tree(self, items):
-        """更新目录树"""
+        """更新目录树 - 修复重复显示和颜色问题"""
         try:
             self.logger.info(f"开始更新目录树，收到 {len(items)} 个项目")
             
@@ -1260,67 +1396,61 @@ class ModernFileTransferGUI:
                 self.logger.error(f"清空目录树失败: {clear_error}")
                 return
             
-            # 添加新项目
+            # 先配置颜色标签
+            self._configure_tree_colors()
+            
+            # 添加新项目 - 简化版本，避免重复
             added_count = 0
             for i, item in enumerate(items):
                 try:
-                    # 根据文件类型选择图标和颜色
+                    # 根据文件类型选择图标
                     icon, color = self._get_file_icon_and_color(item)
                     display_name = f"{icon} {item['name']}"
                     
-                    # 插入到树中
-                    tree_item = self.directory_tree.insert('', 'end', text=display_name, 
-                                                         values=(item['full_path'], item['is_directory']))
-                    
-                    # 设置文本颜色（需要配置treeview的tag）
-                    self.directory_tree.set(tree_item, '#0', display_name)
-                    
-                    # 为不同类型的项目设置标签
-                    if item['is_directory']:
-                        self.directory_tree.item(tree_item, tags=('directory',))
+                    # 确定标签类型
+                    if item.get('is_directory', False):
+                        tag = 'directory'
                     elif item.get('is_executable', False):
-                        self.directory_tree.item(tree_item, tags=('executable',))
+                        tag = 'executable'
                     elif item.get('is_link', False):
-                        self.directory_tree.item(tree_item, tags=('link',))
+                        tag = 'link'
                     else:
                         file_type = item.get('file_type', 'file')
-                        self.directory_tree.item(tree_item, tags=(file_type,))
+                        tag = file_type
+                    
+                    # 插入到树中，直接设置标签
+                    # 确保 is_directory 是明确的布尔值
+                    is_directory_value = bool(item.get('is_directory', False))
+                    tree_item = self.directory_tree.insert('', 'end', 
+                                                         text=display_name,
+                                                         values=(item['full_path'], is_directory_value),
+                                                         tags=(tag,))
                     
                     added_count += 1
-                    self.logger.debug(f"成功添加项目 {i+1}: {display_name} -> {tree_item}")
+                    self.logger.debug(f"成功添加项目: {display_name} (标签: {tag})")
+                    
                 except Exception as item_error:
-                    self.logger.error(f"添加项目失败 {item}: {str(item_error)}")
-                    # 尝试简化版本
+                    self.logger.error(f"添加项目失败 {item['name']}: {str(item_error)}")
+                    # 如果添加失败，尝试最简单的版本（不设置颜色）
                     try:
                         simple_name = item['name']
-                        tree_item = self.directory_tree.insert('', 'end', text=simple_name, 
+                        tree_item = self.directory_tree.insert('', 'end', 
+                                                             text=simple_name,
                                                              values=(item['full_path'], item.get('is_directory', False)))
                         added_count += 1
                         self.logger.debug(f"简化版本成功添加: {simple_name}")
                     except Exception as simple_error:
                         self.logger.error(f"简化版本也失败: {str(simple_error)}")
             
-            # 配置treeview的颜色标签
-            try:
-                self._configure_tree_colors()
-            except Exception as color_error:
-                self.logger.warning(f"配置颜色失败: {color_error}")
-            
             # 检查最终结果
-            try:
-                children_count = len(self.directory_tree.get_children())
-                self.logger.info(f"目录树更新完成，显示 {children_count} 个项目，成功添加 {added_count} 个")
-                
-                if children_count == 0 and len(items) > 0:
-                    self.logger.warning("警告：有项目但目录树为空，可能存在显示问题")
-                    # 尝试强制刷新界面
-                    self.root.update_idletasks()
-                
-                # 更新状态栏
-                self._update_status(f"目录刷新完成，显示 {children_count} 个项目")
-                
-            except Exception as check_error:
-                self.logger.error(f"检查最终结果失败: {check_error}")
+            children_count = len(self.directory_tree.get_children())
+            self.logger.info(f"目录树更新完成，显示 {children_count} 个项目，成功添加 {added_count} 个")
+            
+            # 更新状态栏
+            if children_count > 0:
+                self._update_status(f"目录刷新完成，显示 {children_count} 个项目 - 路径: {self.current_remote_path}")
+            else:
+                self._update_status(f"目录为空 - 路径: {self.current_remote_path}")
                 
         except Exception as e:
             self.logger.error(f"更新目录树失败: {str(e)}")
@@ -1338,7 +1468,10 @@ class ModernFileTransferGUI:
             
             self.logger.debug(f"双击项目: {full_path}, 是否为目录: {is_directory}")
             
-            if is_directory:
+            # 使用统一的判断逻辑
+            is_dir = self._is_directory_item(is_directory)
+            
+            if is_dir:
                 self.current_remote_path = self._normalize_unix_path(full_path)
                 self.current_path_var.set(self.current_remote_path)
                 self._refresh_directory()
@@ -1351,9 +1484,28 @@ class ModernFileTransferGUI:
         if selection:
             item = self.directory_tree.item(selection[0])
             full_path, is_directory = item['values']
-            if is_directory:
-                self.current_remote_path = self._normalize_unix_path(full_path)
-                self.current_path_var.set(self.current_remote_path)
+            
+            # 添加调试日志
+            self.logger.debug(f"选择项目: {full_path}, 是否为目录: {is_directory} (类型: {type(is_directory)})")
+            self.logger.debug(f"原始值: {repr(is_directory)}")
+            
+            # 使用统一的判断方法
+            is_dir = self._is_directory_item(is_directory)
+            self.logger.debug(f"最终判断结果: is_dir = {is_dir}")
+            
+            if is_dir:
+                # 选择的是目录，禁用删除按钮
+                self.delete_file_button.configure(state='disabled')
+                self.logger.debug("选择了目录，删除按钮已禁用")
+                # 不要自动改变当前路径，让用户双击才进入
+            else:
+                # 选择的是文件，启用删除按钮
+                self.delete_file_button.configure(state='normal')
+                self.logger.debug("选择了文件，删除按钮已启用")
+        else:
+            # 没有选择任何项目，禁用删除按钮
+            self.delete_file_button.configure(state='disabled')
+            self.logger.debug("没有选择项目，删除按钮已禁用")
     
     def _go_parent_directory(self):
         """上级目录"""
@@ -1428,18 +1580,380 @@ class ModernFileTransferGUI:
         
         return path
     
-    def _quick_start_transfer(self):
-        """快速开始传输"""
+    def _is_directory_item(self, is_directory_value):
+        """统一的目录判断方法"""
+        if isinstance(is_directory_value, bool):
+            return is_directory_value
+        elif isinstance(is_directory_value, str):
+            return is_directory_value.lower() in ['true', '1', 'yes']
+        elif isinstance(is_directory_value, (int, float)):
+            return bool(is_directory_value)
+        else:
+            return False  # 默认为文件
+    
+    def _create_adaptive_dialog(self, title, icon="ℹ️", min_width=400, min_height=250):
+        """创建自适应大小的对话框"""
+        dialog = tk.Toplevel(self.root)
+        dialog.title(title)
+        dialog.configure(bg=self.colors['bg_primary'])
+        dialog.resizable(False, False)
+        
+        # 设置对话框始终在最前面
+        dialog.attributes('-topmost', True)
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        # 创建内容容器
+        content_frame = tk.Frame(dialog, bg=self.colors['bg_primary'])
+        content_frame.pack(fill='both', expand=True, padx=20, pady=20)
+        
+        # 图标
+        icon_label = tk.Label(content_frame, text=icon, font=('Microsoft YaHei UI', 32),
+                            bg=self.colors['bg_primary'], fg=self.colors['warning'])
+        icon_label.pack(pady=(0, 15))
+        
+        # 返回内容框架和对话框，供调用者添加内容
+        return dialog, content_frame
+    
+    def _finalize_adaptive_dialog(self, dialog, min_width=400, min_height=250):
+        """完成自适应对话框的布局和定位"""
+        # 让对话框根据内容自动调整大小
+        dialog.update_idletasks()
+        
+        # 获取对话框的实际大小
+        dialog_width = dialog.winfo_reqwidth()
+        dialog_height = dialog.winfo_reqheight()
+        
+        # 设置最小尺寸
+        dialog_width = max(dialog_width, min_width)
+        dialog_height = max(dialog_height, min_height)
+        
+        # 获取主窗口位置和大小
+        self.root.update_idletasks()
+        main_x = self.root.winfo_x()
+        main_y = self.root.winfo_y()
+        main_width = self.root.winfo_width()
+        main_height = self.root.winfo_height()
+        
+        # 计算居中位置
+        x = main_x + (main_width - dialog_width) // 2
+        y = main_y + (main_height - dialog_height) // 2
+        
+        # 确保对话框不会超出屏幕边界
+        screen_width = dialog.winfo_screenwidth()
+        screen_height = dialog.winfo_screenheight()
+        x = max(0, min(x, screen_width - dialog_width))
+        y = max(0, min(y, screen_height - dialog_height))
+        
+        # 设置对话框位置和大小
+        dialog.geometry(f"{dialog_width}x{dialog_height}+{x}+{y}")
+    
+    def _show_adaptive_info_dialog(self, title, message, icon="ℹ️"):
+        """显示自适应信息对话框"""
+        dialog, content_frame = self._create_adaptive_dialog(title, icon)
+        
+        # 消息文本 - 使用wraplength自动换行
+        message_label = tk.Label(content_frame, text=message, 
+                               font=('Microsoft YaHei UI', 10),
+                               bg=self.colors['bg_primary'], fg=self.colors['text_primary'],
+                               justify='left', wraplength=450)
+        message_label.pack(pady=(0, 20))
+        
+        # 确定按钮
+        ok_button = tk.Button(content_frame, text="确定", 
+                            command=dialog.destroy,
+                            bg=self.colors['bg_button'], fg='#ffffff',
+                            font=('Microsoft YaHei UI', 11, 'bold'),
+                            relief='flat', borderwidth=0, cursor='hand2',
+                            padx=30, pady=8)
+        ok_button.pack()
+        
+        # 绑定ESC键关闭
+        dialog.bind('<Escape>', lambda e: dialog.destroy())
+        ok_button.focus_set()
+        
+        # 完成对话框布局
+        self._finalize_adaptive_dialog(dialog)
+        
+        # 等待对话框关闭
+        self.root.wait_window(dialog)
+    
+    def _delete_selected_file(self):
+        """删除选中的文件"""
         if not self.is_connected:
             messagebox.showerror("未连接", "请先连接设备")
             return
         
-        if self.queue_listbox.size() == 0:
-            messagebox.showinfo("队列为空", "请先拖拽文件到传输区域添加到队列")
+        # 获取选中的项目
+        selection = self.directory_tree.selection()
+        if not selection:
+            messagebox.showwarning("未选择", "请先选择要删除的文件")
             return
         
-        # 直接调用开始传输
-        self._start_transfer()
+        item = self.directory_tree.item(selection[0])
+        full_path, is_directory = item['values']
+        filename = item['text']
+        
+        # 添加调试日志
+        self.logger.debug(f"删除操作 - 选择项目: {full_path}, 是否为目录: {is_directory} (类型: {type(is_directory)})")
+        
+        # 使用统一的判断方法
+        is_dir = self._is_directory_item(is_directory)
+        self.logger.debug(f"删除操作 - 最终判断结果: is_dir = {is_dir}")
+        
+        # 确保选择的是文件而不是目录
+        if is_dir:
+            messagebox.showwarning("无法删除", "不能删除目录，只能删除文件")
+            return
+        
+        # 移除图标，只显示文件名
+        clean_filename = filename
+        if ' ' in filename and any(icon in filename for icon in ['📄', '🖼️', '📦', '⚙️', '📜', '🔗']):
+            clean_filename = filename.split(' ', 1)[1] if ' ' in filename else filename
+        
+        # 显示居中的确认对话框
+        if self._show_centered_confirm_dialog("确认删除", 
+                                            f"确定要删除文件吗？\n\n文件名: {clean_filename}\n路径: {full_path}\n\n此操作不可撤销！"):
+            # 执行删除操作
+            self._execute_file_deletion(full_path, clean_filename)
+    
+    def _show_centered_confirm_dialog(self, title, message):
+        """显示居中的确认对话框 - 自适应布局"""
+        # 创建自定义对话框
+        dialog = tk.Toplevel(self.root)
+        dialog.title(title)
+        dialog.configure(bg=self.colors['bg_primary'])
+        dialog.resizable(False, False)
+        
+        # 设置对话框始终在最前面
+        dialog.attributes('-topmost', True)
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        # 用户选择结果
+        result = {'confirmed': False}
+        
+        # 创建内容容器
+        content_frame = tk.Frame(dialog, bg=self.colors['bg_primary'])
+        content_frame.pack(fill='both', expand=True, padx=20, pady=20)
+        
+        # 图标
+        icon_label = tk.Label(content_frame, text="⚠️", font=('Microsoft YaHei UI', 32),
+                            bg=self.colors['bg_primary'], fg=self.colors['warning'])
+        icon_label.pack(pady=(0, 15))
+        
+        # 消息文本 - 使用wraplength自动换行
+        message_label = tk.Label(content_frame, text=message, 
+                               font=('Microsoft YaHei UI', 11),
+                               bg=self.colors['bg_primary'], fg=self.colors['text_primary'],
+                               justify='center', wraplength=350)
+        message_label.pack(pady=(0, 25))
+        
+        # 按钮区域
+        button_frame = tk.Frame(content_frame, bg=self.colors['bg_primary'])
+        button_frame.pack(pady=(0, 0))
+        
+        def on_confirm():
+            result['confirmed'] = True
+            dialog.destroy()
+        
+        def on_cancel():
+            result['confirmed'] = False
+            dialog.destroy()
+        
+        # 确认按钮
+        confirm_btn = tk.Button(button_frame, text="确认删除", 
+                               command=on_confirm,
+                               bg=self.colors['error'], fg='#ffffff',
+                               font=('Microsoft YaHei UI', 11, 'bold'),
+                               relief='flat', borderwidth=0, cursor='hand2',
+                               padx=25, pady=8)
+        confirm_btn.pack(side=tk.LEFT, padx=(0, 15))
+        
+        # 取消按钮
+        cancel_btn = tk.Button(button_frame, text="取消", 
+                              command=on_cancel,
+                              bg=self.colors['text_muted'], fg='#ffffff',
+                              font=('Microsoft YaHei UI', 11),
+                              relief='flat', borderwidth=0, cursor='hand2',
+                              padx=25, pady=8)
+        cancel_btn.pack(side=tk.LEFT)
+        
+        # 绑定ESC键取消
+        dialog.bind('<Escape>', lambda e: on_cancel())
+        
+        # 设置默认焦点到取消按钮（安全起见）
+        cancel_btn.focus_set()
+        
+        # 让对话框根据内容自动调整大小
+        dialog.update_idletasks()
+        
+        # 获取对话框的实际大小
+        dialog_width = dialog.winfo_reqwidth()
+        dialog_height = dialog.winfo_reqheight()
+        
+        # 设置最小尺寸
+        min_width = 400
+        min_height = 250
+        dialog_width = max(dialog_width, min_width)
+        dialog_height = max(dialog_height, min_height)
+        
+        # 获取主窗口位置和大小
+        self.root.update_idletasks()
+        main_x = self.root.winfo_x()
+        main_y = self.root.winfo_y()
+        main_width = self.root.winfo_width()
+        main_height = self.root.winfo_height()
+        
+        # 计算居中位置
+        x = main_x + (main_width - dialog_width) // 2
+        y = main_y + (main_height - dialog_height) // 2
+        
+        # 设置对话框位置和大小
+        dialog.geometry(f"{dialog_width}x{dialog_height}+{x}+{y}")
+        
+        # 等待对话框关闭
+        self.root.wait_window(dialog)
+        
+        return result['confirmed']
+    
+    def _execute_file_deletion(self, file_path, filename):
+        """执行文件删除操作"""
+        try:
+            self.logger.info(f"开始删除文件: {file_path}")
+            self._update_status(f"正在删除文件: {filename}")
+            
+            # 在后台线程中执行删除
+            threading.Thread(target=self._delete_file_async, args=(file_path, filename), daemon=True).start()
+            
+        except Exception as e:
+            self.logger.error(f"删除文件失败: {e}")
+            self._update_status(f"删除文件失败: {str(e)}")
+    
+    def _delete_file_async(self, file_path, filename):
+        """异步删除文件"""
+        try:
+            future = self._run_async(self._delete_file_via_telnet(file_path, filename))
+            if future:
+                # 使用回调处理结果
+                future.add_done_callback(lambda f: self._on_delete_result(f, filename))
+            else:
+                self.root.after(0, lambda: self._update_status("无法创建删除任务"))
+                
+        except Exception as e:
+            self.logger.error(f"异步删除文件失败: {e}")
+            self.root.after(0, lambda: self._update_status(f"删除失败: {str(e)}"))
+    
+    def _on_delete_result(self, future, filename):
+        """处理删除结果回调"""
+        try:
+            success = future.result()
+            if success:
+                self.root.after(0, lambda: self._on_delete_success(filename))
+            else:
+                self.root.after(0, lambda: self._on_delete_failed(filename))
+        except Exception as e:
+            self.logger.error(f"删除结果处理失败: {e}")
+            self.root.after(0, lambda: self._on_delete_failed(filename))
+    
+    def _on_delete_success(self, filename):
+        """删除成功"""
+        self.logger.info(f"文件删除成功: {filename}")
+        self._update_status(f"文件删除成功: {filename}")
+        
+        # 自动刷新目录以更新显示
+        self._refresh_directory()
+        
+        # 禁用删除按钮（因为选择会丢失）
+        self.delete_file_button.configure(state='disabled')
+    
+    def _on_delete_failed(self, filename):
+        """删除失败"""
+        self.logger.error(f"文件删除失败: {filename}")
+        self._update_status(f"文件删除失败: {filename}")
+        messagebox.showerror("删除失败", f"无法删除文件: {filename}")
+    
+    async def _delete_file_via_telnet(self, file_path, filename):
+        """通过telnet删除文件"""
+        try:
+            # 使用锁保护telnet连接
+            async with self.telnet_lock:
+                # 执行删除命令
+                delete_cmd = f'rm "{file_path}"'
+                self.logger.info(f"执行删除命令: {delete_cmd}")
+                result = await self.telnet_client.execute_command(delete_cmd, timeout=10)
+                self.logger.info(f"删除命令输出: {result}")
+                
+                # 检查删除是否成功（通过检查文件是否还存在）
+                check_cmd = f'ls "{file_path}" 2>/dev/null || echo "FILE_NOT_FOUND"'
+                check_result = await self.telnet_client.execute_command(check_cmd, timeout=5)
+                self.logger.info(f"删除检查结果: {check_result}")
+                
+                # 如果文件不存在，说明删除成功
+                if "FILE_NOT_FOUND" in check_result or "No such file" in check_result:
+                    return True
+                else:
+                    return False
+                    
+        except Exception as e:
+            self.logger.error(f"telnet删除文件失败: {str(e)}")
+            return False
+    
+    def _debug_selection_status(self):
+        """调试选择状态"""
+        self.logger.info("🔍 开始调试选择状态")
+        
+        selection = self.directory_tree.selection()
+        if selection:
+            item = self.directory_tree.item(selection[0])
+            full_path, is_directory = item['values']
+            filename = item['text']
+            
+            # 详细输出调试信息
+            self.logger.info(f"📁 选中项目详情:")
+            self.logger.info(f"   - 显示名称: {filename}")
+            self.logger.info(f"   - 完整路径: {full_path}")
+            self.logger.info(f"   - 是否为目录: {is_directory} (类型: {type(is_directory)})")
+            self.logger.info(f"   - 原始值: {repr(is_directory)}")
+            
+            # 判断逻辑测试
+            is_dir = self._is_directory_item(is_directory)
+            if isinstance(is_directory, bool):
+                logic_used = "直接布尔值"
+            elif isinstance(is_directory, str):
+                logic_used = "字符串转换"
+            elif isinstance(is_directory, (int, float)):
+                logic_used = "数值转换"
+            else:
+                logic_used = "默认为文件"
+            
+            self.logger.info(f"   - 判断逻辑: {logic_used}")
+            self.logger.info(f"   - 最终结果: {'目录' if is_dir else '文件'}")
+            
+            # 按钮状态
+            button_state = self.delete_file_button['state']
+            self.logger.info(f"   - 删除按钮状态: {button_state}")
+            
+            # 当前路径
+            self.logger.info(f"   - 当前远程路径: {self.current_remote_path}")
+            
+            # 显示在自适应对话框中
+            debug_info = f"""选中项目调试信息:
+
+显示名称: {filename}
+完整路径: {full_path}
+是否为目录: {is_directory} ({type(is_directory).__name__})
+判断逻辑: {logic_used}
+最终结果: {'目录' if is_dir else '文件'}
+删除按钮状态: {button_state}
+当前远程路径: {self.current_remote_path}
+
+详细信息请查看日志区域"""
+            
+            self._show_adaptive_info_dialog("选择状态调试", debug_info, "🔍")
+        else:
+            self.logger.info("❌ 没有选中任何项目")
+            self._show_adaptive_info_dialog("选择状态调试", "没有选中任何项目", "❌")
     
     def _test_transfer_setup(self):
         """测试传输设置"""
@@ -1649,7 +2163,7 @@ class ModernFileTransferGUI:
         threading.Thread(target=self._transfer_files_async, daemon=True).start()
     
     def _transfer_files_async(self):
-        """异步传输文件 - 改为串行执行避免并发冲突"""
+        """异步传输文件 - 修复版本，避免UI阻塞"""
         try:
             # 收集所有要传输的文件信息
             transfer_tasks = []
@@ -1666,11 +2180,11 @@ class ModernFileTransferGUI:
                         local_file = self.file_path_mapping[filename]
                         transfer_tasks.append((local_file, remote_path, filename))
             
-            # 在异步环境中串行执行所有传输任务
+            # 使用回调方式避免阻塞UI
             future = self._run_async(self._execute_transfers_sequentially(transfer_tasks))
             if future:
-                success_count = future.result(timeout=300)  # 5分钟超时
-                self.root.after(0, self._on_transfer_complete, success_count, len(transfer_tasks))
+                # 使用回调而不是阻塞等待
+                future.add_done_callback(lambda f: self._on_transfer_result(f, len(transfer_tasks)))
             else:
                 self.root.after(0, self._on_transfer_error, "无法创建异步传输任务")
             
@@ -1678,6 +2192,15 @@ class ModernFileTransferGUI:
             self.logger.error(f"文件传输异常: {str(e)}")
             import traceback
             self.logger.error(f"详细错误: {traceback.format_exc()}")
+            self.root.after(0, self._on_transfer_error, str(e))
+    
+    def _on_transfer_result(self, future, total_count):
+        """处理传输结果回调"""
+        try:
+            success_count = future.result()
+            self.root.after(0, self._on_transfer_complete, success_count, total_count)
+        except Exception as e:
+            self.logger.error(f"传输结果处理失败: {e}")
             self.root.after(0, self._on_transfer_error, str(e))
     
     async def _execute_transfers_sequentially(self, transfer_tasks):
