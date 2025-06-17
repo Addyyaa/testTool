@@ -1,6 +1,6 @@
 import logging
 # 设置日志
-logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s %(filename)s:%(lineno)d')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s %(filename)s:%(lineno)d')
 from api_sender import Api_sender
 import sys
 import requests
@@ -361,7 +361,7 @@ class Upload_pic_size_test:
         else:
             logging.error(response.text)
             sys.exit()
-    
+     
     def show_album_list(self):
         album_list = self.get_album_list()
         selected_album = None
