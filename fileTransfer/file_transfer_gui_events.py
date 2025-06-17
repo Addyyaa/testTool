@@ -506,9 +506,9 @@ class FileTransferGUIEvents:
             if not server_file_path:
                 return False
             
-            # 获取本机IP地址
+            # 获取本机IP地址和下载URL（使用HTTP服务器的方法，确保正确编码）
             host_ip = self._get_local_ip()
-            download_url = f"http://{host_ip}:88/{os.path.basename(server_file_path)}"
+            download_url = self.http_server.get_download_url(os.path.basename(server_file_path), host_ip)
             
             # 通过telnet执行wget下载命令
             future = self._run_async(self._download_file_via_telnet(download_url, remote_path, filename))

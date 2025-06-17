@@ -45,7 +45,17 @@ class FileHTTPRequestHandler(BaseHTTPRequestHandler):
         try:
             # 解析URL路径
             parsed_path = urllib.parse.urlparse(self.path)
-            file_path = parsed_path.path.lstrip('/')
+            encoded_file_path = parsed_path.path.lstrip('/')
+            
+            # URL解码文件路径，处理中文字符
+            try:
+                file_path = urllib.parse.unquote(encoded_file_path, encoding='utf-8')
+            except UnicodeDecodeError:
+                # 如果UTF-8解码失败，尝试其他编码
+                try:
+                    file_path = urllib.parse.unquote(encoded_file_path, encoding='gbk')
+                except UnicodeDecodeError:
+                    file_path = encoded_file_path
             
             # 记录访问日志  
             self.server_instance.logger.info(f"收到下载请求: {self.client_address[0]} -> {file_path}")
@@ -199,9 +209,11 @@ class FileHTTPRequestHandler(BaseHTTPRequestHandler):
             html += "<p>暂无可下载文件</p>"
         else:
             for file_info in files:
+                # 对文件名进行URL编码，确保中文字符正确处理
+                encoded_filename = urllib.parse.quote(file_info['name'], safe='')
                 html += f"""
                 <div class="file-item">
-                    <a href="/{file_info['name']}" class="file-name">📄 {file_info['name']}</a>
+                    <a href="/{encoded_filename}" class="file-name">📄 {file_info['name']}</a>
                     <div class="file-info">
                         大小: {self._format_file_size(file_info['size'])} | 
                         修改时间: {file_info['time']}
@@ -504,7 +516,9 @@ class FileHTTPServer:
         if host_ip is None:
             host_ip = self._get_local_ip()
         
-        return f"http://{host_ip}:{self.port}/{filename}"
+        # 对文件名进行URL编码，确保中文字符正确处理
+        encoded_filename = urllib.parse.quote(filename, safe='')
+        return f"http://{host_ip}:{self.port}/{encoded_filename}"
     
     def _get_local_ip(self) -> str:
         """获取本机IP地址"""

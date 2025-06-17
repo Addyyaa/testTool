@@ -35,21 +35,28 @@ class ModernFileTransferGUI:
     
     def __init__(self):
         """初始化GUI界面"""
-        # 主题配色 - 优化按钮对比度
+        # 现代化主题配色 - 添加渐变和透明度支持
         self.colors = {
             'bg_primary': '#ffffff',
-            'bg_secondary': '#f7f7f8',
-            'bg_sidebar': '#f7f7f8',
-            'bg_button': '#0f7b6c',         # 更深的绿色，增强对比度
-            'bg_button_hover': '#0a5d52',   # 更深的悬停色
-            'text_primary': '#2d333a',
-            'text_secondary': '#6e7681',
+            'bg_secondary': '#f8fafc',
+            'bg_sidebar': '#f1f5f9',
+            'bg_card': '#ffffff',
+            'bg_button': '#0f7b6c',
+            'bg_button_hover': '#0a5d52',
+            'bg_accent': '#10a37f',
+            'bg_accent_light': '#d1fae5',
+            'text_primary': '#1e293b',
+            'text_secondary': '#64748b',
+            'text_muted': '#94a3b8',
             'text_button': '#ffffff',
-            'border': '#e5e7eb',
+            'border': '#e2e8f0',
+            'border_focus': '#10a37f',
             'accent': '#10a37f',
             'error': '#ef4444',
             'success': '#10b981',
-            'warning': '#f59e0b'
+            'warning': '#f59e0b',
+            'shadow': '#00000010',
+            'overlay': '#00000020'
         }
         
         # 创建主窗口
@@ -88,12 +95,96 @@ class ModernFileTransferGUI:
         # 配置日志
         self._setup_logging()
         
+        # 初始化响应式布局
+        self._setup_responsive_layout()
+        
         # 设置异步事件循环
         self.loop = None
         self.loop_thread = None
+        self.telnet_lock = None  # telnet连接锁，防止并发访问
         self._start_event_loop()
         
         self.logger.info("GUI界面初始化完成")
+    
+    def _setup_responsive_layout(self):
+        """设置响应式布局"""
+        # 记录初始窗口尺寸
+        self.root.update_idletasks()
+        self.initial_width = self.root.winfo_width()
+        self.initial_height = self.root.winfo_height()
+        
+        # 绑定窗口大小变化事件
+        self.root.bind('<Configure>', self._on_window_resize)
+        
+        # 应用初始布局
+        self._apply_responsive_layout()
+    
+    def _on_window_resize(self, event):
+        """窗口大小变化事件处理"""
+        # 只处理主窗口的大小变化事件
+        if event.widget == self.root:
+            self.root.after_idle(self._apply_responsive_layout)
+    
+    def _apply_responsive_layout(self):
+        """应用响应式布局"""
+        try:
+            # 获取当前窗口尺寸
+            window_width = self.root.winfo_width()
+            window_height = self.root.winfo_height()
+            
+            if window_width <= 1 or window_height <= 1:
+                return  # 窗口还没有完全初始化
+            
+            # 计算侧边栏宽度（窗口宽度的25%，最小280px，最大400px）
+            sidebar_width = max(280, min(400, int(window_width * 0.25)))
+            
+            # 重新配置侧边栏
+            if hasattr(self, 'sidebar_frame'):
+                self.sidebar_frame.configure(width=sidebar_width)
+            
+            # 动态调整组件高度
+            self._adjust_component_heights(window_height)
+            
+        except Exception as e:
+            if hasattr(self, 'logger'):
+                self.logger.debug(f"布局调整出错: {e}")
+    
+    def _adjust_component_heights(self, window_height):
+        """根据窗口高度调整组件高度"""
+        try:
+            # 计算可用高度（减去标题栏、状态栏等固定高度）
+            available_height = window_height - 100  # 预留100px给状态栏等
+            
+            # 连接面板固定高度约200px
+            connection_height = 200
+            
+            # 传输队列面板高度（15%的可用高度，最小120px）
+            queue_height = max(120, int(available_height * 0.15))
+            
+            # 目录面板高度（剩余高度）
+            directory_height = available_height - connection_height - queue_height - 60  # 预留间距
+            directory_height = max(200, directory_height)
+            
+            # 应用高度调整
+            if hasattr(self, 'directory_tree'):
+                # 计算目录树的行数（每行约20px）
+                tree_rows = max(8, min(20, directory_height // 25))
+                self.directory_tree.configure(height=tree_rows)
+            
+            if hasattr(self, 'queue_listbox'):
+                # 计算队列列表的行数
+                queue_rows = max(4, min(12, queue_height // 20))
+                self.queue_listbox.configure(height=queue_rows)
+            
+            if hasattr(self, 'log_text'):
+                # 计算日志区域的行数（主内容区域的40%）
+                main_content_height = available_height
+                log_rows = max(6, min(25, int(main_content_height * 0.4) // 20))
+                self.log_text.configure(height=log_rows)
+                
+        except Exception as e:
+            if hasattr(self, 'logger'):
+                self.logger.debug(f"高度调整出错: {e}")
     
     def _setup_styles(self):
         """设置现代化样式"""
@@ -169,143 +260,187 @@ class ModernFileTransferGUI:
         self._create_status_bar()
     
     def _create_sidebar(self):
-        """创建侧边栏"""
-        # 侧边栏容器
-        self.sidebar_frame = ttk.Frame(self.main_frame, style='Sidebar.TFrame', width=300)
-        self.sidebar_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 1))
-        self.sidebar_frame.pack_propagate(False)
+        """创建现代化侧边栏 - 响应式布局"""
+        # 侧边栏容器 - 占窗口宽度的28%，增加一点宽度以容纳更多内容
+        self.sidebar_frame = tk.Frame(self.main_frame, bg=self.colors['bg_sidebar'])
+        self.sidebar_frame.place(x=0, y=0, relwidth=0.28, relheight=1.0)
         
-        # 连接配置区域
+        # 连接配置区域 - 占侧边栏高度的35%，增加高度
         self._create_connection_panel()
         
-        # 远程目录浏览区域
+        # 远程目录浏览区域 - 占侧边栏高度的45%
         self._create_directory_panel()
         
-        # 传输队列区域
+        # 传输队列区域 - 占侧边栏高度的20%
         self._create_transfer_queue_panel()
     
     def _create_connection_panel(self):
-        """创建连接配置面板"""
-        # 连接配置标题
-        connection_title = ttk.Label(self.sidebar_frame, text="设备连接", style='Title.TLabel')
-        connection_title.pack(pady=(20, 10), padx=20, anchor='w')
+        """创建现代化连接配置面板 - 占侧边栏35%高度"""
+        # 连接配置容器 - 使用卡片样式
+        self.connection_container = tk.Frame(self.sidebar_frame, bg=self.colors['bg_sidebar'])
+        self.connection_container.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.35)
         
-        # 连接配置框架
-        self.connection_frame = ttk.Frame(self.sidebar_frame, style='Sidebar.TFrame')
-        self.connection_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
+        # 卡片背景
+        self.connection_card = tk.Frame(self.connection_container, 
+                                       bg=self.colors['bg_card'], 
+                                       relief='flat', bd=0)
+        self.connection_card.place(relx=0, rely=0, relwidth=1.0, relheight=1.0)
         
-        # 主机地址
-        ttk.Label(self.connection_frame, text="主机地址:", style='Modern.TLabel').pack(anchor='w')
-        self.host_entry = ttk.Entry(self.connection_frame, style='Modern.TEntry')
-        self.host_entry.pack(fill=tk.X, pady=(2, 10))
+        # 连接配置标题 - 占容器8%高度
+        connection_title = tk.Label(self.connection_card, text="🔗 设备连接", 
+                                  bg=self.colors['bg_card'], fg=self.colors['text_primary'],
+                                  font=('Microsoft YaHei UI', 11, 'bold'))
+        connection_title.place(relx=0.04, rely=0.02, relwidth=0.92, relheight=0.08)
+        
+        # 连接配置框架 - 占容器88%高度
+        self.connection_frame = tk.Frame(self.connection_card, bg=self.colors['bg_card'])
+        self.connection_frame.place(relx=0.04, rely=0.12, relwidth=0.92, relheight=0.86)
+        
+        # 主机地址 - 占框架13%高度
+        tk.Label(self.connection_frame, text="主机地址:", 
+                bg=self.colors['bg_card'], fg=self.colors['text_secondary'],
+                font=('Microsoft YaHei UI', 9)).place(relx=0, rely=0, relwidth=1.0, relheight=0.10)
+        self.host_entry = tk.Entry(self.connection_frame, font=('Microsoft YaHei UI', 9),
+                                 bg=self.colors['bg_primary'], fg=self.colors['text_primary'],
+                                 relief='solid', bd=1, highlightthickness=1,
+                                 highlightcolor=self.colors['border_focus'])
+        self.host_entry.place(relx=0, rely=0.11, relwidth=1.0, relheight=0.12)
         self.host_entry.insert(0, "192.168.1.100")
         
-        # 端口
-        ttk.Label(self.connection_frame, text="端口:", style='Modern.TLabel').pack(anchor='w')
-        self.port_entry = ttk.Entry(self.connection_frame, style='Modern.TEntry')
-        self.port_entry.pack(fill=tk.X, pady=(2, 10))
+        # 端口 - 占框架13%高度
+        tk.Label(self.connection_frame, text="端口:", 
+                bg=self.colors['bg_card'], fg=self.colors['text_secondary'],
+                font=('Microsoft YaHei UI', 9)).place(relx=0, rely=0.25, relwidth=1.0, relheight=0.10)
+        self.port_entry = tk.Entry(self.connection_frame, font=('Microsoft YaHei UI', 9),
+                                 bg=self.colors['bg_primary'], fg=self.colors['text_primary'],
+                                 relief='solid', bd=1, highlightthickness=1,
+                                 highlightcolor=self.colors['border_focus'])
+        self.port_entry.place(relx=0, rely=0.36, relwidth=1.0, relheight=0.12)
         self.port_entry.insert(0, "23")
         
-        # 用户名
-        ttk.Label(self.connection_frame, text="用户名:", style='Modern.TLabel').pack(anchor='w')
-        self.username_entry = ttk.Entry(self.connection_frame, style='Modern.TEntry')
+        # 用户名和密码 - 并排布局
+        tk.Label(self.connection_frame, text="用户名:", 
+                bg=self.colors['bg_card'], fg=self.colors['text_secondary'],
+                font=('Microsoft YaHei UI', 9)).place(relx=0, rely=0.50, relwidth=0.48, relheight=0.10)
+        self.username_entry = tk.Entry(self.connection_frame, font=('Microsoft YaHei UI', 9),
+                                     bg=self.colors['bg_primary'], fg=self.colors['text_primary'],
+                                     relief='solid', bd=1, highlightthickness=1,
+                                     highlightcolor=self.colors['border_focus'])
+        self.username_entry.place(relx=0, rely=0.61, relwidth=0.48, relheight=0.12)
         self.username_entry.insert(0, "root")
-        self.username_entry.pack(fill=tk.X, pady=(2, 10))
         
-        # 密码
-        ttk.Label(self.connection_frame, text="密码:", style='Modern.TLabel').pack(anchor='w')
-        self.password_entry = ttk.Entry(self.connection_frame, style='Modern.TEntry', show='*')
+        tk.Label(self.connection_frame, text="密码:", 
+                bg=self.colors['bg_card'], fg=self.colors['text_secondary'],
+                font=('Microsoft YaHei UI', 9)).place(relx=0.52, rely=0.50, relwidth=0.48, relheight=0.10)
+        self.password_entry = tk.Entry(self.connection_frame, font=('Microsoft YaHei UI', 9), show='*',
+                                     bg=self.colors['bg_primary'], fg=self.colors['text_primary'],
+                                     relief='solid', bd=1, highlightthickness=1,
+                                     highlightcolor=self.colors['border_focus'])
+        self.password_entry.place(relx=0.52, rely=0.61, relwidth=0.48, relheight=0.12)
         self.password_entry.insert(0, "ya!2dkwy7-934^")
-        self.password_entry.pack(fill=tk.X, pady=(2, 10))
         
-        # 连接按钮
-        self.connect_button = tk.Button(self.connection_frame, text="连接设备", 
+        # 连接按钮 - 现代化样式
+        self.connect_button = tk.Button(self.connection_frame, text="🔗 连接设备", 
                                       command=self._on_connect_clicked,
-                                      bg='#0f7b6c', fg='#ffffff',
-                                      font=('Microsoft YaHei UI', 10, 'bold'),
-                                      relief='raised', borderwidth=2,
-                                      activebackground='#0a5d52', activeforeground='#ffffff',
-                                      cursor='hand2', pady=8)
-        self.connect_button.pack(fill=tk.X, pady=(10, 0))
+                                      bg=self.colors['bg_button'], fg=self.colors['text_button'],
+                                      font=('Microsoft YaHei UI', 9, 'bold'),
+                                      relief='flat', borderwidth=0,
+                                      activebackground=self.colors['bg_button_hover'], 
+                                      activeforeground=self.colors['text_button'],
+                                      cursor='hand2')
+        self.connect_button.place(relx=0, rely=0.76, relwidth=1.0, relheight=0.12)
         
-        # 连接状态指示器
-        self.connection_status_frame = ttk.Frame(self.connection_frame, style='Sidebar.TFrame')
-        self.connection_status_frame.pack(fill=tk.X, pady=(10, 0))
+        # 连接状态指示器 - 重新设计布局
+        self.connection_status_frame = tk.Frame(self.connection_frame, bg=self.colors['bg_card'])
+        self.connection_status_frame.place(relx=0, rely=0.90, relwidth=1.0, relheight=0.10)
         
-        self.status_indicator = tk.Canvas(self.connection_status_frame, width=12, height=12, 
-                                        bg=self.colors['bg_sidebar'], highlightthickness=0)
-        self.status_indicator.pack(side=tk.LEFT)
-        self.status_indicator.create_oval(2, 2, 10, 10, fill=self.colors['error'], outline='')
+        # 状态指示点
+        self.status_indicator = tk.Canvas(self.connection_status_frame, width=10, height=10, 
+                                        bg=self.colors['bg_card'], highlightthickness=0)
+        self.status_indicator.place(relx=0, rely=0.2, relwidth=0.08, relheight=0.6)
+        self.status_indicator.create_oval(2, 2, 8, 8, fill=self.colors['error'], outline='')
         
-        self.connection_status_label = ttk.Label(self.connection_status_frame, text="未连接", 
-                                               style='Modern.TLabel')
-        self.connection_status_label.pack(side=tk.LEFT, padx=(8, 0))
+        # 状态文字
+        self.connection_status_label = tk.Label(self.connection_status_frame, text="未连接", 
+                                              bg=self.colors['bg_card'], fg=self.colors['text_muted'],
+                                              font=('Microsoft YaHei UI', 8))
+        self.connection_status_label.place(relx=0.12, rely=0, relwidth=0.88, relheight=1.0)
     
     def _create_directory_panel(self):
-        """创建远程目录浏览面板"""
-        # 目录浏览标题
-        directory_title = ttk.Label(self.sidebar_frame, text="远程目录", style='Title.TLabel')
-        directory_title.pack(pady=(20, 10), padx=20, anchor='w')
+        """创建现代化远程目录浏览面板 - 占侧边栏45%高度"""
+        # 目录浏览容器
+        self.directory_container = tk.Frame(self.sidebar_frame, bg=self.colors['bg_sidebar'])
+        self.directory_container.place(relx=0.02, rely=0.39, relwidth=0.96, relheight=0.45)
         
-        # 当前路径显示
-        self.current_path_frame = ttk.Frame(self.sidebar_frame, style='Sidebar.TFrame')
-        self.current_path_frame.pack(fill=tk.X, padx=20, pady=(0, 10))
+        # 卡片背景
+        self.directory_card = tk.Frame(self.directory_container, 
+                                     bg=self.colors['bg_card'], 
+                                     relief='flat', bd=0)
+        self.directory_card.place(relx=0, rely=0, relwidth=1.0, relheight=1.0)
         
-        self.current_path_label = ttk.Label(self.current_path_frame, text="当前路径:", style='Modern.TLabel')
-        self.current_path_label.pack(anchor='w')
+        # 目录浏览标题 - 占容器7%高度
+        directory_title = tk.Label(self.directory_card, text="📁 远程目录", 
+                                 bg=self.colors['bg_card'], fg=self.colors['text_primary'],
+                                 font=('Microsoft YaHei UI', 11, 'bold'))
+        directory_title.place(relx=0.04, rely=0.02, relwidth=0.92, relheight=0.07)
         
+        # 当前路径标签 - 占容器5%高度
+        self.current_path_label = tk.Label(self.directory_card, text="当前路径:", 
+                                         bg=self.colors['bg_card'], fg=self.colors['text_secondary'],
+                                         font=('Microsoft YaHei UI', 8))
+        self.current_path_label.place(relx=0.04, rely=0.10, relwidth=0.92, relheight=0.05)
+        
+        # 当前路径输入框 - 占容器7%高度
         self.current_path_var = tk.StringVar(value="/")
-        self.current_path_entry = ttk.Entry(self.current_path_frame, textvariable=self.current_path_var,
-                                          style='Modern.TEntry', state='readonly')
-        self.current_path_entry.pack(fill=tk.X, pady=(2, 0))
+        self.current_path_entry = tk.Entry(self.directory_card, textvariable=self.current_path_var,
+                                         font=('Microsoft YaHei UI', 8), state='readonly',
+                                         bg=self.colors['bg_secondary'], fg=self.colors['text_primary'],
+                                         relief='solid', bd=1)
+        self.current_path_entry.place(relx=0.04, rely=0.16, relwidth=0.92, relheight=0.07)
         
-        # 目录树视图
-        self.directory_tree_frame = ttk.Frame(self.sidebar_frame, style='Sidebar.TFrame')
-        self.directory_tree_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
+        # 目录树 - 占容器60%高度
+        self.directory_tree = ttk.Treeview(self.directory_card, style='Modern.Treeview', 
+                                         columns=(), show='tree')
+        self.directory_tree.place(relx=0.04, rely=0.25, relwidth=0.88, relheight=0.60)
         
-        # 创建Treeview和滚动条
-        tree_container = ttk.Frame(self.directory_tree_frame, style='Sidebar.TFrame')
-        tree_container.pack(fill=tk.BOTH, expand=True)
-        
-        self.directory_tree = ttk.Treeview(tree_container, style='Modern.Treeview', 
-                                         columns=(), show='tree', height=8)
-        self.directory_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        
-        tree_scrollbar = ttk.Scrollbar(tree_container, orient='vertical', command=self.directory_tree.yview)
-        tree_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # 目录树滚动条
+        tree_scrollbar = ttk.Scrollbar(self.directory_card, orient='vertical', command=self.directory_tree.yview)
+        tree_scrollbar.place(relx=0.92, rely=0.25, relwidth=0.04, relheight=0.60)
         self.directory_tree.configure(yscrollcommand=tree_scrollbar.set)
         
-        # 工具按钮
-        self.directory_buttons_frame = ttk.Frame(self.directory_tree_frame, style='Sidebar.TFrame')
-        self.directory_buttons_frame.pack(fill=tk.X, pady=(10, 0))
+        # 现代化按钮区域 - 占容器15%高度
+        buttons_container = tk.Frame(self.directory_card, bg=self.colors['bg_card'])
+        buttons_container.place(relx=0.04, rely=0.87, relwidth=0.92, relheight=0.11)
         
-        self.refresh_button = tk.Button(self.directory_buttons_frame, text="刷新", 
+        # 现代化按钮 - 使用图标
+        self.refresh_button = tk.Button(buttons_container, text="🔄 刷新", 
                                        command=self._refresh_directory,
-                                       bg='#0f7b6c', fg='#ffffff',
-                                       font=('Microsoft YaHei UI', 9, 'bold'),
-                                       relief='raised', borderwidth=2,
-                                       activebackground='#0a5d52', activeforeground='#ffffff',
-                                       cursor='hand2', pady=6)
-        self.refresh_button.pack(side=tk.LEFT, padx=(0, 8), fill=tk.X, expand=True)
+                                       bg=self.colors['bg_button'], fg=self.colors['text_button'],
+                                       font=('Microsoft YaHei UI', 8, 'bold'),
+                                       relief='flat', borderwidth=0,
+                                       activebackground=self.colors['bg_button_hover'], 
+                                       activeforeground=self.colors['text_button'],
+                                       cursor='hand2')
+        self.refresh_button.place(relx=0, rely=0, relwidth=0.32, relheight=1.0)
         
-        self.parent_button = tk.Button(self.directory_buttons_frame, text="上级", 
+        self.parent_button = tk.Button(buttons_container, text="⬆️ 上级", 
                                      command=self._go_parent_directory,
-                                     bg='#0f7b6c', fg='#ffffff',
-                                     font=('Microsoft YaHei UI', 9, 'bold'),
-                                     relief='raised', borderwidth=2,
-                                     activebackground='#0a5d52', activeforeground='#ffffff',
-                                     cursor='hand2', pady=6)
-        self.parent_button.pack(side=tk.LEFT, fill=tk.X, expand=True)
+                                     bg=self.colors['bg_button'], fg=self.colors['text_button'],
+                                     font=('Microsoft YaHei UI', 8, 'bold'),
+                                     relief='flat', borderwidth=0,
+                                     activebackground=self.colors['bg_button_hover'], 
+                                     activeforeground=self.colors['text_button'],
+                                     cursor='hand2')
+        self.parent_button.place(relx=0.34, rely=0, relwidth=0.32, relheight=1.0)
         
-        # 添加传输按钮
-        self.quick_transfer_button = tk.Button(self.directory_buttons_frame, text="传输", 
+        self.quick_transfer_button = tk.Button(buttons_container, text="⚡ 快传", 
                                              command=self._quick_start_transfer,
-                                             bg='#dc2626', fg='#ffffff',
-                                             font=('Microsoft YaHei UI', 9, 'bold'),
-                                             relief='raised', borderwidth=2,
-                                             activebackground='#b91c1c', activeforeground='#ffffff',
-                                             cursor='hand2', pady=6)
-        self.quick_transfer_button.pack(side=tk.LEFT, padx=(8, 0), fill=tk.X, expand=True)
+                                             bg=self.colors['error'], fg=self.colors['text_button'],
+                                             font=('Microsoft YaHei UI', 8, 'bold'),
+                                             relief='flat', borderwidth=0,
+                                             activebackground='#b91c1c', activeforeground=self.colors['text_button'],
+                                             cursor='hand2')
+        self.quick_transfer_button.place(relx=0.68, rely=0, relwidth=0.32, relheight=1.0)
         
         # 为传输按钮添加右键菜单（测试功能）
         self.transfer_context_menu = tk.Menu(self.root, tearoff=0)
@@ -322,91 +457,91 @@ class ModernFileTransferGUI:
         self.quick_transfer_button.bind("<Button-3>", show_transfer_menu)  # 右键
     
     def _create_transfer_queue_panel(self):
-        """创建传输队列面板"""
-        # 传输队列标题
-        queue_title_frame = ttk.Frame(self.sidebar_frame, style='Sidebar.TFrame')
-        queue_title_frame.pack(fill=tk.X, padx=20, pady=(20, 10))
+        """创建现代化传输队列面板 - 占侧边栏20%高度"""
+        # 传输队列容器
+        self.queue_container = tk.Frame(self.sidebar_frame, bg=self.colors['bg_sidebar'])
+        self.queue_container.place(relx=0.02, rely=0.86, relwidth=0.96, relheight=0.12)
         
-        queue_title = ttk.Label(queue_title_frame, text="传输队列", style='Title.TLabel')
-        queue_title.pack(side=tk.LEFT)
+        # 创建一个虚拟的队列列表（用于兼容性）
+        self.queue_listbox = tk.Listbox(self.queue_container, 
+                                      font=('Microsoft YaHei UI', 1),
+                                      bg=self.colors['bg_card'], fg=self.colors['text_primary'])
+        # 不显示，仅用于数据存储
         
-        self.queue_count_label = ttk.Label(queue_title_frame, text="(0个文件)", 
-                                         style='Modern.TLabel', foreground='#6b7280')
-        self.queue_count_label.pack(side=tk.LEFT, padx=(10, 0))
+        # 卡片背景
+        self.queue_card = tk.Frame(self.queue_container, 
+                                 bg=self.colors['bg_card'], 
+                                 relief='flat', bd=0)
+        self.queue_card.place(relx=0, rely=0, relwidth=1.0, relheight=1.0)
         
-        # 传输队列列表
-        self.queue_frame = ttk.Frame(self.sidebar_frame, style='Sidebar.TFrame')
-        self.queue_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
+        # 紧凑的传输队列标题和计数
+        queue_title = tk.Label(self.queue_card, text="🚀 传输队列", 
+                             bg=self.colors['bg_card'], fg=self.colors['text_primary'],
+                             font=('Microsoft YaHei UI', 10, 'bold'))
+        queue_title.place(relx=0.04, rely=0.05, relwidth=0.6, relheight=0.25)
         
-        # 队列列表
-        self.queue_listbox = tk.Listbox(self.queue_frame, font=('Microsoft YaHei UI', 9),
-                                      bg=self.colors['bg_primary'], 
-                                      fg=self.colors['text_primary'],
-                                      selectbackground=self.colors['accent'],
-                                      borderwidth=1, relief='solid',
-                                      height=6)
-        self.queue_listbox.pack(fill=tk.X, pady=(0, 10))
+        self.queue_count_label = tk.Label(self.queue_card, text="(0个文件)", 
+                                        bg=self.colors['bg_card'], fg=self.colors['text_muted'],
+                                        font=('Microsoft YaHei UI', 8))
+        self.queue_count_label.place(relx=0.65, rely=0.05, relwidth=0.31, relheight=0.25)
         
-        # 队列控制按钮
-        self.queue_buttons_frame = ttk.Frame(self.queue_frame, style='Sidebar.TFrame')
-        self.queue_buttons_frame.pack(fill=tk.X)
-        
-        self.clear_queue_button = tk.Button(self.queue_buttons_frame, text="清空队列", 
-                                           command=self._clear_transfer_queue,
-                                           bg='#6b7280', fg='#ffffff',
-                                           font=('Microsoft YaHei UI', 9, 'bold'),
-                                           relief='raised', borderwidth=2,
-                                           activebackground='#4b5563', activeforeground='#ffffff',
-                                           cursor='hand2', pady=8)
-        self.clear_queue_button.pack(side=tk.LEFT, padx=(0, 8), fill=tk.X, expand=True)
-        
-        # 开始传输按钮 - 使用更醒目的颜色
-        self.start_transfer_button = tk.Button(self.queue_buttons_frame, text="🚀 开始传输", 
+        # 紧凑的控制按钮 - 占容器70%高度
+        self.start_transfer_button = tk.Button(self.queue_card, text="▶️ 开始", 
                                              command=self._start_transfer,
-                                             bg='#dc2626', fg='#ffffff',
-                                             font=('Microsoft YaHei UI', 10, 'bold'),
-                                             relief='raised', borderwidth=3,
-                                             activebackground='#b91c1c', activeforeground='#ffffff',
-                                             cursor='hand2', pady=8)
-        self.start_transfer_button.pack(side=tk.LEFT, fill=tk.X, expand=True)
+                                             bg=self.colors['error'], fg=self.colors['text_button'],
+                                             font=('Microsoft YaHei UI', 8, 'bold'),
+                                             relief='flat', borderwidth=0,
+                                             activebackground='#b91c1c', activeforeground=self.colors['text_button'],
+                                             cursor='hand2')
+        self.start_transfer_button.place(relx=0.04, rely=0.32, relwidth=0.44, relheight=0.63)
+        
+        self.clear_queue_button = tk.Button(self.queue_card, text="🗑️ 清空", 
+                                          command=self._clear_transfer_queue,
+                                          bg=self.colors['text_muted'], fg=self.colors['text_button'],
+                                          font=('Microsoft YaHei UI', 8, 'bold'),
+                                          relief='flat', borderwidth=0,
+                                          activebackground='#4b5563', activeforeground=self.colors['text_button'],
+                                          cursor='hand2')
+        self.clear_queue_button.place(relx=0.52, rely=0.32, relwidth=0.44, relheight=0.63)
     
     def _create_main_content(self):
-        """创建主内容区域"""
+        """创建现代化主内容区域 - 占窗口宽度72%"""
         # 主内容容器
-        self.content_frame = ttk.Frame(self.main_frame, style='Modern.TFrame')
-        self.content_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        self.content_frame = tk.Frame(self.main_frame, bg=self.colors['bg_primary'])
+        self.content_frame.place(relx=0.28, rely=0, relwidth=0.72, relheight=1.0)
         
-        # 创建拖拽上传区域
+        # 创建拖拽上传区域 - 占主内容区域35%高度（减小）
         self._create_drop_zone()
         
-        # 创建日志区域
+        # 创建日志区域 - 占主内容区域65%高度（增大）
         self._create_log_area()
     
     def _create_drop_zone(self):
-        """创建文件拖拽上传区域"""
-        # 拖拽区域标题
-        drop_title = ttk.Label(self.content_frame, text="文件传输区域", style='Title.TLabel')
-        drop_title.pack(pady=(20, 10), padx=20, anchor='w')
-        
+        """创建现代化文件拖拽区域 - 占主内容35%高度"""
         # 拖拽区域容器
-        self.drop_zone_container = ttk.Frame(self.content_frame, style='Modern.TFrame')
-        self.drop_zone_container.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 10))
+        self.drop_zone_container = tk.Frame(self.content_frame, bg=self.colors['bg_primary'])
+        self.drop_zone_container.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.35)
         
-        # 拖拽区域
+        # 拖拽区域标题 - 占容器12%高度
+        drop_title = tk.Label(self.drop_zone_container, text="📤 文件传输", 
+                            bg=self.colors['bg_primary'], fg=self.colors['text_primary'],
+                            font=('Microsoft YaHei UI', 12, 'bold'))
+        drop_title.place(relx=0, rely=0, relwidth=1.0, relheight=0.12)
+        
+        # 现代化拖拽区域 - 带圆角效果
         self.drop_zone = tk.Frame(self.drop_zone_container, 
-                                bg=self.colors['bg_secondary'],
-                                relief='solid', borderwidth=2,
-                                bd=2)
-        self.drop_zone.pack(fill=tk.BOTH, expand=True)
+                                bg=self.colors['bg_accent_light'],
+                                relief='solid', borderwidth=1)
+        self.drop_zone.place(relx=0, rely=0.15, relwidth=1.0, relheight=0.82)
         
-        # 拖拽提示标签
+        # 现代化拖拽提示标签
         self.drop_label = tk.Label(self.drop_zone,
-                                 text="将文件拖拽到此处进行上传\n\n支持多文件同时上传\n点击此处选择文件",
-                                 font=('Microsoft YaHei UI', 14),
+                                 text="📁 拖拽文件到此处\n或点击选择文件",
+                                 font=('Microsoft YaHei UI', 11),
                                  fg=self.colors['text_secondary'],
-                                 bg=self.colors['bg_secondary'],
+                                 bg=self.colors['bg_accent_light'],
                                  justify='center')
-        self.drop_label.pack(expand=True)
+        self.drop_label.place(relx=0.5, rely=0.5, anchor='center')
         
         # 配置拖拽功能
         self.drop_zone.drop_target_register(tkdnd.DND_FILES)
@@ -425,46 +560,52 @@ class ModernFileTransferGUI:
         self.drop_zone.bind('<Button-1>', self._on_select_files)
     
     def _create_log_area(self):
-        """创建日志显示区域"""
-        # 日志区域标题
-        log_title = ttk.Label(self.content_frame, text="操作日志", style='Title.TLabel')
-        log_title.pack(pady=(10, 10), padx=20, anchor='w')
+        """创建现代化日志显示区域 - 占主内容65%高度"""
+        # 日志区域容器
+        self.log_container = tk.Frame(self.content_frame, bg=self.colors['bg_primary'])
+        self.log_container.place(relx=0.02, rely=0.39, relwidth=0.96, relheight=0.59)
         
-        # 日志文本区域
-        self.log_frame = ttk.Frame(self.content_frame, style='Modern.TFrame')
-        self.log_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 20))
+        # 日志区域标题 - 占容器8%高度
+        log_title = tk.Label(self.log_container, text="📋 操作日志", 
+                           bg=self.colors['bg_primary'], fg=self.colors['text_primary'],
+                           font=('Microsoft YaHei UI', 12, 'bold'))
+        log_title.place(relx=0, rely=0, relwidth=1.0, relheight=0.08)
         
+        # 日志文本区域 - 占容器82%高度
+        self.log_frame = tk.Frame(self.log_container, bg=self.colors['bg_primary'])
+        self.log_frame.place(relx=0, rely=0.10, relwidth=1.0, relheight=0.80)
+        
+        # 现代化日志文本控件 - 占日志框架90%高度
         self.log_text = ScrolledText(self.log_frame,
                                    font=('Consolas', 9),
-                                   bg=self.colors['bg_primary'],
+                                   bg=self.colors['bg_card'],
                                    fg=self.colors['text_primary'],
                                    insertbackground=self.colors['text_primary'],
                                    selectbackground=self.colors['accent'],
                                    wrap=tk.WORD,
-                                   height=8)
-        self.log_text.pack(fill=tk.BOTH, expand=True)
+                                   relief='solid', bd=1)
+        self.log_text.place(relx=0, rely=0, relwidth=1.0, relheight=0.90)
         
-        # 日志控制按钮
-        self.log_buttons_frame = ttk.Frame(self.log_frame, style='Modern.TFrame')
-        self.log_buttons_frame.pack(fill=tk.X, pady=(10, 0))
-        
-        self.clear_log_button = tk.Button(self.log_buttons_frame, text="清空日志", 
+        # 现代化日志控制按钮 - 占日志框架10%高度
+        self.clear_log_button = tk.Button(self.log_frame, text="🗑️ 清空", 
                                          command=self._clear_log,
-                                         bg='#0f7b6c', fg='#ffffff',
+                                         bg=self.colors['bg_button'], fg=self.colors['text_button'],
                                          font=('Microsoft YaHei UI', 9, 'bold'),
-                                         relief='raised', borderwidth=2,
-                                         activebackground='#0a5d52', activeforeground='#ffffff',
-                                         cursor='hand2', pady=6)
-        self.clear_log_button.pack(side=tk.LEFT, padx=(0, 10), fill=tk.X, expand=True)
+                                         relief='flat', borderwidth=0,
+                                         activebackground=self.colors['bg_button_hover'], 
+                                         activeforeground=self.colors['text_button'],
+                                         cursor='hand2')
+        self.clear_log_button.place(relx=0, rely=0.91, relwidth=0.48, relheight=0.09)
         
-        self.save_log_button = tk.Button(self.log_buttons_frame, text="保存日志", 
+        self.save_log_button = tk.Button(self.log_frame, text="💾 保存", 
                                         command=self._save_log,
-                                        bg='#0f7b6c', fg='#ffffff',
+                                        bg=self.colors['bg_button'], fg=self.colors['text_button'],
                                         font=('Microsoft YaHei UI', 9, 'bold'),
-                                        relief='raised', borderwidth=2,
-                                        activebackground='#0a5d52', activeforeground='#ffffff',
-                                        cursor='hand2', pady=6)
-        self.save_log_button.pack(side=tk.LEFT, fill=tk.X, expand=True)
+                                        relief='flat', borderwidth=0,
+                                        activebackground=self.colors['bg_button_hover'], 
+                                        activeforeground=self.colors['text_button'],
+                                        cursor='hand2')
+        self.save_log_button.place(relx=0.52, rely=0.91, relwidth=0.48, relheight=0.09)
     
     def _create_status_bar(self):
         """创建状态栏"""
@@ -525,13 +666,15 @@ class ModernFileTransferGUI:
         def run_loop():
             self.loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self.loop)
+            # 创建telnet锁
+            self.telnet_lock = asyncio.Lock()
             self.loop.run_forever()
         
         self.loop_thread = threading.Thread(target=run_loop, daemon=True)
         self.loop_thread.start()
         
         # 等待事件循环启动
-        while self.loop is None:
+        while self.loop is None or self.telnet_lock is None:
             time.sleep(0.01)
     
     def _run_async(self, coro):
@@ -757,8 +900,20 @@ class ModernFileTransferGUI:
     async def _get_directory_listing(self, path):
         """获取目录列表"""
         try:
-            # 首先尝试使用不带颜色的ls命令
-            result = await self.telnet_client.execute_command(f'ls -la --color=never "{path}"')
+            # 规范化路径
+            normalized_path = self._normalize_unix_path(path)
+            self.logger.debug(f"路径规范化: '{path}' -> '{normalized_path}'")
+            
+            # 使用锁保护telnet连接
+            async with self.telnet_lock:
+                # 首先检查路径是否是目录
+                test_result = await self.telnet_client.execute_command(f'test -d "{normalized_path}" && echo "IS_DIR" || echo "NOT_DIR"')
+                if "NOT_DIR" in test_result:
+                    self.logger.warning(f"路径 {normalized_path} 不是目录，无法列出内容")
+                    return []
+                
+                # 首先尝试使用不带颜色的ls命令
+                result = await self.telnet_client.execute_command(f'ls -la --color=never "{normalized_path}"')
             
             # 记录原始输出用于调试
             self.logger.debug(f"原始ls输出（前100字符）: {repr(result[:100])}")
@@ -798,7 +953,7 @@ class ModernFileTransferGUI:
                         items.append({
                             'name': name,
                             'is_directory': is_directory,
-                            'full_path': os.path.join(path, name)
+                            'full_path': self._join_unix_path(path, name)
                         })
                         self.logger.debug(f"解析到项目: {name} ({'目录' if is_directory else '文件'})")
             
@@ -809,7 +964,9 @@ class ModernFileTransferGUI:
             self.logger.warning(f"--color=never不支持: {str(e)}")
             # 如果--color=never不支持，尝试普通ls命令
             try:
-                result = await self.telnet_client.execute_command(f'ls -la "{path}"')
+                # 备用方法也需要锁保护
+                async with self.telnet_lock:
+                    result = await self.telnet_client.execute_command(f'ls -la "{normalized_path}"')
                 self.logger.debug(f"普通ls原始输出（前100字符）: {repr(result[:100])}")
                 
                 cleaned_result = self._clean_ansi_codes(result)
@@ -842,7 +999,7 @@ class ModernFileTransferGUI:
                             items.append({
                                 'name': name,
                                 'is_directory': is_directory,
-                                'full_path': os.path.join(path, name)
+                                'full_path': self._join_unix_path(normalized_path, name)
                             })
                             self.logger.debug(f"解析到项目: {name} ({'目录' if is_directory else '文件'})")
                 
@@ -902,10 +1059,15 @@ class ModernFileTransferGUI:
         if selection:
             item = self.directory_tree.item(selection[0])
             full_path, is_directory = item['values']
+            
+            self.logger.debug(f"双击项目: {full_path}, 是否为目录: {is_directory}")
+            
             if is_directory:
-                self.current_remote_path = full_path
-                self.current_path_var.set(full_path)
+                self.current_remote_path = self._normalize_unix_path(full_path)
+                self.current_path_var.set(self.current_remote_path)
                 self._refresh_directory()
+            else:
+                self.logger.info(f"双击了文件: {full_path}，忽略操作")
     
     def _on_directory_select(self, event):
         """目录选择事件"""
@@ -914,18 +1076,81 @@ class ModernFileTransferGUI:
             item = self.directory_tree.item(selection[0])
             full_path, is_directory = item['values']
             if is_directory:
-                self.current_remote_path = full_path
-                self.current_path_var.set(full_path)
+                self.current_remote_path = self._normalize_unix_path(full_path)
+                self.current_path_var.set(self.current_remote_path)
     
     def _go_parent_directory(self):
         """上级目录"""
         if self.current_remote_path != '/':
-            parent_path = os.path.dirname(self.current_remote_path)
-            if not parent_path:
-                parent_path = '/'
+            parent_path = self._get_unix_parent_path(self.current_remote_path)
             self.current_remote_path = parent_path
             self.current_path_var.set(parent_path)
             self._refresh_directory()
+    
+    def _get_unix_parent_path(self, path):
+        """获取Unix风格的父路径"""
+        if path == '/':
+            return '/'
+        
+        # 确保使用正斜杠
+        path = path.replace('\\', '/')
+        
+        # 移除末尾的斜杠
+        path = path.rstrip('/')
+        
+        # 如果是根目录
+        if not path:
+            return '/'
+        
+        # 找到最后一个斜杠
+        last_slash = path.rfind('/')
+        if last_slash == -1:
+            return '/'
+        elif last_slash == 0:
+            return '/'
+        else:
+            return path[:last_slash]
+    
+    def _join_unix_path(self, base_path, name):
+        """连接Unix风格路径"""
+        # 确保使用正斜杠
+        base_path = base_path.replace('\\', '/')
+        name = name.replace('\\', '/')
+        
+        # 移除末尾斜杠
+        base_path = base_path.rstrip('/')
+        
+        # 如果是根目录
+        if base_path == '':
+            base_path = '/'
+        
+        # 连接路径
+        if base_path == '/':
+            return f'/{name}'
+        else:
+            return f'{base_path}/{name}'
+    
+    def _normalize_unix_path(self, path):
+        """规范化Unix路径"""
+        if not path:
+            return '/'
+        
+        # 替换反斜杠为正斜杠
+        path = path.replace('\\', '/')
+        
+        # 确保以/开头
+        if not path.startswith('/'):
+            path = '/' + path
+        
+        # 移除重复的斜杠
+        while '//' in path:
+            path = path.replace('//', '/')
+        
+        # 移除末尾斜杠（除非是根目录）
+        if path != '/' and path.endswith('/'):
+            path = path.rstrip('/')
+        
+        return path
     
     def _quick_start_transfer(self):
         """快速开始传输"""
@@ -1010,7 +1235,11 @@ class ModernFileTransferGUI:
         """从远程设备ping本机"""
         try:
             ping_cmd = f"ping -c 1 {local_ip}"
-            result = await self.telnet_client.execute_command(ping_cmd, timeout=10)
+            
+            # 使用锁保护telnet连接
+            async with self.telnet_lock:
+                result = await self.telnet_client.execute_command(ping_cmd, timeout=10)
+            
             self.logger.info(f"Ping结果: {result}")
             
             # 检查ping是否成功
@@ -1144,9 +1373,10 @@ class ModernFileTransferGUI:
         threading.Thread(target=self._transfer_files_async, daemon=True).start()
     
     def _transfer_files_async(self):
-        """异步传输文件"""
+        """异步传输文件 - 改为串行执行避免并发冲突"""
         try:
-            success_count = 0
+            # 收集所有要传输的文件信息
+            transfer_tasks = []
             total_count = self.queue_listbox.size()
             
             for i in range(total_count):
@@ -1158,14 +1388,78 @@ class ModernFileTransferGUI:
                     
                     if filename in self.file_path_mapping:
                         local_file = self.file_path_mapping[filename]
-                        if self._transfer_single_file(local_file, remote_path, filename):
-                            success_count += 1
+                        transfer_tasks.append((local_file, remote_path, filename))
             
-            self.root.after(0, self._on_transfer_complete, success_count, total_count)
+            # 在异步环境中串行执行所有传输任务
+            future = self._run_async(self._execute_transfers_sequentially(transfer_tasks))
+            if future:
+                success_count = future.result(timeout=300)  # 5分钟超时
+                self.root.after(0, self._on_transfer_complete, success_count, len(transfer_tasks))
+            else:
+                self.root.after(0, self._on_transfer_error, "无法创建异步传输任务")
             
         except Exception as e:
             self.logger.error(f"文件传输异常: {str(e)}")
+            import traceback
+            self.logger.error(f"详细错误: {traceback.format_exc()}")
             self.root.after(0, self._on_transfer_error, str(e))
+    
+    async def _execute_transfers_sequentially(self, transfer_tasks):
+        """串行执行传输任务，避免telnet连接冲突"""
+        success_count = 0
+        
+        for i, (local_file, remote_path, filename) in enumerate(transfer_tasks, 1):
+            self.logger.info(f"开始传输文件 {i}/{len(transfer_tasks)}: {filename}")
+            
+            try:
+                # 使用锁确保telnet连接不会被并发访问
+                async with self.telnet_lock:
+                    if await self._transfer_single_file_async(local_file, remote_path, filename):
+                        success_count += 1
+                        self.logger.info(f"文件传输成功: {filename}")
+                    else:
+                        self.logger.error(f"文件传输失败: {filename}")
+                        
+            except Exception as e:
+                self.logger.error(f"传输文件 {filename} 时出错: {str(e)}")
+                import traceback
+                self.logger.error(f"详细错误: {traceback.format_exc()}")
+        
+        return success_count
+    
+    async def _transfer_single_file_async(self, local_file, remote_path, filename):
+        """异步传输单个文件"""
+        try:
+            if not self.http_server:
+                self.logger.error("HTTP服务器未启动")
+                return False
+            
+            # 添加到HTTP服务器
+            self.logger.info(f"将文件添加到HTTP服务器: {local_file}")
+            server_file_path = self.http_server.add_file(local_file, filename)
+            if not server_file_path:
+                self.logger.error("无法添加文件到HTTP服务器")
+                return False
+            
+            # 获取下载URL（使用HTTP服务器的方法，确保正确编码）
+            host_ip = self._get_local_ip()
+            download_url = self.http_server.get_download_url(filename, host_ip)
+            self.logger.info(f"生成下载URL: {download_url}")
+            
+            # 通过telnet下载
+            self.logger.info(f"开始通过telnet执行下载命令")
+            result = await self._download_via_telnet(download_url, remote_path, filename)
+            
+            # 清理临时文件
+            self.http_server.remove_file(filename)
+            
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"异步传输文件失败: {str(e)}")
+            import traceback
+            self.logger.error(f"详细错误: {traceback.format_exc()}")
+            return False
     
     def _transfer_single_file(self, local_file, remote_path, filename):
         """传输单个文件"""
@@ -1182,9 +1476,9 @@ class ModernFileTransferGUI:
                 self.logger.error("无法添加文件到HTTP服务器")
                 return False
             
-            # 获取下载URL
+            # 获取下载URL（使用HTTP服务器的方法，确保正确编码）
             host_ip = self._get_local_ip()
-            download_url = f"http://{host_ip}:88/{filename}"
+            download_url = self.http_server.get_download_url(filename, host_ip)
             self.logger.info(f"生成下载URL: {download_url}")
             
             # 通过telnet下载
