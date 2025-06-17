@@ -28,6 +28,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from telnetTool.telnetConnect import CustomTelnetClient
 from fileTransfer.http_server import FileHTTPServer
 from fileTransfer.file_transfer_controller import FileTransferController, TransferTask
+from fileTransfer.ip_history_manager import IPHistoryManager, read_device_id_from_remote
 
 
 class ModernFileTransferGUI:
@@ -86,14 +87,18 @@ class ModernFileTransferGUI:
         self.is_connected = False
         self.file_path_mapping = {}  # 文件名到完整路径的映射
         
+        # 初始化IP历史管理器
+        self.ip_history_manager = IPHistoryManager("ip_history.json")
+        self.current_device_id = None  # 当前连接设备的ID
+        
+        # 配置日志（需要在创建界面元素之前初始化）
+        self._setup_logging()
+        
         # 创建界面元素
         self._create_widgets()
         
         # 绑定事件
         self._bind_events()
-        
-        # 配置日志
-        self._setup_logging()
         
         # 初始化响应式布局
         self._setup_responsive_layout()
@@ -300,12 +305,37 @@ class ModernFileTransferGUI:
         tk.Label(self.connection_frame, text="主机地址:", 
                 bg=self.colors['bg_card'], fg=self.colors['text_secondary'],
                 font=('Microsoft YaHei UI', 9)).place(relx=0, rely=0, relwidth=1.0, relheight=0.10)
-        self.host_entry = tk.Entry(self.connection_frame, font=('Microsoft YaHei UI', 9),
+        
+        # IP输入框和历史按钮容器
+        ip_container = tk.Frame(self.connection_frame, bg=self.colors['bg_card'])
+        ip_container.place(relx=0, rely=0.11, relwidth=1.0, relheight=0.12)
+        
+        self.host_entry = tk.Entry(ip_container, font=('Microsoft YaHei UI', 9),
                                  bg=self.colors['bg_primary'], fg=self.colors['text_primary'],
                                  relief='solid', bd=1, highlightthickness=1,
                                  highlightcolor=self.colors['border_focus'])
-        self.host_entry.place(relx=0, rely=0.11, relwidth=1.0, relheight=0.12)
+        self.host_entry.place(relx=0, rely=0, relwidth=0.78, relheight=1.0)
         self.host_entry.insert(0, "192.168.1.100")
+        
+        # 历史记录按钮
+        self.history_button = tk.Button(ip_container, text="📋", 
+                                      command=self._show_ip_history,
+                                      bg=self.colors['bg_accent'], fg=self.colors['text_button'],
+                                      font=('Microsoft YaHei UI', 8),
+                                      relief='flat', borderwidth=0,
+                                      activebackground=self.colors['bg_accent'],
+                                      cursor='hand2')
+        self.history_button.place(relx=0.80, rely=0, relwidth=0.09, relheight=1.0)
+        
+        # 清除历史按钮
+        self.clear_history_button = tk.Button(ip_container, text="🗑", 
+                                            command=self._clear_ip_history,
+                                            bg=self.colors['error'], fg=self.colors['text_button'],
+                                            font=('Microsoft YaHei UI', 8),
+                                            relief='flat', borderwidth=0,
+                                            activebackground='#dc2626',
+                                            cursor='hand2')
+        self.clear_history_button.place(relx=0.91, rely=0, relwidth=0.09, relheight=1.0)
         
         # 端口 - 占框架13%高度
         tk.Label(self.connection_frame, text="端口:", 
@@ -365,6 +395,9 @@ class ModernFileTransferGUI:
                                               bg=self.colors['bg_card'], fg=self.colors['text_muted'],
                                               font=('Microsoft YaHei UI', 8))
         self.connection_status_label.place(relx=0.12, rely=0, relwidth=0.88, relheight=1.0)
+        
+        # 加载最后使用的IP
+        self._load_last_ip()
     
     def _create_directory_panel(self):
         """创建现代化远程目录浏览面板 - 占侧边栏45%高度"""
@@ -414,7 +447,7 @@ class ModernFileTransferGUI:
         
         # 现代化按钮 - 使用图标
         self.refresh_button = tk.Button(buttons_container, text="🔄 刷新", 
-                                       command=self._refresh_directory,
+                                       command=self._safe_refresh_directory,
                                        bg=self.colors['bg_button'], fg=self.colors['text_button'],
                                        font=('Microsoft YaHei UI', 8, 'bold'),
                                        relief='flat', borderwidth=0,
@@ -664,18 +697,30 @@ class ModernFileTransferGUI:
     def _start_event_loop(self):
         """启动异步事件循环"""
         def run_loop():
-            self.loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(self.loop)
-            # 创建telnet锁
-            self.telnet_lock = asyncio.Lock()
-            self.loop.run_forever()
+            try:
+                self.loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(self.loop)
+                # 创建telnet锁
+                self.telnet_lock = asyncio.Lock()
+                self.logger.info("异步事件循环已启动")
+                self.loop.run_forever()
+            except Exception as e:
+                self.logger.error(f"异步事件循环启动失败: {e}")
         
         self.loop_thread = threading.Thread(target=run_loop, daemon=True)
         self.loop_thread.start()
         
-        # 等待事件循环启动
-        while self.loop is None or self.telnet_lock is None:
+        # 等待事件循环启动，增加超时保护
+        wait_count = 0
+        max_wait = 100  # 最多等待1秒
+        while (self.loop is None or self.telnet_lock is None) and wait_count < max_wait:
             time.sleep(0.01)
+            wait_count += 1
+        
+        if wait_count >= max_wait:
+            self.logger.error("异步事件循环启动超时")
+        else:
+            self.logger.info(f"异步事件循环启动完成，等待了 {wait_count * 10}ms")
     
     def _run_async(self, coro):
         """在事件循环中运行异步任务"""
@@ -787,19 +832,33 @@ class ModernFileTransferGUI:
         # 更新状态指示器
         self.status_indicator.delete('all')
         self.status_indicator.create_oval(2, 2, 10, 10, fill=self.colors['success'], outline='')
-        self.connection_status_label.configure(text=f"已连接 ({self.connection_config['host']})")
+        self.connection_status_label.configure(text=f"已连接 ({self.connection_config['host']})", 
+                                             fg=self.colors['success'])
+        
+        # 保存IP到历史记录
+        current_ip = self.connection_config['host']
+        if current_ip:
+            # 异步读取设备ID并保存
+            self._run_async(self._save_ip_with_device_id(current_ip))
         
         self._update_status(f"成功连接到 {self.connection_config['host']}")
         
         # 启动HTTP服务器
         self._start_http_server()
         
-        # 刷新目录
-        self._refresh_directory()
+        # 连接成功后不自动刷新目录，让用户手动点击刷新
+        self.logger.info("连接成功！请点击'刷新'按钮来获取目录列表")
+        self._update_status("连接成功！请点击刷新按钮获取目录")
     
     def _on_connect_failed(self, error_msg):
         """连接失败"""
         self.connect_button.configure(state='normal', text='连接设备')
+        
+        # 更新状态指示器为红色
+        self.status_indicator.delete('all')
+        self.status_indicator.create_oval(2, 2, 10, 10, fill=self.colors['error'], outline='')
+        self.connection_status_label.configure(text="连接失败", fg=self.colors['error'])
+        
         self._update_status(f"连接失败: {error_msg}")
         messagebox.showerror("连接失败", f"无法连接到设备:\n{error_msg}")
     
@@ -862,6 +921,17 @@ class ModernFileTransferGUI:
             self.logger.error(f"详细错误: {traceback.format_exc()}")
             messagebox.showerror("服务器错误", f"无法启动HTTP服务器:\n{str(e)}")
     
+    def _safe_refresh_directory(self):
+        """安全的刷新目录（用户手动触发）"""
+        if not self.is_connected:
+            self._update_status("未连接，无法刷新目录")
+            messagebox.showwarning("提示", "请先连接到设备")
+            return
+        
+        self.logger.info("用户手动触发目录刷新")
+        self._update_status("正在刷新目录...")
+        self._refresh_directory()
+    
     def _refresh_directory(self):
         """刷新目录"""
         if not self.is_connected:
@@ -871,19 +941,44 @@ class ModernFileTransferGUI:
     def _refresh_directory_async(self):
         """异步刷新目录"""
         try:
-            self.logger.debug(f"开始异步刷新目录: {self.current_remote_path}")
+            self.logger.info(f"开始异步刷新目录: {self.current_remote_path}")
+            
+            # 检查异步循环是否可用
+            if not self.loop or self.loop.is_closed():
+                self.logger.error("异步事件循环不可用")
+                self.root.after(0, lambda: self._update_status("异步事件循环不可用"))
+                return
+            
+            # 检查telnet客户端是否存在
+            if not self.telnet_client:
+                self.logger.error("Telnet客户端不存在")
+                self.root.after(0, lambda: self._update_status("Telnet客户端不存在"))
+                return
+            
             future = self._run_async(self._get_directory_listing(self.current_remote_path))
             if future:
-                items = future.result(timeout=10)
-                self.logger.debug(f"异步操作完成，获得 {len(items)} 个项目")
-                # 使用after确保在主线程中更新GUI
-                self.root.after(0, lambda: self._update_directory_tree(items))
+                try:
+                    # 使用较短的超时时间，避免界面冻结
+                    items = future.result(timeout=5)
+                    self.logger.info(f"异步操作完成，获得 {len(items)} 个项目")
+                    # 使用after确保在主线程中更新GUI
+                    self.root.after(0, lambda: self._update_directory_tree(items))
+                except asyncio.TimeoutError:
+                    self.logger.error("目录列表获取超时")
+                    self.root.after(0, lambda: self._update_status("目录列表获取超时"))
+                except Exception as result_error:
+                    self.logger.error(f"获取异步结果失败: {result_error}")
+                    self.root.after(0, lambda: self._update_status(f"获取结果失败: {result_error}"))
             else:
                 self.logger.error("无法创建异步任务")
+                self.root.after(0, lambda: self._update_status("无法创建异步任务"))
+                
         except Exception as e:
             self.logger.error(f"刷新目录失败: {str(e)}")
             import traceback
             self.logger.error(f"完整错误信息: {traceback.format_exc()}")
+            # 显示错误信息到状态栏
+            self.root.after(0, lambda: self._update_status(f"刷新目录失败: {str(e)}"))
     
     def _clean_ansi_codes(self, text):
         """清理ANSI转义序列和颜色代码"""
@@ -897,25 +992,142 @@ class ModernFileTransferGUI:
         
         return cleaned.strip()
     
+    def _determine_file_type(self, permissions, name):
+        """根据权限和文件名判断文件类型"""
+        # 目录
+        if permissions.startswith('d'):
+            return 'directory'
+        
+        # 符号链接
+        if permissions.startswith('l'):
+            return 'link'
+        
+        # 可执行文件
+        if 'x' in permissions[1:4]:
+            return 'executable'
+        
+        # 根据文件扩展名判断
+        name_lower = name.lower()
+        
+        # 图片文件
+        if any(name_lower.endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.svg']):
+            return 'image'
+        
+        # 文档文件
+        if any(name_lower.endswith(ext) for ext in ['.txt', '.doc', '.docx', '.pdf', '.md']):
+            return 'document'
+        
+        # 压缩文件
+        if any(name_lower.endswith(ext) for ext in ['.zip', '.tar', '.gz', '.bz2', '.rar', '.7z']):
+            return 'archive'
+        
+        # 配置文件
+        if any(name_lower.endswith(ext) for ext in ['.conf', '.cfg', '.ini', '.yaml', '.yml', '.json']):
+            return 'config'
+        
+        # 脚本文件
+        if any(name_lower.endswith(ext) for ext in ['.sh', '.py', '.pl', '.rb', '.js']):
+            return 'script'
+        
+        # 默认为普通文件
+        return 'file'
+    
+    def _get_file_icon_and_color(self, item):
+        """根据文件类型获取图标和颜色"""
+        file_type = item.get('file_type', 'file')
+        
+        # 图标映射
+        icons = {
+            'directory': '📁',
+            'executable': '⚙️',
+            'link': '🔗',
+            'image': '🖼️',
+            'document': '📄',
+            'archive': '📦',
+            'config': '⚙️',
+            'script': '📜',
+            'file': '📄'
+        }
+        
+        # 颜色映射
+        colors = {
+            'directory': '#3b82f6',      # 蓝色
+            'executable': '#10b981',     # 绿色
+            'link': '#8b5cf6',           # 紫色
+            'image': '#f59e0b',          # 橙色
+            'document': '#6b7280',       # 灰色
+            'archive': '#dc2626',        # 红色
+            'config': '#0891b2',         # 青色
+            'script': '#059669',         # 翠绿色
+            'file': '#374151'            # 深灰色
+        }
+        
+        icon = icons.get(file_type, icons['file'])
+        color = colors.get(file_type, colors['file'])
+        
+        return icon, color
+    
+    def _configure_tree_colors(self):
+        """配置treeview的颜色标签"""
+        try:
+            # 目录 - 蓝色
+            self.directory_tree.tag_configure('directory', foreground='#3b82f6')
+            
+            # 可执行文件 - 绿色
+            self.directory_tree.tag_configure('executable', foreground='#10b981')
+            
+            # 符号链接 - 紫色
+            self.directory_tree.tag_configure('link', foreground='#8b5cf6')
+            
+            # 图片文件 - 橙色
+            self.directory_tree.tag_configure('image', foreground='#f59e0b')
+            
+            # 文档文件 - 灰色
+            self.directory_tree.tag_configure('document', foreground='#6b7280')
+            
+            # 压缩文件 - 红色
+            self.directory_tree.tag_configure('archive', foreground='#dc2626')
+            
+            # 配置文件 - 青色
+            self.directory_tree.tag_configure('config', foreground='#0891b2')
+            
+            # 脚本文件 - 翠绿色
+            self.directory_tree.tag_configure('script', foreground='#059669')
+            
+            # 普通文件 - 深灰色
+            self.directory_tree.tag_configure('file', foreground='#374151')
+            
+        except Exception as e:
+            self.logger.debug(f"配置treeview颜色失败: {e}")
+    
     async def _get_directory_listing(self, path):
         """获取目录列表"""
         try:
             # 规范化路径
             normalized_path = self._normalize_unix_path(path)
-            self.logger.debug(f"路径规范化: '{path}' -> '{normalized_path}'")
+            self.logger.info(f"获取目录列表: '{path}' -> '{normalized_path}'")
+            
+            # 检查telnet客户端是否存在
+            if not self.telnet_client:
+                self.logger.error("Telnet客户端不存在")
+                return []
             
             # 使用锁保护telnet连接
             async with self.telnet_lock:
                 # 首先检查路径是否是目录
                 test_result = await self.telnet_client.execute_command(f'test -d "{normalized_path}" && echo "IS_DIR" || echo "NOT_DIR"')
+                self.logger.info(f"目录检查结果: {test_result.strip()}")
+                
                 if "NOT_DIR" in test_result:
                     self.logger.warning(f"路径 {normalized_path} 不是目录，无法列出内容")
                     return []
                 
-                # 首先尝试使用不带颜色的ls命令
-                result = await self.telnet_client.execute_command(f'ls -la --color=never "{normalized_path}"')
+                # 尝试使用带颜色的ls命令获取文件类型信息
+                self.logger.info(f"执行命令: ls -la --color=always \"{normalized_path}\"")
+                result = await self.telnet_client.execute_command(f'ls -la --color=always "{normalized_path}"')
             
             # 记录原始输出用于调试
+            self.logger.info(f"命令输出长度: {len(result)} 字符")
             self.logger.debug(f"原始ls输出（前100字符）: {repr(result[:100])}")
             
             # 清理ANSI转义序列
@@ -924,6 +1136,7 @@ class ModernFileTransferGUI:
             
             items = []
             lines = cleaned_result.strip().split('\n')
+            self.logger.info(f"解析出 {len(lines)} 行输出")
             
             # 跳过第一行（通常是"total xxx"）
             for i, line in enumerate(lines):
@@ -933,6 +1146,7 @@ class ModernFileTransferGUI:
                 
                 # 跳过总计行
                 if i == 0 and line.startswith('total'):
+                    self.logger.debug(f"跳过总计行: {line}")
                     continue
                 
                 # 解析ls -la的输出格式
@@ -950,23 +1164,37 @@ class ModernFileTransferGUI:
                     
                     if name:  # 确保文件名不为空
                         is_directory = permissions.startswith('d')
+                        is_executable = 'x' in permissions[1:4] and not is_directory
+                        is_link = permissions.startswith('l')
+                        
+                        # 根据权限和类型确定文件类型
+                        file_type = self._determine_file_type(permissions, name)
+                        
                         items.append({
                             'name': name,
                             'is_directory': is_directory,
+                            'is_executable': is_executable,
+                            'is_link': is_link,
+                            'file_type': file_type,
+                            'permissions': permissions,
                             'full_path': self._join_unix_path(path, name)
                         })
-                        self.logger.debug(f"解析到项目: {name} ({'目录' if is_directory else '文件'})")
+                        self.logger.debug(f"解析到项目: {name} ({'目录' if is_directory else file_type})")
+                else:
+                    self.logger.debug(f"跳过格式异常行: {repr(line)}")
             
             self.logger.info(f"成功解析到 {len(items)} 个项目")
             return items
             
         except Exception as e:
-            self.logger.warning(f"--color=never不支持: {str(e)}")
-            # 如果--color=never不支持，尝试普通ls命令
+            self.logger.warning(f"--color=always失败: {str(e)}")
+            # 如果--color=always不支持，尝试普通ls命令
             try:
                 # 备用方法也需要锁保护
                 async with self.telnet_lock:
+                    self.logger.info(f"尝试普通ls命令: ls -la \"{normalized_path}\"")
                     result = await self.telnet_client.execute_command(f'ls -la "{normalized_path}"')
+                self.logger.info(f"普通ls输出长度: {len(result)} 字符")
                 self.logger.debug(f"普通ls原始输出（前100字符）: {repr(result[:100])}")
                 
                 cleaned_result = self._clean_ansi_codes(result)
@@ -974,6 +1202,7 @@ class ModernFileTransferGUI:
                 
                 items = []
                 lines = cleaned_result.strip().split('\n')
+                self.logger.info(f"普通ls解析出 {len(lines)} 行")
                 
                 for i, line in enumerate(lines):
                     line = line.strip()
@@ -1008,27 +1237,56 @@ class ModernFileTransferGUI:
                 
             except Exception as e2:
                 self.logger.error(f"所有方法都失败: {str(e2)}")
+                import traceback
+                self.logger.error(f"详细错误: {traceback.format_exc()}")
                 return []
     
     def _update_directory_tree(self, items):
         """更新目录树"""
         try:
-            self.logger.debug(f"开始更新目录树，收到 {len(items)} 个项目")
+            self.logger.info(f"开始更新目录树，收到 {len(items)} 个项目")
+            
+            # 检查目录树组件是否存在
+            if not hasattr(self, 'directory_tree') or not self.directory_tree:
+                self.logger.error("目录树组件不存在")
+                return
             
             # 清空现有项目
-            self.directory_tree.delete(*self.directory_tree.get_children())
+            try:
+                current_children = self.directory_tree.get_children()
+                self.logger.debug(f"清空现有的 {len(current_children)} 个项目")
+                self.directory_tree.delete(*current_children)
+            except Exception as clear_error:
+                self.logger.error(f"清空目录树失败: {clear_error}")
+                return
             
             # 添加新项目
+            added_count = 0
             for i, item in enumerate(items):
                 try:
-                    # 简化显示，先不使用emoji图标
-                    prefix = "[DIR]" if item['is_directory'] else "[FILE]"
-                    display_name = f"{prefix} {item['name']}"
+                    # 根据文件类型选择图标和颜色
+                    icon, color = self._get_file_icon_and_color(item)
+                    display_name = f"{icon} {item['name']}"
                     
                     # 插入到树中
                     tree_item = self.directory_tree.insert('', 'end', text=display_name, 
                                                          values=(item['full_path'], item['is_directory']))
                     
+                    # 设置文本颜色（需要配置treeview的tag）
+                    self.directory_tree.set(tree_item, '#0', display_name)
+                    
+                    # 为不同类型的项目设置标签
+                    if item['is_directory']:
+                        self.directory_tree.item(tree_item, tags=('directory',))
+                    elif item.get('is_executable', False):
+                        self.directory_tree.item(tree_item, tags=('executable',))
+                    elif item.get('is_link', False):
+                        self.directory_tree.item(tree_item, tags=('link',))
+                    else:
+                        file_type = item.get('file_type', 'file')
+                        self.directory_tree.item(tree_item, tags=(file_type,))
+                    
+                    added_count += 1
                     self.logger.debug(f"成功添加项目 {i+1}: {display_name} -> {tree_item}")
                 except Exception as item_error:
                     self.logger.error(f"添加项目失败 {item}: {str(item_error)}")
@@ -1036,22 +1294,40 @@ class ModernFileTransferGUI:
                     try:
                         simple_name = item['name']
                         tree_item = self.directory_tree.insert('', 'end', text=simple_name, 
-                                                             values=(item['full_path'], item['is_directory']))
+                                                             values=(item['full_path'], item.get('is_directory', False)))
+                        added_count += 1
                         self.logger.debug(f"简化版本成功添加: {simple_name}")
                     except Exception as simple_error:
                         self.logger.error(f"简化版本也失败: {str(simple_error)}")
             
-            # 检查最终结果
-            children_count = len(self.directory_tree.get_children())
-            self.logger.info(f"目录树更新完成，显示 {children_count} 个项目")
+            # 配置treeview的颜色标签
+            try:
+                self._configure_tree_colors()
+            except Exception as color_error:
+                self.logger.warning(f"配置颜色失败: {color_error}")
             
-            if children_count == 0 and len(items) > 0:
-                self.logger.warning("警告：有项目但目录树为空，可能存在显示问题")
+            # 检查最终结果
+            try:
+                children_count = len(self.directory_tree.get_children())
+                self.logger.info(f"目录树更新完成，显示 {children_count} 个项目，成功添加 {added_count} 个")
+                
+                if children_count == 0 and len(items) > 0:
+                    self.logger.warning("警告：有项目但目录树为空，可能存在显示问题")
+                    # 尝试强制刷新界面
+                    self.root.update_idletasks()
+                
+                # 更新状态栏
+                self._update_status(f"目录刷新完成，显示 {children_count} 个项目")
+                
+            except Exception as check_error:
+                self.logger.error(f"检查最终结果失败: {check_error}")
                 
         except Exception as e:
             self.logger.error(f"更新目录树失败: {str(e)}")
             import traceback
             self.logger.error(f"完整错误信息: {traceback.format_exc()}")
+            # 更新状态栏显示错误
+            self._update_status(f"目录树更新失败: {str(e)}")
     
     def _on_directory_double_click(self, event):
         """目录双击事件"""
@@ -1611,6 +1887,125 @@ class ModernFileTransferGUI:
             self.root.update_idletasks()
         except Exception:
             pass
+    
+    async def _save_ip_with_device_id(self, ip):
+        """保存IP地址和设备ID到历史记录"""
+        try:
+            # 读取设备ID
+            device_id = await read_device_id_from_remote(self.telnet_client)
+            self.current_device_id = device_id
+            
+            # 保存到历史记录
+            self.ip_history_manager.add_ip(ip, device_id)
+            
+            if device_id:
+                self.logger.info(f"已保存IP历史记录: {ip} (设备: {device_id})")
+            else:
+                self.logger.info(f"已保存IP历史记录: {ip} (无设备ID)")
+                
+        except Exception as e:
+            self.logger.error(f"保存IP历史记录失败: {str(e)}")
+    
+    def _load_last_ip(self):
+        """加载最后使用的IP"""
+        try:
+            last_ip = self.ip_history_manager.get_last_used_ip()
+            if last_ip:
+                self.host_entry.delete(0, tk.END)
+                self.host_entry.insert(0, last_ip)
+                self.logger.info(f"已加载最后使用的IP: {last_ip}")
+        except Exception as e:
+            self.logger.debug(f"加载最后使用IP失败: {e}")
+    
+    def _show_ip_history(self):
+        """显示IP历史记录选择窗口"""
+        try:
+            # 创建历史记录窗口
+            history_window = tk.Toplevel(self.root)
+            history_window.title("IP历史记录")
+            history_window.geometry("400x300")
+            history_window.configure(bg=self.colors['bg_primary'])
+            history_window.transient(self.root)
+            history_window.grab_set()
+            
+            # 标题
+            title_label = tk.Label(history_window, text="选择历史IP地址", 
+                                 bg=self.colors['bg_primary'], fg=self.colors['text_primary'],
+                                 font=('Microsoft YaHei UI', 12, 'bold'))
+            title_label.pack(pady=10)
+            
+            # 历史记录列表
+            listbox_frame = tk.Frame(history_window, bg=self.colors['bg_primary'])
+            listbox_frame.pack(fill='both', expand=True, padx=20, pady=(0, 10))
+            
+            history_listbox = tk.Listbox(listbox_frame, 
+                                       bg=self.colors['bg_card'], fg=self.colors['text_primary'],
+                                       font=('Microsoft YaHei UI', 9),
+                                       selectbackground=self.colors['bg_accent_light'])
+            history_listbox.pack(side='left', fill='both', expand=True)
+            
+            scrollbar = tk.Scrollbar(listbox_frame, orient='vertical', command=history_listbox.yview)
+            scrollbar.pack(side='right', fill='y')
+            history_listbox.configure(yscrollcommand=scrollbar.set)
+            
+            # 加载历史记录
+            suggestions = self.ip_history_manager.get_ip_suggestions()
+            for suggestion in suggestions:
+                history_listbox.insert(tk.END, suggestion['display_text'])
+            
+            # 按钮区域
+            button_frame = tk.Frame(history_window, bg=self.colors['bg_primary'])
+            button_frame.pack(fill='x', padx=20, pady=(0, 20))
+            
+            def on_select():
+                selection = history_listbox.curselection()
+                if selection:
+                    selected_suggestion = suggestions[selection[0]]
+                    ip = selected_suggestion['ip']
+                    self.host_entry.delete(0, tk.END)
+                    self.host_entry.insert(0, ip)
+                    history_window.destroy()
+            
+            def on_cancel():
+                history_window.destroy()
+            
+            # 按钮
+            select_button = tk.Button(button_frame, text="选择", 
+                                    command=on_select,
+                                    bg=self.colors['bg_button'], fg=self.colors['text_button'],
+                                    font=('Microsoft YaHei UI', 9),
+                                    relief='flat', borderwidth=0, cursor='hand2')
+            select_button.pack(side='left', padx=(0, 10))
+            
+            cancel_button = tk.Button(button_frame, text="取消", 
+                                    command=on_cancel,
+                                    bg=self.colors['text_muted'], fg=self.colors['text_button'],
+                                    font=('Microsoft YaHei UI', 9),
+                                    relief='flat', borderwidth=0, cursor='hand2')
+            cancel_button.pack(side='left')
+            
+            # 双击选择
+            history_listbox.bind('<Double-Button-1>', lambda e: on_select())
+            
+            # 如果没有历史记录，显示提示
+            if not suggestions:
+                history_listbox.insert(tk.END, "暂无历史记录")
+                select_button.configure(state='disabled')
+                
+        except Exception as e:
+            self.logger.error(f"显示IP历史记录失败: {str(e)}")
+            messagebox.showerror("错误", f"无法显示历史记录:\n{str(e)}")
+    
+    def _clear_ip_history(self):
+        """清除IP历史记录"""
+        try:
+            if messagebox.askyesno("确认清除", "确定要清除所有IP历史记录吗？\n此操作不可撤销。"):
+                self.ip_history_manager.clear_history(clear_devices=True)
+                self.logger.info("IP历史记录已清除")
+                messagebox.showinfo("清除完成", "IP历史记录已清除")
+        except Exception as e:
+            self.logger.error(f"清除IP历史记录失败: {str(e)}")
+            messagebox.showerror("错误", f"清除历史记录失败:\n{str(e)}")
     
     def _on_closing(self):
         """窗口关闭"""
