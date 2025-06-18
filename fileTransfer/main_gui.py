@@ -313,12 +313,23 @@ class ModernFileTransferGUI:
         ip_container = tk.Frame(self.connection_frame, bg=self.colors['bg_card'])
         ip_container.place(relx=0, rely=0.11, relwidth=1.0, relheight=0.12)
         
-        self.host_entry = tk.Entry(ip_container, font=('Microsoft YaHei UI', 9),
+        # IP输入框（可编辑）
+        self.host_var = tk.StringVar(value="192.168.1.100")
+        self.host_entry = tk.Entry(ip_container, textvariable=self.host_var,
+                                 font=('Microsoft YaHei UI', 9),
                                  bg=self.colors['bg_primary'], fg=self.colors['text_primary'],
                                  relief='solid', bd=1, highlightthickness=1,
                                  highlightcolor=self.colors['border_focus'])
-        self.host_entry.place(relx=0, rely=0, relwidth=0.78, relheight=1.0)
-        self.host_entry.insert(0, "192.168.1.100")
+        # 注意: 初始宽度占比稍后会在 _adjust_ip_id_width 中根据内容调整
+        self.host_entry.place(relx=0, rely=0, relwidth=0.58, relheight=1.0)
+        
+        # 屏幕ID显示（只读）
+        self.device_id_var = tk.StringVar(value="--")
+        self.device_id_display = tk.Entry(ip_container, textvariable=self.device_id_var,
+                                        font=('Microsoft YaHei UI', 9), state='readonly',
+                                        readonlybackground=self.colors['bg_secondary'], fg=self.colors['text_secondary'],
+                                        relief='flat', justify='center')
+        self.device_id_display.place(relx=0.60, rely=0, relwidth=0.22, relheight=1.0)
         
         # 历史记录按钮
         self.history_button = tk.Button(ip_container, text="📋", 
@@ -328,7 +339,7 @@ class ModernFileTransferGUI:
                                       relief='flat', borderwidth=0,
                                       activebackground=self.colors['bg_accent'],
                                       cursor='hand2')
-        self.history_button.place(relx=0.80, rely=0, relwidth=0.09, relheight=1.0)
+        self.history_button.place(relx=0.83, rely=0, relwidth=0.07, relheight=1.0)
         
         # 清除历史按钮
         self.clear_history_button = tk.Button(ip_container, text="🗑", 
@@ -338,7 +349,7 @@ class ModernFileTransferGUI:
                                             relief='flat', borderwidth=0,
                                             activebackground='#dc2626',
                                             cursor='hand2')
-        self.clear_history_button.place(relx=0.91, rely=0, relwidth=0.09, relheight=1.0)
+        self.clear_history_button.place(relx=0.91, rely=0, relwidth=0.07, relheight=1.0)
         
         # 端口 - 占框架13%高度
         tk.Label(self.connection_frame, text="端口:", 
@@ -672,13 +683,16 @@ class ModernFileTransferGUI:
         self.username_entry.bind('<Return>', lambda e: self._on_connect_clicked())
         self.password_entry.bind('<Return>', lambda e: self._on_connect_clicked())
         
+        # 绑定输入内容变化以清空设备ID并调整宽度
+        self.host_entry.bind('<Key>', lambda e: (self.device_id_var.set("--"), self._adjust_ip_id_width()))
+        
         # 窗口关闭事件
         self.root.protocol("WM_DELETE_WINDOW", self._on_closing)
     
     def _setup_logging(self):
         """配置日志系统"""
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.setLevel(logging.DEBUG)  # 设置为DEBUG级别以查看详细信息
+        self.logger.setLevel(logging.INFO)  # 设置为DEBUG级别以查看详细信息
         
         # 创建自定义日志处理器
         class GUILogHandler(logging.Handler):
@@ -784,7 +798,7 @@ class ModernFileTransferGUI:
     def _connect_device(self):
         """连接设备"""
         try:
-            host = self.host_entry.get().strip()
+            host = self.host_var.get().strip()
             port = int(self.port_entry.get().strip() or "23")
             username = self.username_entry.get().strip()
             password = self.password_entry.get()
@@ -867,7 +881,7 @@ class ModernFileTransferGUI:
             self.connection_status_label.configure(text=f"已连接 ({self.connection_config['host']})", 
                                                  fg=self.colors['success'])
             
-            # 最简化的IP保存
+            # 最简化的IP保存（先仅IP），随后后台读取设备ID并更新
             current_ip = self.connection_config['host']
             if current_ip:
                 try:
@@ -875,6 +889,9 @@ class ModernFileTransferGUI:
                     self.logger.info(f"已保存IP到历史记录: {current_ip}")
                 except Exception as e:
                     self.logger.debug(f"保存IP失败: {e}")
+            
+            # 设备ID读取将在目录树成功首次刷新后触发
+            self._pending_device_id_ip = current_ip
             
             # 启动HTTP服务器（确保在连接成功后立即启动）
             if not self.http_server:
@@ -1425,7 +1442,7 @@ class ModernFileTransferGUI:
                     is_directory_value = bool(item.get('is_directory', False))
                     tree_item = self.directory_tree.insert('', 'end', 
                                                          text=display_name,
-                                                         values=(item['full_path'], is_directory_value),
+                                                         values=(item['full_path'], is_directory_value, item.get('is_executable', False)),
                                                          tags=(tag,))
                     
                     added_count += 1
@@ -1454,6 +1471,17 @@ class ModernFileTransferGUI:
             else:
                 self._update_status(f"目录为空 - 路径: {self.current_remote_path}")
                 
+            # 首次目录刷新完毕后，触发设备ID读取任务
+            if getattr(self, 'is_connected', False) and not getattr(self, 'device_id_task_started', False):
+                if hasattr(self, '_pending_device_id_ip') and self._pending_device_id_ip and self.telnet_client:
+                    self.device_id_task_started = True
+                    def _start_read_id():
+                        fut = self._run_async(self._save_ip_with_device_id(self._pending_device_id_ip))
+                        if fut:
+                            fut.add_done_callback(lambda f: self.logger.info("设备ID读取任务完成"))
+                    # 短暂延迟 100ms 确保 UI 空闲
+                    self.root.after(100, _start_read_id)
+                
         except Exception as e:
             self.logger.error(f"更新目录树失败: {str(e)}")
             import traceback
@@ -1466,7 +1494,12 @@ class ModernFileTransferGUI:
         selection = self.directory_tree.selection()
         if selection:
             item = self.directory_tree.item(selection[0])
-            full_path, is_directory = item['values']
+            values = item['values']
+            if len(values) >= 3:
+                full_path, is_directory, is_exec = values[0], values[1], values[2]
+            else:
+                full_path, is_directory = values[0], values[1]
+                is_exec = False
             
             self.logger.debug(f"双击项目: {full_path}, 是否为目录: {is_directory}")
             
@@ -1480,9 +1513,10 @@ class ModernFileTransferGUI:
                 # 更新队列显示以反映新的目标路径
                 self._update_queue_display()
             else:
-                # 判断是否可编辑的文本文件
+                # 判断是否可编辑：非可执行文件 或 明确文本扩展名
                 filename_lower = full_path.lower()
-                if any(filename_lower.endswith(ext) for ext in [".ini", ".txt", ".log", ".sh"]) or "log" in filename_lower or "ini" in filename_lower:
+                editable_by_ext = any(filename_lower.endswith(ext) for ext in [".ini", ".txt", ".log", ".sh"]) or "log" in filename_lower or "ini" in filename_lower
+                if (not is_exec) or editable_by_ext:
                     self._open_remote_file_editor(full_path)
                 elif any(filename_lower.endswith(ext) for ext in [".jpg", ".jpeg", ".png", ".gif", ".bmp"]):
                     self._open_image_preview(full_path)
@@ -1494,7 +1528,12 @@ class ModernFileTransferGUI:
         selection = self.directory_tree.selection()
         if selection:
             item = self.directory_tree.item(selection[0])
-            full_path, is_directory = item['values']
+            values = item['values']
+            if len(values) >= 3:
+                full_path, is_directory, is_exec = values[0], values[1], values[2]
+            else:
+                full_path, is_directory = values[0], values[1]
+                is_exec = False
             
             # 添加调试日志
             self.logger.debug(f"选择项目: {full_path}, 是否为目录: {is_directory} (类型: {type(is_directory)})")
@@ -2636,6 +2675,11 @@ class ModernFileTransferGUI:
             
             if device_id:
                 self.logger.info(f"已保存IP历史记录: {ip} (设备: {device_id})")
+                try:
+                    # 在主线程中更新显示
+                    self.root.after(0, lambda: (self.device_id_var.set(device_id), self._adjust_ip_id_width()))
+                except Exception:
+                    pass
             else:
                 self.logger.info(f"已保存IP历史记录: {ip} (无设备ID)")
                 
@@ -2647,8 +2691,9 @@ class ModernFileTransferGUI:
         try:
             last_ip = self.ip_history_manager.get_last_used_ip()
             if last_ip:
-                self.host_entry.delete(0, tk.END)
-                self.host_entry.insert(0, last_ip)
+                self.host_var.set(last_ip)
+                # 同步设备ID显示
+                self._sync_device_id_display(last_ip)
                 self.logger.info(f"已加载最后使用的IP: {last_ip}")
         except Exception as e:
             self.logger.debug(f"加载最后使用IP失败: {e}")
@@ -2663,6 +2708,9 @@ class ModernFileTransferGUI:
             history_window.configure(bg=self.colors['bg_primary'])
             history_window.transient(self.root)
             history_window.grab_set()
+            
+            # 居中窗口
+            self._center_toplevel(history_window, 400, 300)
             
             # 标题
             title_label = tk.Label(history_window, text="选择历史IP地址", 
@@ -2698,8 +2746,7 @@ class ModernFileTransferGUI:
                 if selection:
                     selected_suggestion = suggestions[selection[0]]
                     ip = selected_suggestion['ip']
-                    self.host_entry.delete(0, tk.END)
-                    self.host_entry.insert(0, ip)
+                    self.host_var.set(ip)
                     history_window.destroy()
             
             def on_cancel():
@@ -2777,6 +2824,10 @@ class ModernFileTransferGUI:
         editor_win.title(f"编辑: {os.path.basename(remote_path)}")
         editor_win.geometry("800x600")
         editor_win.configure(bg=self.colors['bg_primary'])
+
+        # 置顶并居中
+        editor_win.attributes('-topmost', True)
+        self._center_toplevel(editor_win, 800, 600)
 
         # 文本区域
         text_area = ScrolledText(editor_win, font=('Consolas', 11), wrap=tk.NONE, undo=True)
@@ -2946,6 +2997,47 @@ class ModernFileTransferGUI:
         x = root_x + (root_w - w)//2
         y = root_y + (root_h - h)//2
         win.geometry(f"{w}x{h}+{x}+{y}")
+
+    # ------------------------------------------------------------------
+    # 辅助: 根据内容自动调整IP与设备ID输入框宽度
+    # ------------------------------------------------------------------
+    def _adjust_ip_id_width(self):
+        """根据字符串长度动态调整两个Entry的宽度占比"""
+        try:
+            ip_len = max(len(self.host_var.get()), 1)
+            dev_len = max(len(self.device_id_var.get()), 2)
+
+            total = ip_len + dev_len
+            # 预留给按钮 0.14 (历史+清除)
+            host_ratio = max(0.40, min(0.75, ip_len / total * 0.86))
+            dev_ratio = max(0.10, min(0.40, dev_len / total * 0.86))
+
+            self.host_entry.place_configure(relwidth=host_ratio)
+            self.device_id_display.place_configure(relx=host_ratio + 0.02, relwidth=dev_ratio)
+            self.history_button.place_configure(relx=host_ratio + dev_ratio + 0.04)
+            self.clear_history_button.place_configure(relx=host_ratio + dev_ratio + 0.11)
+        except Exception:
+            pass
+
+    # ------------------------------------------------------------------
+    # 辅助: 根据历史记录同步设备ID到显示框
+    # ------------------------------------------------------------------
+    def _sync_device_id_display(self, ip:str=None):
+        """根据IP历史记录设置device_id_var"""
+        try:
+            target_ip = ip or self.host_var.get().strip()
+            device_id = None
+            for rec in self.ip_history_manager.history_data.get('ip_history', []):
+                if rec.get('ip') == target_ip:
+                    device_id = rec.get('device_id')
+                    break
+            if device_id:
+                self.device_id_var.set(device_id)
+            else:
+                self.device_id_var.set("--")
+            self._adjust_ip_id_width()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

@@ -364,19 +364,22 @@ async def read_device_id_from_remote(telnet_client) -> Optional[str]:
             return None
         
         # 解析配置文件内容
-        lines = result.strip().split('\n')
+        lines = [l.strip() for l in result.strip().split('\n') if l.strip()]
+
         for line in lines:
-            line = line.strip()
-            if line.startswith('deviceId='):
+            # 支持"deviceId=XXX" 或文件只有纯ID
+            if line.lower().startswith('deviceid='):
                 device_id = line.split('=', 1)[1].strip()
                 if device_id:
                     logger.info(f"成功读取设备ID: {device_id}")
                     return device_id
-                else:
-                    logger.warning("设备ID为空")
-                    return None
-        
-        logger.warning("未找到deviceId配置项")
+            else:
+                # 如果整行就是ID且长度合理（8-32），直接返回
+                if 6 <= len(line) <= 64 and all(c.isalnum() or c in '-_' for c in line):
+                    logger.info(f"读取到可能的设备ID: {line}")
+                    return line
+
+        logger.warning("未找到有效的设备ID")
         return None
         
     except Exception as e:
