@@ -17,7 +17,6 @@ import tempfile
 import threading
 import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from pathlib import Path
 from typing import Optional, Dict, List
 import logging
 import urllib.parse
@@ -58,7 +57,9 @@ class FileHTTPRequestHandler(BaseHTTPRequestHandler):
                     file_path = encoded_file_path
             
             # 记录访问日志  
-            self.server_instance.logger.info(f"收到下载请求: {self.client_address[0]} -> {file_path}")
+            self.server_instance.logger.info(f"收到下载请求: {self.client_address[0]} -> 原始路径: {self.path}")
+            self.server_instance.logger.info(f"  - 编码路径: {encoded_file_path}")
+            self.server_instance.logger.info(f"  - 解码路径: {file_path}")
             
             if not file_path or file_path == '/':
                 # 根路径请求，返回文件列表
@@ -67,27 +68,43 @@ class FileHTTPRequestHandler(BaseHTTPRequestHandler):
             
             # 构造完整文件路径
             full_path = os.path.join(self.server_instance.temp_dir, file_path)
+            self.server_instance.logger.info(f"  - 完整路径: {full_path}")
+            self.server_instance.logger.info(f"  - 文件存在: {os.path.exists(full_path)}")
+            
+            # 如果文件不存在，列出临时目录内容进行调试
+            if not os.path.exists(full_path):
+                try:
+                    temp_files = os.listdir(self.server_instance.temp_dir)
+                    self.server_instance.logger.error(f"  - 临时目录内容: {temp_files}")
+                except Exception as list_error:
+                    self.server_instance.logger.error(f"  - 无法列出临时目录: {list_error}")
             
             # 安全检查：防止路径遍历攻击
             if not self._is_safe_path(full_path):
+                self.server_instance.logger.error(f"  - 路径不安全: {full_path}")
                 self._send_error_response(403, "Forbidden")
                 return
             
             # 检查文件是否存在
             if not os.path.exists(full_path):
+                self.server_instance.logger.error(f"  - 文件不存在: {full_path}")
                 self._send_error_response(404, "File Not Found")
                 return
             
             # 检查是否为文件
             if not os.path.isfile(full_path):
+                self.server_instance.logger.error(f"  - 不是文件: {full_path}")
                 self._send_error_response(400, "Not a File")
                 return
             
             # 发送文件
+            self.server_instance.logger.info(f"  - 开始发送文件: {full_path}")
             self._send_file(full_path, file_path)
             
         except Exception as e:
             self.server_instance.logger.error(f"处理GET请求失败: {str(e)}")
+            import traceback
+            self.server_instance.logger.error(f"详细错误: {traceback.format_exc()}")
             self._send_error_response(500, "Internal Server Error")
     
     def do_HEAD(self):

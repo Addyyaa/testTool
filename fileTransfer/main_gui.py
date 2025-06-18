@@ -14,7 +14,6 @@
 
 import asyncio
 import os
-import shutil
 import sys
 import threading
 import time
@@ -22,9 +21,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from tkinter.scrolledtext import ScrolledText
 import tkinterdnd2 as tkdnd
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
-import json
+from typing import Dict, List, Optional, Any
 import logging
 import socket
 import re
@@ -68,7 +65,7 @@ class ModernFileTransferGUI:
         
         # 创建主窗口
         self.root = tkdnd.Tk()
-        self.root.title("现代化文件传输工具")
+        self.root.title("202文件传输工具")
         self.root.geometry("1200x800")
         self.root.minsize(1000, 600)
         self.root.configure(bg=self.colors['bg_primary'])
@@ -879,6 +876,11 @@ class ModernFileTransferGUI:
                 except Exception as e:
                     self.logger.debug(f"保存IP失败: {e}")
             
+            # 启动HTTP服务器（确保在连接成功后立即启动）
+            if not self.http_server:
+                self.logger.info("连接成功，立即启动HTTP服务器...")
+                self._start_http_server_delayed()
+            
             # 更新状态
             self._update_status(f"成功连接到 {self.connection_config['host']}")
             
@@ -1475,6 +1477,8 @@ class ModernFileTransferGUI:
                 self.current_remote_path = self._normalize_unix_path(full_path)
                 self.current_path_var.set(self.current_remote_path)
                 self._refresh_directory()
+                # 更新队列显示以反映新的目标路径
+                self._update_queue_display()
             else:
                 self.logger.info(f"双击了文件: {full_path}，忽略操作")
     
@@ -1514,6 +1518,8 @@ class ModernFileTransferGUI:
             self.current_remote_path = parent_path
             self.current_path_var.set(parent_path)
             self._refresh_directory()
+            # 更新队列显示以反映新的目标路径
+            self._update_queue_display()
     
     def _get_unix_parent_path(self, path):
         """获取Unix风格的父路径"""
@@ -2115,7 +2121,8 @@ class ModernFileTransferGUI:
             self.logger.debug(f"检查文件: {file_path}")
             if os.path.isfile(file_path):
                 filename = os.path.basename(file_path)
-                display_text = f"{filename} -> {self.current_remote_path}"
+                # 只显示文件名，不固定路径，传输时使用当前最新路径
+                display_text = f"{filename} -> (当前目录)"
                 self.queue_listbox.insert(tk.END, display_text)
                 self.file_path_mapping[filename] = file_path
                 added_count += 1
@@ -2125,8 +2132,10 @@ class ModernFileTransferGUI:
         
         if added_count > 0:
             self.logger.info(f"成功添加 {added_count} 个文件到队列")
-            self._update_status(f"已添加 {added_count} 个文件到队列")
+            self._update_status(f"已添加 {added_count} 个文件到队列 (将传输到当前目录)")
             self._update_queue_count()
+            # 更新队列显示，显示当前路径
+            self._update_queue_display()
         else:
             self.logger.warning("没有有效文件被添加到队列")
     
@@ -2142,6 +2151,38 @@ class ModernFileTransferGUI:
         count = self.queue_listbox.size()
         self.queue_count_label.configure(text=f"({count}个文件)")
     
+    def _update_queue_display(self):
+        """更新队列显示，显示最新的当前路径"""
+        try:
+            queue_size = self.queue_listbox.size()
+            if queue_size == 0:
+                return
+            
+            # 获取所有文件名
+            filenames = []
+            for i in range(queue_size):
+                item_text = self.queue_listbox.get(i)
+                # 提取文件名（在 -> 之前的部分）
+                if " -> " in item_text:
+                    filename = item_text.split(" -> ")[0]
+                    filenames.append(filename)
+                else:
+                    filenames.append(item_text)
+            
+            # 清空队列
+            self.queue_listbox.delete(0, tk.END)
+            
+            # 重新添加，使用当前路径
+            for filename in filenames:
+                display_text = f"{filename} -> {self.current_remote_path}"
+                self.queue_listbox.insert(tk.END, display_text)
+                
+            self.logger.debug(f"队列显示已更新，当前目标路径: {self.current_remote_path}")
+            
+        except Exception as e:
+            self.logger.error(f"更新队列显示失败: {str(e)}")
+            # 如果更新失败，保持原有显示
+    
     def _start_transfer(self):
         """开始传输"""
         if not self.is_connected:
@@ -2154,13 +2195,36 @@ class ModernFileTransferGUI:
         
         # 检查HTTP服务器状态
         if not self.http_server:
-            self.logger.error("HTTP服务器未启动")
-            messagebox.showerror("错误", "HTTP服务器未启动，请重新连接设备")
+            self.logger.error("HTTP服务器未启动，尝试启动...")
+            self._start_http_server_delayed()
+            # 等待一下服务器启动
+            self.root.after(1000, self._retry_start_transfer)
+            return
+        
+        # 验证HTTP服务器是否真的在运行
+        if not self.http_server.is_running:
+            self.logger.error("HTTP服务器未运行，尝试重新启动...")
+            self._start_http_server_delayed()
+            self.root.after(1000, self._retry_start_transfer)
             return
         
         self.logger.info(f"开始传输 {self.queue_listbox.size()} 个文件")
+        self.logger.info(f"HTTP服务器状态: 运行中，端口 {self.http_server.port}")
         self.start_transfer_button.configure(state='disabled', text='传输中...')
         threading.Thread(target=self._transfer_files_async, daemon=True).start()
+    
+    def _retry_start_transfer(self):
+        """重试开始传输（给HTTP服务器启动时间）"""
+        try:
+            if self.http_server and self.http_server.is_running:
+                self.logger.info("HTTP服务器已启动，开始传输...")
+                self._start_transfer()
+            else:
+                self.logger.error("HTTP服务器启动失败")
+                messagebox.showerror("错误", "HTTP服务器启动失败，无法进行文件传输")
+        except Exception as e:
+            self.logger.error(f"重试传输失败: {e}")
+            messagebox.showerror("错误", f"传输启动失败: {str(e)}")
     
     def _transfer_files_async(self):
         """异步传输文件 - 修复版本，避免UI阻塞"""
@@ -2169,16 +2233,26 @@ class ModernFileTransferGUI:
             transfer_tasks = []
             total_count = self.queue_listbox.size()
             
+            # 使用当前最新的远程路径，而不是队列中显示的路径
+            current_remote_path = self.current_remote_path
+            self.logger.info(f"开始传输文件到当前路径: {current_remote_path}")
+            
             for i in range(total_count):
                 item_text = self.queue_listbox.get(i)
                 parts = item_text.split(" -> ")
-                if len(parts) == 2:
+                if len(parts) >= 1:
                     filename = parts[0]
-                    remote_path = parts[1]
                     
                     if filename in self.file_path_mapping:
                         local_file = self.file_path_mapping[filename]
-                        transfer_tasks.append((local_file, remote_path, filename))
+                        # 使用当前最新路径，而不是队列中存储的路径
+                        transfer_tasks.append((local_file, current_remote_path, filename))
+                        self.logger.debug(f"准备传输: {filename} -> {current_remote_path}")
+            
+            if not transfer_tasks:
+                self.logger.warning("没有找到可传输的文件")
+                self.root.after(0, self._on_transfer_error, "队列中没有可传输的文件")
+                return
             
             # 使用回调方式避免阻塞UI
             future = self._run_async(self._execute_transfers_sequentially(transfer_tasks))
@@ -2240,17 +2314,29 @@ class ModernFileTransferGUI:
                 self.logger.error("无法添加文件到HTTP服务器")
                 return False
             
-            # 获取下载URL（使用HTTP服务器的方法，确保正确编码）
+            # 验证文件是否真的添加成功
+            if not os.path.exists(server_file_path):
+                self.logger.error(f"文件添加后不存在: {server_file_path}")
+                return False
+            
+            # 获取实际的文件名（可能被重命名了）
+            actual_filename = os.path.basename(server_file_path)
+            self.logger.info(f"实际文件名: {actual_filename}")
+            
+            # 获取下载URL（使用实际文件名）
             host_ip = self._get_local_ip()
-            download_url = self.http_server.get_download_url(filename, host_ip)
+            download_url = self.http_server.get_download_url(actual_filename, host_ip)
             self.logger.info(f"生成下载URL: {download_url}")
+            
+            # 验证HTTP服务器能否访问该文件
+            self._verify_http_server_file(actual_filename)
             
             # 通过telnet下载
             self.logger.info(f"开始通过telnet执行下载命令")
-            result = await self._download_via_telnet(download_url, remote_path, filename)
+            result = await self._download_via_telnet(download_url, remote_path, actual_filename)
             
             # 清理临时文件
-            self.http_server.remove_file(filename)
+            self.http_server.remove_file(actual_filename)
             
             return result
             
@@ -2347,6 +2433,32 @@ class ModernFileTransferGUI:
                 return s.getsockname()[0]
         except Exception:
             return "127.0.0.1"
+    
+    def _verify_http_server_file(self, filename):
+        """验证HTTP服务器上的文件"""
+        try:
+            # 检查临时目录中的文件
+            temp_dir = self.http_server.temp_dir
+            file_path = os.path.join(temp_dir, filename)
+            
+            self.logger.info(f"验证HTTP服务器文件:")
+            self.logger.info(f"  - 临时目录: {temp_dir}")
+            self.logger.info(f"  - 文件路径: {file_path}")
+            self.logger.info(f"  - 文件存在: {os.path.exists(file_path)}")
+            
+            if os.path.exists(file_path):
+                file_size = os.path.getsize(file_path)
+                self.logger.info(f"  - 文件大小: {file_size} bytes")
+            
+            # 列出临时目录中的所有文件
+            try:
+                files_in_temp = os.listdir(temp_dir)
+                self.logger.info(f"  - 临时目录文件列表: {files_in_temp}")
+            except Exception as e:
+                self.logger.error(f"  - 无法列出临时目录: {e}")
+                
+        except Exception as e:
+            self.logger.error(f"验证HTTP服务器文件失败: {e}")
     
     def _on_transfer_complete(self, success_count, total_count):
         """传输完成"""
