@@ -30,7 +30,7 @@ import re
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from telnetTool.telnetConnect import CustomTelnetClient
 from fileTransfer.http_server import FileHTTPServer
-from fileTransfer.file_transfer_controller import FileTransferController, TransferTask
+from fileTransfer.file_transfer_controller import FileTransferController, TransferTask, RemoteFileEditor
 from fileTransfer.ip_history_manager import IPHistoryManager, read_device_id_from_remote
 
 
@@ -678,7 +678,7 @@ class ModernFileTransferGUI:
     def _setup_logging(self):
         """配置日志系统"""
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.setLevel(logging.INFO)  # 设置为DEBUG级别以查看详细信息
+        self.logger.setLevel(logging.DEBUG)  # 设置为DEBUG级别以查看详细信息
         
         # 创建自定义日志处理器
         class GUILogHandler(logging.Handler):
@@ -695,7 +695,7 @@ class ModernFileTransferGUI:
         
         if not self.logger.handlers:
             gui_handler = GUILogHandler(self)
-            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s:%(lineno)d - %(message)s')
             gui_handler.setFormatter(formatter)
             self.logger.addHandler(gui_handler)
     
@@ -1261,7 +1261,7 @@ class ModernFileTransferGUI:
                     return []
                 
                 # 尝试使用带颜色的ls命令获取文件类型信息
-                self.logger.info(f"执行命令: ls -la --color=always \"{normalized_path}\"")
+                self.logger.info(f'执行命令: ls -la --color=always "{normalized_path}"')
                 result = await self.telnet_client.execute_command(f'ls -la --color=always "{normalized_path}"')
             
             # 记录原始输出用于调试
@@ -1480,7 +1480,14 @@ class ModernFileTransferGUI:
                 # 更新队列显示以反映新的目标路径
                 self._update_queue_display()
             else:
-                self.logger.info(f"双击了文件: {full_path}，忽略操作")
+                # 判断是否可编辑的文本文件
+                filename_lower = full_path.lower()
+                if any(filename_lower.endswith(ext) for ext in [".ini", ".txt", ".log", ".sh"]) or "log" in filename_lower or "ini" in filename_lower:
+                    self._open_remote_file_editor(full_path)
+                elif any(filename_lower.endswith(ext) for ext in [".jpg", ".jpeg", ".png", ".gif", ".bmp"]):
+                    self._open_image_preview(full_path)
+                else:
+                    self.logger.info(f"双击了文件: {full_path}，非可编辑类型，忽略")
     
     def _on_directory_select(self, event):
         """目录选择事件"""
@@ -2741,6 +2748,204 @@ class ModernFileTransferGUI:
         if messagebox.askokcancel("退出", "确定要退出吗？"):
             self._cleanup()
             self.root.destroy()
+    
+    # ------------------------------------------------------------------
+    # 远程文件编辑功能
+    # ------------------------------------------------------------------
+    def _open_remote_file_editor(self, remote_path: str):
+        """打开远程文件编辑窗口"""
+        if not self.is_connected:
+            messagebox.showwarning("未连接", "请先连接设备")
+            return
+
+        # 确保 RemoteFileEditor 实例存在
+        if not hasattr(self, 'remote_file_editor') or self.remote_file_editor is None:
+            if self.telnet_client and self.http_server:
+                self.remote_file_editor = RemoteFileEditor(
+                    telnet_client=self.telnet_client,
+                    http_server=self.http_server,
+                    event_loop=self.loop,
+                    telnet_lock=self.telnet_lock,
+                    logger=self.logger
+                )
+            else:
+                messagebox.showerror("错误", "HTTP 服务器未启动，无法编辑文件")
+                return
+
+        # 创建编辑窗口
+        editor_win = tk.Toplevel(self.root)
+        editor_win.title(f"编辑: {os.path.basename(remote_path)}")
+        editor_win.geometry("800x600")
+        editor_win.configure(bg=self.colors['bg_primary'])
+
+        # 文本区域
+        text_area = ScrolledText(editor_win, font=('Consolas', 11), wrap=tk.NONE, undo=True)
+        text_area.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        status_var = tk.StringVar(value="正在加载...")
+        status_label = tk.Label(editor_win, textvariable=status_var, bg=self.colors['bg_primary'], fg=self.colors['text_secondary'])
+        status_label.pack(anchor='w', padx=12)
+
+        def _load_content():
+            # 先加载预览（前1000行），然后后台加载完整内容
+            preview_future = self._run_async(self.remote_file_editor.read_file_preview(remote_path, 1000))
+            if preview_future:
+                def _on_preview_done(f):
+                    try:
+                        preview = f.result()
+                    except Exception as e:
+                        preview = f"读取文件失败: {str(e)}"
+                    self.root.after(0, lambda: _populate_content(preview))
+
+                    # 继续加载完整内容
+                    full_future = self._run_async(self.remote_file_editor.read_file(remote_path))
+                    if full_future:
+                        def _on_full_done(ff):
+                            try:
+                                full_c = ff.result()
+                            except Exception as ee:
+                                self.logger.error(f"读取完整文件失败: {ee}")
+                                return
+                            if full_c != preview:
+                                self.root.after(0, lambda: _populate_content(full_c))
+                        full_future.add_done_callback(_on_full_done)
+
+                preview_future.add_done_callback(_on_preview_done)
+
+        def _populate_content(content:str):
+            text_area.delete('1.0', tk.END)
+            text_area.insert(tk.END, content)
+            status_var.set("已加载，Ctrl+S 保存")
+
+        def _save_content():
+            new_text = text_area.get('1.0', tk.END)
+            status_var.set("保存中...")
+            save_future = self._run_async(self.remote_file_editor.write_file(remote_path, new_text))
+            if save_future:
+                def _on_save_done(f):
+                    success = False
+                    try:
+                        success = f.result()
+                    except Exception as e:
+                        self.logger.error(f"保存失败: {e}")
+                    self.root.after(0, lambda: status_var.set("保存成功" if success else "保存失败"))
+                save_future.add_done_callback(_on_save_done)
+
+        # 保存按钮
+        btn_frame = tk.Frame(editor_win, bg=self.colors['bg_primary'])
+        btn_frame.pack(fill=tk.X, padx=10, pady=(0,10))
+        save_btn = tk.Button(btn_frame, text="💾 保存", command=_save_content, bg=self.colors['bg_button'], fg='#ffffff', relief='flat')
+        save_btn.pack(side=tk.LEFT)
+
+        # 绑定快捷键
+        editor_win.bind('<Control-s>', lambda e: (_save_content(), 'break'))
+
+        _load_content()
+
+    def _open_image_preview(self, remote_path:str):
+        """通过HTTP下载图片并弹窗预览"""
+        if not self.is_connected:
+            messagebox.showwarning("未连接", "请先连接设备")
+            return
+
+        if not hasattr(self, 'remote_file_editor') or self.remote_file_editor is None:
+            if self.telnet_client and self.http_server:
+                self.remote_file_editor = RemoteFileEditor(
+                    telnet_client=self.telnet_client,
+                    http_server=self.http_server,
+                    event_loop=self.loop,
+                    telnet_lock=self.telnet_lock,
+                    logger=self.logger
+                )
+            else:
+                messagebox.showerror("错误", "HTTP 服务器未启动，无法预览图片")
+                return
+
+        win = tk.Toplevel(self.root)
+        win.title(os.path.basename(remote_path))
+        win.geometry("800x600")
+        win.attributes('-topmost', True)
+        win.transient(self.root)
+
+        # 居中窗口
+        self._center_toplevel(win, 800, 600)
+
+        canvas = tk.Canvas(win, bg=self.colors['bg_primary'], highlightthickness=0)
+        canvas.pack(fill=tk.BOTH, expand=True)
+
+        status_var = tk.StringVar(value="加载中...")
+        status_label = tk.Label(win, textvariable=status_var, bg=self.colors['bg_primary'])
+        status_label.place(relx=0.5, rely=0.98, anchor='s')
+
+        async def fetch_bytes():
+            return await self.remote_file_editor.get_file_bytes(remote_path)
+
+        def _display_image(img_bytes:bytes):
+            try:
+                from PIL import Image, ImageTk  # 需要Pillow
+            except ImportError:
+                messagebox.showerror("缺少依赖", "预览图片需要 Pillow 库\n请运行: pip install pillow")
+                win.destroy()
+                return
+
+            try:
+                import io
+                pil_img_original = Image.open(io.BytesIO(img_bytes))
+
+                def render():
+                    if not canvas.winfo_exists():
+                        return
+                    max_w = win.winfo_width() or 800
+                    max_h = win.winfo_height() or 600
+                    w, h = pil_img_original.size
+                    scale = min(max_w / w, max_h / h, 1)
+                    new_size = (int(w*scale), int(h*scale))
+                    # Pillow兼容滤镜
+                    if hasattr(Image, 'Resampling'):
+                        resample_filter = Image.Resampling.LANCZOS
+                    else:
+                        resample_filter = Image.ANTIALIAS  # type: ignore
+                    pil_img = pil_img_original.resize(new_size, resample_filter)
+                    photo = ImageTk.PhotoImage(pil_img)
+                    canvas.delete('all')
+                    canvas.create_image(max_w/2, max_h/2, image=photo, anchor='center')
+                    canvas.image = photo
+                    status_var.set(f"{w}x{h} → {new_size[0]}x{new_size[1]}")
+
+                render()
+
+                # 绑定窗口尺寸变化重新渲染
+                win.bind('<Configure>', lambda e: render())
+
+            except Exception as e:
+                messagebox.showerror("错误", f"无法显示图片: {e}")
+                win.destroy()
+
+        future = self._run_async(fetch_bytes())
+        if future:
+            def _on_img(f):
+                try:
+                    data = f.result()
+                    if data:
+                        self.root.after(0, lambda: _display_image(data))
+                    else:
+                        self.root.after(0, lambda: messagebox.showerror("错误", "下载图片失败"))
+                except Exception as e:
+                    self.root.after(0, lambda: messagebox.showerror("错误", f"下载图片异常: {e}"))
+            future.add_done_callback(_on_img)
+
+    def _center_toplevel(self, win:tk.Toplevel, min_w:int=400, min_h:int=300):
+        """将Toplevel窗口居中并设置最小尺寸"""
+        self.root.update_idletasks()
+        w = max(min_w, win.winfo_reqwidth())
+        h = max(min_h, win.winfo_reqheight())
+        root_x = self.root.winfo_x()
+        root_y = self.root.winfo_y()
+        root_w = self.root.winfo_width()
+        root_h = self.root.winfo_height()
+        x = root_x + (root_w - w)//2
+        y = root_y + (root_h - h)//2
+        win.geometry(f"{w}x{h}+{x}+{y}")
 
 
 if __name__ == "__main__":
