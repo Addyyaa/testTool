@@ -46,15 +46,18 @@ class FileHTTPRequestHandler(BaseHTTPRequestHandler):
             parsed_path = urllib.parse.urlparse(self.path)
             encoded_file_path = parsed_path.path.lstrip('/')
             
-            # URL解码文件路径，处理中文字符
+            # URL解码文件路径，处理中文字符和特殊符号
             try:
                 file_path = urllib.parse.unquote(encoded_file_path, encoding='utf-8')
+                self.server_instance.logger.debug(f"  - UTF-8解码成功: {file_path}")
             except UnicodeDecodeError:
                 # 如果UTF-8解码失败，尝试其他编码
                 try:
                     file_path = urllib.parse.unquote(encoded_file_path, encoding='gbk')
+                    self.server_instance.logger.debug(f"  - GBK解码成功: {file_path}")
                 except UnicodeDecodeError:
                     file_path = encoded_file_path
+                    self.server_instance.logger.warning(f"  - 解码失败，使用原始路径: {file_path}")
             
             # 记录访问日志  
             self.server_instance.logger.info(f"收到下载请求: {self.client_address[0]} -> 原始路径: {self.path}")

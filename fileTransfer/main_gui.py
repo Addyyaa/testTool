@@ -2098,13 +2098,68 @@ class ModernFileTransferGUI:
         files = []
         try:
             if isinstance(data, str):
-                file_paths = data.replace('\\', '/').split()
-                for path in file_paths:
-                    path = path.strip('{}').strip()
-                    if os.path.exists(path):
-                        files.append(path)
+                self.logger.debug(f"原始拖拽数据: {repr(data)}")
+                
+                # 处理不同的拖拽数据格式
+                if '{' in data and '}' in data:
+                    # 格式: {path1} {path2} ...
+                    # 这种格式需要特殊处理，因为路径可能包含空格
+                    import re
+                    # 匹配被大括号包围的路径
+                    paths = re.findall(r'\{([^}]+)\}', data)
+                    self.logger.debug(f"从大括号格式解析到路径: {paths}")
+                    
+                    for path in paths:
+                        path = path.strip().replace('\\', '/')
+                        self.logger.debug(f"检查路径: {path}")
+                        if os.path.exists(path):
+                            if os.path.isfile(path):
+                                files.append(path)
+                                self.logger.debug(f"添加文件: {path}")
+                            elif os.path.isdir(path):
+                                self.logger.info(f"检测到目录: {path}，查找其中的文件")
+                                # 如果是目录，列出其中的文件
+                                try:
+                                    for item in os.listdir(path):
+                                        item_path = os.path.join(path, item)
+                                        if os.path.isfile(item_path):
+                                            files.append(item_path)
+                                            self.logger.debug(f"从目录添加文件: {item_path}")
+                                except Exception as dir_error:
+                                    self.logger.error(f"读取目录失败: {dir_error}")
+                        else:
+                            self.logger.warning(f"路径不存在: {path}")
+                else:
+                    # 简单格式，尝试按空格分割（对于不包含空格的路径）
+                    file_paths = data.replace('\\', '/').split()
+                    self.logger.debug(f"按空格分割得到路径: {file_paths}")
+                    
+                    for path in file_paths:
+                        path = path.strip('{}').strip()
+                        self.logger.debug(f"检查路径: {path}")
+                        if os.path.exists(path):
+                            if os.path.isfile(path):
+                                files.append(path)
+                                self.logger.debug(f"添加文件: {path}")
+                            elif os.path.isdir(path):
+                                self.logger.info(f"检测到目录: {path}，查找其中的文件")
+                                try:
+                                    for item in os.listdir(path):
+                                        item_path = os.path.join(path, item)
+                                        if os.path.isfile(item_path):
+                                            files.append(item_path)
+                                            self.logger.debug(f"从目录添加文件: {item_path}")
+                                except Exception as dir_error:
+                                    self.logger.error(f"读取目录失败: {dir_error}")
+                        else:
+                            self.logger.warning(f"路径不存在: {path}")
+                
+                self.logger.info(f"最终解析到 {len(files)} 个文件")
+                
         except Exception as e:
             self.logger.error(f"解析文件失败: {str(e)}")
+            import traceback
+            self.logger.error(f"详细错误: {traceback.format_exc()}")
         return files
     
     def _add_files_to_queue(self, files):
@@ -2331,6 +2386,9 @@ class ModernFileTransferGUI:
             # 验证HTTP服务器能否访问该文件
             self._verify_http_server_file(actual_filename)
             
+            # 测试HTTP服务器连通性
+            await self._test_http_server_connectivity(download_url)
+            
             # 通过telnet下载
             self.logger.info(f"开始通过telnet执行下载命令")
             result = await self._download_via_telnet(download_url, remote_path, actual_filename)
@@ -2459,6 +2517,42 @@ class ModernFileTransferGUI:
                 
         except Exception as e:
             self.logger.error(f"验证HTTP服务器文件失败: {e}")
+    
+    async def _test_http_server_connectivity(self, download_url):
+        """测试HTTP服务器连通性"""
+        try:
+            self.logger.info(f"测试HTTP服务器连通性:")
+            self.logger.info(f"  - 下载URL: {download_url}")
+            self.logger.info(f"  - HTTP服务器运行状态: {self.http_server.is_running}")
+            self.logger.info(f"  - HTTP服务器端口: {self.http_server.port}")
+            
+            # 检查端口是否被占用
+            import socket
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                result = s.connect_ex(('127.0.0.1', self.http_server.port))
+                if result == 0:
+                    self.logger.info(f"  - 端口 {self.http_server.port} 可连接")
+                else:
+                    self.logger.error(f"  - 端口 {self.http_server.port} 不可连接")
+            
+            # 尝试从远程设备ping本机
+            local_ip = self._get_local_ip()
+            self.logger.info(f"  - 本机IP: {local_ip}")
+            
+            ping_cmd = f"ping -c 1 {local_ip}"
+            self.logger.info(f"  - 测试远程设备到本机连通性: {ping_cmd}")
+            ping_result = await self.telnet_client.execute_command(ping_cmd, timeout=10)
+            self.logger.info(f"  - Ping结果: {ping_result.strip()}")
+            
+            # 检查ping是否成功
+            success_indicators = ['1 packets transmitted, 1 received', '1 received', '0% packet loss']
+            ping_success = any(indicator in ping_result for indicator in success_indicators)
+            self.logger.info(f"  - 网络连通性: {'正常' if ping_success else '异常'}")
+            
+        except Exception as e:
+            self.logger.error(f"测试HTTP服务器连通性失败: {e}")
+            import traceback
+            self.logger.error(f"详细错误: {traceback.format_exc()}")
     
     def _on_transfer_complete(self, success_count, total_count):
         """传输完成"""
