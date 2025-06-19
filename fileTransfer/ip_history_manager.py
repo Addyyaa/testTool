@@ -21,6 +21,7 @@ import logging
 from datetime import datetime
 from typing import List, Dict, Optional, Tuple
 from pathlib import Path
+from fileTransfer.logger_utils import get_logger
 
 
 class IPHistoryManager:
@@ -43,7 +44,7 @@ class IPHistoryManager:
         }
         
         # 配置日志
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger = get_logger(self.__class__)
         
         # 加载历史记录
         self._load_history()
@@ -353,7 +354,8 @@ async def read_device_id_from_remote(telnet_client) -> Optional[str]:
         str: 设备ID，如果读取失败返回None
     """
     try:
-        logger = logging.getLogger("DeviceIDReader")
+        from fileTransfer.logger_utils import get_logger as _get_logger
+        logger = _get_logger("fileTransfer.ip_history_manager.DeviceIDReader")
         
         # 尝试读取设备ID文件
         config_file = "/customer/screenId.ini"
@@ -383,7 +385,6 @@ async def read_device_id_from_remote(telnet_client) -> Optional[str]:
         return None
         
     except Exception as e:
-        logger = logging.getLogger("DeviceIDReader")
         logger.error(f"读取设备ID失败: {str(e)}")
         return None
 

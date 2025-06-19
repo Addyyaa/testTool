@@ -12,6 +12,7 @@ import asyncio
 import time
 import logging
 from datetime import datetime
+from fileTransfer.logger_utils import get_logger
 
 class ConnectionDebugger:
     def __init__(self):
@@ -30,7 +31,7 @@ class ConnectionDebugger:
                 logging.StreamHandler()
             ]
         )
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger(self.__class__)
         
     def setup_gui(self):
         """创建简单的调试界面"""

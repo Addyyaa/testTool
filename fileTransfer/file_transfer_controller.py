@@ -19,6 +19,7 @@ from enum import Enum
 from typing import List, Dict, Optional, Callable, Any
 import logging
 from datetime import datetime
+from fileTransfer.logger_utils import get_logger
 
 
 class TransferStatus(Enum):
@@ -67,8 +68,8 @@ class FileTransferController:
         self.status_callback: Optional[Callable[[TransferTask], None]] = None
         
         # 配置日志
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.setLevel(logging.INFO)
+        self.logger = get_logger(self.__class__)
+        self.logger.setLevel(logging.DEBUG)
     
     def add_transfer_task(self, source_file: str, target_path: str, custom_filename: Optional[str] = None) -> Optional[str]:
         """添加传输任务"""
@@ -138,7 +139,14 @@ class RemoteFileEditor:
         self.http_server = http_server
         self.loop = event_loop or asyncio.get_event_loop()
         self.telnet_lock = telnet_lock or asyncio.Lock()
-        self.logger = logger or logging.getLogger(self.__class__.__name__)
+
+        # 如果外部传入了 logger，则创建子 logger，确保日志名称可准确定位到 RemoteFileEditor
+        if logger is not None:
+            self.logger = logger.getChild(self.__class__.__name__)
+        else:
+            # 使用统一工具生成 logger
+            self.logger = get_logger(self.__class__)
+
         self.remote_ip = getattr(telnet_client, 'host', None)
 
     # ------------------------------------------------------------------
@@ -243,17 +251,16 @@ class RemoteFileEditor:
         try:
             async with self.telnet_lock:
                 # 检查 httpd 进程
-                ps_res = await self.telnet_client.execute_command("ps | grep '[h]ttpd' || true")
+                ps_res = await self.telnet_client.execute_command("pidof httpd")
                 need_restart = True
                 if ps_res.strip():
                     # 进程存在，检查工作目录是否为 / （通过 /proc/PID/cwd 链接）
-                    pid_line = ps_res.strip().split('\n')[0]
-                    pid = pid_line.split()[0]
+                    pid = ps_res.strip()
                     cwd_cmd = f'readlink -f /proc/{pid}/cwd'
                     cwd = await self.telnet_client.execute_command(cwd_cmd)
                     cwd = cwd.strip()
-                    self.logger.debug(f"httpd cwd: {cwd}")
-                    if '/' in cwd:
+                    self.logger.info(f"httpd cwd: {cwd}")
+                    if cwd == "/ #":
                         need_restart = False
                 if need_restart:
                     self.logger.info("重新启动 httpd 服务以确保位于根目录 ...")

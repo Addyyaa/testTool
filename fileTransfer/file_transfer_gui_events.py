@@ -6,15 +6,11 @@ GUI事件处理方法
 包含ModernFileTransferGUI类的所有事件处理方法
 """
 
-import asyncio
 import os
-import shutil
 import threading
 import tkinter as tk
 from tkinter import messagebox, filedialog
-from pathlib import Path
-from typing import List, Optional
-import re
+from typing import List
 
 
 class FileTransferGUIEvents:

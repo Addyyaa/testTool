@@ -32,6 +32,7 @@ from telnetTool.telnetConnect import CustomTelnetClient
 from fileTransfer.http_server import FileHTTPServer
 from fileTransfer.file_transfer_controller import FileTransferController, TransferTask, RemoteFileEditor
 from fileTransfer.ip_history_manager import IPHistoryManager, read_device_id_from_remote
+from fileTransfer.logger_utils import get_logger
 
 
 class ModernFileTransferGUI:
@@ -691,8 +692,9 @@ class ModernFileTransferGUI:
     
     def _setup_logging(self):
         """配置日志系统"""
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.setLevel(logging.INFO)  # 设置为DEBUG级别以查看详细信息
+        # 使用统一日志工具，确保模块名正确
+        self.logger = get_logger(self.__class__)
+        self.logger.setLevel(logging.DEBUG)  # 设置为DEBUG级别以查看详细信息
         
         # 创建自定义日志处理器
         class GUILogHandler(logging.Handler):
@@ -2864,9 +2866,17 @@ class ModernFileTransferGUI:
                 preview_future.add_done_callback(_on_preview_done)
 
         def _populate_content(content:str):
-            text_area.delete('1.0', tk.END)
-            text_area.insert(tk.END, content)
-            status_var.set("已加载，Ctrl+S 保存")
+            try:
+                # 窗口可能已经被关闭，winfo_exists 返回 0 时直接跳过
+                if not text_area.winfo_exists():
+                    return
+
+                text_area.delete('1.0', tk.END)
+                text_area.insert(tk.END, content)
+                status_var.set("已加载，Ctrl+S 保存")
+            except tk.TclError:
+                # 如果控件已销毁，忽略更新，防止抛异常
+                return
 
         def _save_content():
             new_text = text_area.get('1.0', tk.END)

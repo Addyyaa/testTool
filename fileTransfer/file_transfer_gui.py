@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 import json
 import logging
+from fileTransfer.logger_utils import get_logger
 
 # 添加父目录到系统路径，以便导入telnet工具
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -414,7 +415,8 @@ class ModernFileTransferGUI:
     
     def _setup_logging(self):
         """配置日志系统"""
-        self.logger = logging.getLogger(self.__class__.__name__)
+        # 初始化 logger
+        self.logger = get_logger(self.__class__)
         self.logger.setLevel(logging.INFO)
         
         # 创建自定义日志处理器，将日志输出到GUI

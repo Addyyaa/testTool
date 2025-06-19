@@ -1,4 +1,4 @@
- #!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 HTTP文件服务器模块
@@ -21,6 +21,7 @@ from typing import Optional, Dict, List
 import logging
 import urllib.parse
 from datetime import datetime
+from fileTransfer.logger_utils import get_logger
 
 
 class FileHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -322,13 +323,14 @@ class FileHTTPServer:
     - 自动清理临时文件
     """
     
-    def __init__(self, port: int = 88, temp_dir: Optional[str] = None):
+    def __init__(self, port: int = 88, temp_dir: Optional[str] = None, parent_logger=None):
         """
         初始化HTTP文件服务器
         
         Args:
             port (int): 服务端口，默认88
             temp_dir (str, optional): 临时文件目录，默认自动创建
+            parent_logger (logging.Logger, optional): 父logger
         """
         self.port = port
         self.temp_dir = temp_dir or self._create_temp_dir()
@@ -338,7 +340,9 @@ class FileHTTPServer:
         self.file_mapping: Dict[str, str] = {}  # 原始文件路径到临时文件路径的映射
         
         # 配置日志
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger = (parent_logger or get_logger(self.__class__)
+                       ).getChild(self.__class__.__name__)
+        
         self.logger.setLevel(logging.INFO)
         
         if not self.logger.handlers:

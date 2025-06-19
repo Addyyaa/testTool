@@ -46,7 +46,7 @@ def check_dependencies():
 def main():
     """主函数"""
     print("=" * 50)
-    print("现代化文件传输工具启动器")
+    print("202传输工具启动器")
     print("=" * 50)
     
     # 检查Python版本
