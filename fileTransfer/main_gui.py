@@ -694,7 +694,7 @@ class ModernFileTransferGUI:
         """配置日志系统"""
         # 使用统一日志工具，确保模块名正确
         self.logger = get_logger(self.__class__)
-        self.logger.setLevel(logging.INFO)  # 设置为DEBUG级别以查看详细信息
+        self.logger.setLevel(logging.DEBUG)  # 设置为DEBUG级别以查看详细信息
         
         # 创建自定义日志处理器
         class GUILogHandler(logging.Handler):
@@ -1749,7 +1749,8 @@ class ModernFileTransferGUI:
             return
         
         item = self.directory_tree.item(selection[0])
-        full_path, is_directory = item['values']
+        self.logger.debug(f"selection:{selection}\titem:{item}")
+        full_path, is_directory, is_exec = item['values']
         filename = item['text']
         
         # 添加调试日志

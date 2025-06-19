@@ -165,6 +165,9 @@ class FileHTTPRequestHandler(BaseHTTPRequestHandler):
                 shutil.copyfileobj(f, self.wfile)
             
             self.server_instance.logger.info(f"文件下载完成: {requested_path} ({file_size} bytes)")
+
+            # 删除临时文件
+            self.server_instance.remove_file(file_path)
             
         except Exception as e:
             self.server_instance.logger.error(f"发送文件失败: {str(e)}")
