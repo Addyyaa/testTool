@@ -694,7 +694,7 @@ class ModernFileTransferGUI:
         """配置日志系统"""
         # 使用统一日志工具，确保模块名正确
         self.logger = get_logger(self.__class__)
-        self.logger.setLevel(logging.DEBUG)  # 设置为DEBUG级别以查看详细信息
+        self.logger.setLevel(logging.INFO)  # 设置为DEBUG级别以查看详细信息
         
         # 创建自定义日志处理器
         class GUILogHandler(logging.Handler):
@@ -1035,6 +1035,10 @@ class ModernFileTransferGUI:
                 if future:
                     future.result(timeout=5)
                 self.telnet_client = None
+            
+            # 重置远程文件编辑器，避免连接新设备时仍使用旧 IP
+            if hasattr(self, 'remote_file_editor'):
+                self.remote_file_editor = None
             
             # 更新UI
             self.connect_button.configure(state='normal', text='连接设备')
@@ -1954,42 +1958,35 @@ class ModernFileTransferGUI:
             return False
     
     def _debug_selection_status(self):
-        """调试选择状态"""
-        self.logger.info("🔍 开始调试选择状态")
-        
+        """调试选择状态 - 显示当前选中项目的详细信息"""
         selection = self.directory_tree.selection()
         if selection:
             item = self.directory_tree.item(selection[0])
-            full_path, is_directory = item['values']
             filename = item['text']
+            values = item['values']
             
-            # 详细输出调试信息
-            self.logger.info(f"📁 选中项目详情:")
-            self.logger.info(f"   - 显示名称: {filename}")
-            self.logger.info(f"   - 完整路径: {full_path}")
-            self.logger.info(f"   - 是否为目录: {is_directory} (类型: {type(is_directory)})")
-            self.logger.info(f"   - 原始值: {repr(is_directory)}")
-            
-            # 判断逻辑测试
-            is_dir = self._is_directory_item(is_directory)
-            if isinstance(is_directory, bool):
-                logic_used = "直接布尔值"
-            elif isinstance(is_directory, str):
-                logic_used = "字符串转换"
-            elif isinstance(is_directory, (int, float)):
-                logic_used = "数值转换"
+            if len(values) >= 3:
+                full_path, is_directory, is_exec = values[0], values[1], values[2]
             else:
-                logic_used = "默认为文件"
+                full_path, is_directory = values[0], values[1]
+                is_exec = False
             
-            self.logger.info(f"   - 判断逻辑: {logic_used}")
-            self.logger.info(f"   - 最终结果: {'目录' if is_dir else '文件'}")
+            # 使用统一的判断逻辑
+            is_dir = self._is_directory_item(is_directory)
             
-            # 按钮状态
-            button_state = self.delete_file_button['state']
-            self.logger.info(f"   - 删除按钮状态: {button_state}")
+            # 判断删除按钮状态
+            button_state = "启用" if (not is_dir and self.delete_file_button['state'] == 'normal') else "禁用"
             
-            # 当前路径
-            self.logger.info(f"   - 当前远程路径: {self.current_remote_path}")
+            logic_used = "布尔值判断" if isinstance(is_directory, bool) else f"字符串判断 ('{is_directory}')"
+            
+            self.logger.info(f"🔍 选中项目调试信息:")
+            self.logger.info(f"  显示名称: {filename}")
+            self.logger.info(f"  完整路径: {full_path}")
+            self.logger.info(f"  是否为目录: {is_directory} ({type(is_directory).__name__})")
+            self.logger.info(f"  判断逻辑: {logic_used}")
+            self.logger.info(f"  最终结果: {'目录' if is_dir else '文件'}")
+            self.logger.info(f"  删除按钮状态: {button_state}")
+            self.logger.info(f"  当前远程路径: {self.current_remote_path}")
             
             # 显示在自适应对话框中
             debug_info = f"""选中项目调试信息:
@@ -2093,6 +2090,15 @@ class ModernFileTransferGUI:
         except Exception as e:
             self.logger.error(f"Ping测试失败: {str(e)}")
             return False
+    
+    def _get_local_ip(self):
+        """获取本机IP"""
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                s.connect(("8.8.8.8", 80))
+                return s.getsockname()[0]
+        except Exception:
+            return "127.0.0.1"
     
     def _on_drop(self, event):
         """文件拖拽事件"""
@@ -2530,15 +2536,6 @@ class ModernFileTransferGUI:
             import traceback
             self.logger.error(f"详细错误: {traceback.format_exc()}")
             return False
-    
-    def _get_local_ip(self):
-        """获取本机IP"""
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-                s.connect(("8.8.8.8", 80))
-                return s.getsockname()[0]
-        except Exception:
-            return "127.0.0.1"
     
     def _verify_http_server_file(self, filename):
         """验证HTTP服务器上的文件"""
@@ -3033,21 +3030,74 @@ class ModernFileTransferGUI:
     # 辅助: 根据历史记录同步设备ID到显示框
     # ------------------------------------------------------------------
     def _sync_device_id_display(self, ip:str=None):
-        """根据IP历史记录设置device_id_var"""
+        """同步设备ID到显示框，如果历史记录中没有则显示 --"""
         try:
-            target_ip = ip or self.host_var.get().strip()
+            ip = ip or self.host_var.get()
             device_id = None
-            for rec in self.ip_history_manager.history_data.get('ip_history', []):
-                if rec.get('ip') == target_ip:
-                    device_id = rec.get('device_id')
+            for record in self.ip_history_manager.get_ip_suggestions():
+                if record['ip'] == ip:
+                    device_id = record.get('device_id')
                     break
-            if device_id:
-                self.device_id_var.set(device_id)
-            else:
-                self.device_id_var.set("--")
+            self.device_id_var.set(device_id or "--")
             self._adjust_ip_id_width()
-        except Exception:
-            pass
+        except Exception as e:
+            if hasattr(self, 'logger'):
+                self.logger.debug(f"同步设备ID显示失败: {e}")
+
+    def _show_ip_history(self):
+        """弹出IP历史记录选择窗口"""
+        try:
+            suggestions = self.ip_history_manager.get_ip_suggestions()
+            if not suggestions:
+                messagebox.showinfo("历史记录", "暂无历史记录")
+                return
+            win = tk.Toplevel(self.root)
+            win.title("IP历史记录")
+            win.geometry("320x240")
+            win.configure(bg=self.colors['bg_primary'])
+            self._center_toplevel(win, 320, 240)
+            listbox = tk.Listbox(win, font=('Microsoft YaHei UI', 9))
+            listbox.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            for s in suggestions:
+                display = s.get('display_text') or s['ip']
+                listbox.insert(tk.END, display)
+            def _on_select(event=None):
+                sel = listbox.curselection()
+                if sel:
+                    idx = sel[0]
+                    ip = suggestions[idx]['ip']
+                    self.host_var.set(ip)
+                    self._sync_device_id_display(ip)
+                    win.destroy()
+            listbox.bind('<Double-Button-1>', _on_select)
+            tk.Button(win, text="关闭", command=win.destroy,
+                      bg=self.colors['bg_button'], fg=self.colors['text_button'], relief='flat').pack(pady=6)
+        except Exception as e:
+            self.logger.error(f"显示IP历史窗口失败: {e}")
+
+    def _clear_ip_history(self):
+        """清空IP历史记录"""
+        try:
+            if messagebox.askyesno("确认", "确定要清空所有IP历史记录吗？此操作不可撤销。"):
+                self.ip_history_manager.clear_history(clear_devices=True)
+                self.logger.info("已清空IP历史记录")
+                messagebox.showinfo("完成", "IP历史记录已清除")
+                # 同步显示
+                self._sync_device_id_display()
+        except Exception as e:
+            self.logger.error(f"清空IP历史记录失败: {e}")
+
+    def _load_last_ip(self):
+        """读取最后使用的IP并填充输入框"""
+        try:
+            last_ip = self.ip_history_manager.get_last_used_ip()
+            if last_ip:
+                self.host_var.set(last_ip)
+                self._sync_device_id_display(last_ip)
+                self.logger.info(f"已加载最近使用IP: {last_ip}")
+        except Exception as e:
+            if hasattr(self, 'logger'):
+                self.logger.debug(f"加载最近IP失败: {e}")
 
 
 if __name__ == "__main__":

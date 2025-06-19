@@ -283,8 +283,10 @@ class RemoteFileEditor:
     async def _download_via_http(self, remote_path: str) -> Optional[str]:
         """通过远端 httpd 端口 88 下载文件内容"""
         from urllib import parse, request
+        # 动态获取当前连接的IP，避免使用缓存的旧IP
+        current_ip = getattr(self.telnet_client, 'host', self.remote_ip)
         encoded_path = parse.quote(remote_path, safe='/')
-        url = f'http://{self.remote_ip}:88{encoded_path}'
+        url = f'http://{current_ip}:88{encoded_path}'
         self.logger.debug(f"HTTP 下载 URL: {url}")
 
         def _fetch():
@@ -305,8 +307,10 @@ class RemoteFileEditor:
         """下载远端文件并返回 bytes，用于图片预览等"""
         await self._ensure_httpd_service()
         from urllib import parse, request
+        # 动态获取当前连接的IP，避免使用缓存的旧IP
+        current_ip = getattr(self.telnet_client, 'host', self.remote_ip)
         encoded_path = parse.quote(remote_path, safe='/')
-        url = f'http://{self.remote_ip}:88{encoded_path}'
+        url = f'http://{current_ip}:88{encoded_path}'
         self.logger.debug(f"HTTP(二进制) URL: {url}")
 
         def _fetch_bytes():
