@@ -12,6 +12,8 @@ from typing import List, Dict, Any, Optional, Callable
 import os
 import re
 
+from fileTransfer.gui.drag_handler import DragHandler
+
 
 class DirectoryPanel:
     """目录浏览面板组件"""
@@ -31,6 +33,7 @@ class DirectoryPanel:
         self.on_file_select_callback: Optional[Callable] = None
         self.on_file_delete_callback: Optional[Callable] = None
         self.on_file_edit_callback: Optional[Callable] = None
+        self.on_drag_download_callback: Optional[Callable] = None
         
         # 创建面板
         self._create_panel()
@@ -115,6 +118,10 @@ class DirectoryPanel:
         
         # 配置树颜色
         self._configure_tree_colors()
+        
+        # 初始化拖拽处理器
+        self.drag_handler = DragHandler(self.directory_tree, self.theme, self.logger)
+        self.drag_handler.set_drag_drop_callback(self._on_file_drag_drop)
     
     def _bind_events(self):
         """绑定事件"""
@@ -434,6 +441,10 @@ class DirectoryPanel:
         """设置文件编辑回调"""
         self.on_file_edit_callback = callback
     
+    def set_drag_download_callback(self, callback: Callable):
+        """设置拖拽下载回调"""
+        self.on_drag_download_callback = callback
+    
     def set_refresh_status(self, is_refreshing: bool):
         """设置刷新状态"""
         try:
@@ -450,4 +461,39 @@ class DirectoryPanel:
                     bg=self.theme.colors['bg_button']
                 )
         except Exception as e:
-            self.logger.error(f"设置刷新状态失败: {e}") 
+            self.logger.error(f"设置刷新状态失败: {e}")
+    
+    def _on_file_drag_drop(self, drag_data, event):
+        """处理文件拖拽下载"""
+        try:
+            if hasattr(event, 'external_drop') and event.external_drop:
+                # 外部拖拽，有目标目录
+                target_dir = event.target_dir
+                file_path = drag_data['file_path']
+                filename = drag_data['filename']
+                
+                self.logger.info(f"拖拽下载文件: {filename} -> {target_dir}")
+                
+                if self.on_drag_download_callback:
+                    self.on_drag_download_callback(file_path, target_dir, filename)
+                else:
+                    messagebox.showinfo("提示", f"拖拽下载功能未启用\n文件: {filename}")
+            else:
+                # 内部拖拽，暂时不处理
+                self.logger.debug("内部拖拽，不处理")
+                
+        except Exception as e:
+            self.logger.error(f"处理拖拽下载失败: {e}")
+            messagebox.showerror("错误", f"拖拽下载失败: {str(e)}")
+    
+    def enable_drag_download(self):
+        """启用拖拽下载功能"""
+        if hasattr(self, 'drag_handler'):
+            self.drag_handler.enable_drag()
+            self.logger.info("拖拽下载功能已启用")
+    
+    def disable_drag_download(self):
+        """禁用拖拽下载功能"""
+        if hasattr(self, 'drag_handler'):
+            self.drag_handler.disable_drag()
+            self.logger.info("拖拽下载功能已禁用") 

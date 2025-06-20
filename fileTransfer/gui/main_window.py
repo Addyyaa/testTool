@@ -36,6 +36,7 @@ from .connection_panel import ConnectionPanel
 from .directory_panel import DirectoryPanel
 from .transfer_panel import TransferPanel
 from .file_editor import RemoteFileEditorGUI
+from ..drag_download_manager import DragDownloadManager
 
 
 class ModernFileTransferGUI:
@@ -71,6 +72,12 @@ class ModernFileTransferGUI:
         self.is_refreshing = False
         self.refresh_pending = False
         self.last_refresh_time = 0
+        
+        # 初始化拖拽下载管理器
+        self.drag_download_manager = DragDownloadManager()
+        self.drag_download_manager.set_progress_callback(self._on_drag_download_progress)
+        self.drag_download_manager.set_completion_callback(self._on_drag_download_complete)
+        self.drag_download_manager.set_error_callback(self._on_drag_download_error)
         
         # 配置日志
         self._setup_logging()
@@ -159,6 +166,7 @@ class ModernFileTransferGUI:
         self.directory_panel.set_file_select_callback(self._on_file_select)
         self.directory_panel.set_file_delete_callback(self._on_file_delete)
         self.directory_panel.set_file_edit_callback(self._on_file_edit)
+        self.directory_panel.set_drag_download_callback(self._on_drag_download_request)
     
     def _create_main_content(self):
         """创建现代化主内容区域"""
@@ -346,6 +354,12 @@ class ModernFileTransferGUI:
             if not self.http_server:
                 self._start_http_server_delayed()
             
+            # 更新拖拽下载管理器的客户端
+            self.drag_download_manager.set_clients(self.telnet_client, self.http_server, self.loop, self.telnet_lock)
+            
+            # 启用拖拽下载功能
+            self.directory_panel.enable_drag_download()
+            
             # 更新状态
             self._update_status(f"成功连接到 {current_ip}")
             
@@ -377,6 +391,12 @@ class ModernFileTransferGUI:
             # 重置刷新状态
             self.is_refreshing = False
             self.refresh_pending = False
+            
+            # 禁用拖拽下载功能
+            self.directory_panel.disable_drag_download()
+            
+            # 清理拖拽下载管理器
+            self.drag_download_manager.cancel_all_downloads()
             
             # 停止HTTP服务器
             if self.http_server:
@@ -745,6 +765,64 @@ class ModernFileTransferGUI:
             else:
                 self.file_editor.open_file_editor(file_path)
     
+    def _on_drag_download_request(self, file_path: str, target_dir: str, filename: str):
+        """处理拖拽下载请求"""
+        try:
+            self.logger.info(f"收到拖拽下载请求: {filename} -> {target_dir}")
+            
+            # 检查连接状态
+            if not self.is_connected:
+                messagebox.showwarning("未连接", "请先连接到设备")
+                return
+            
+            # 确保拖拽下载管理器有最新的客户端实例
+            if hasattr(self, 'telnet_client') and hasattr(self, 'http_server'):
+                self.drag_download_manager.set_clients(
+                    self.telnet_client, self.http_server, self.loop, self.telnet_lock
+                )
+            
+            # 添加下载任务
+            task = self.drag_download_manager.add_download_task(file_path, target_dir)
+            
+            # 开始下载
+            self.drag_download_manager.start_downloads()
+            
+            # 更新状态
+            self._update_status(f"开始下载: {filename}")
+            
+        except Exception as e:
+            self.logger.error(f"处理拖拽下载请求失败: {e}")
+            messagebox.showerror("下载失败", f"无法开始下载:\n{str(e)}")
+    
+    def _on_drag_download_progress(self, task, progress):
+        """处理拖拽下载进度"""
+        try:
+            self._update_status(f"下载中: {task.filename} ({progress:.1f}%)")
+        except Exception as e:
+            self.logger.error(f"更新下载进度失败: {e}")
+    
+    def _on_drag_download_complete(self, task, success):
+        """处理拖拽下载完成"""
+        try:
+            if success:
+                self.logger.info(f"文件下载完成: {task.filename}")
+                self._update_status(f"下载完成: {task.filename}")
+                messagebox.showinfo("下载完成", f"文件已成功下载到:\n{task.local_target_path}")
+            else:
+                self.logger.error(f"文件下载失败: {task.filename}")
+                self._update_status(f"下载失败: {task.filename}")
+        except Exception as e:
+            self.logger.error(f"处理下载完成回调失败: {e}")
+    
+    def _on_drag_download_error(self, task, error_message):
+        """处理拖拽下载错误"""
+        try:
+            self.logger.error(f"下载出错: {task.filename} - {error_message}")
+            self._update_status(f"下载失败: {task.filename}")
+            messagebox.showerror("下载失败", f"下载文件时出错:\n{task.filename}\n\n错误信息:\n{error_message}")
+        except Exception as e:
+            self.logger.error(f"处理下载错误回调失败: {e}")
+    
     # 传输相关回调方法
     def _on_files_added(self, count: int):
         """处理文件添加"""
@@ -978,6 +1056,10 @@ class ModernFileTransferGUI:
     def _cleanup(self):
         """清理资源"""
         try:
+            # 清理拖拽下载管理器
+            if hasattr(self, 'drag_download_manager'):
+                self.drag_download_manager.cleanup()
+            
             if self.http_server:
                 self.http_server.stop()
             if self.telnet_client:

@@ -13,7 +13,7 @@ from typing import Optional, Dict, Any
 # 全局日志配置
 LOG_CONFIG = {
     # 主要日志等级设置 - 在这里统一修改所有模块的日志等级
-    'GLOBAL_LOG_LEVEL': logging.INFO,  # 可选: DEBUG, INFO, WARNING, ERROR, CRITICAL
+    'GLOBAL_LOG_LEVEL': logging.DEBUG,  # 可选: DEBUG, INFO, WARNING, ERROR, CRITICAL
     
     # 各模块的特定日志等级设置（可选）
     'MODULE_LOG_LEVELS': {
@@ -21,6 +21,11 @@ LOG_CONFIG = {
         'fileTransfer.http_server': logging.INFO,       # HTTP服务器使用INFO等级
         'fileTransfer.file_transfer_controller': logging.INFO,  # 文件传输控制器
         'telnetTool.telnetConnect': logging.WARNING,    # Telnet连接使用WARNING等级
+        
+        # 拖拽下载功能模块
+        'drag_download_manager.DragDownloadManager': logging.INFO,    # 下载管理器显示基本信息
+        'drag_handler.DragHandler': logging.DEBUG,                   # 拖拽处理器显示详细调试信息
+        'directory_panel.DirectoryPanel': logging.DEBUG,             # 目录面板显示详细调试信息
     },
     
     # 日志格式设置
