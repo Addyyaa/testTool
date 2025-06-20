@@ -342,51 +342,8 @@ class IPHistoryManager:
             return {}
 
 
-# 设备ID读取工具函数
-async def read_device_id_from_remote(telnet_client) -> Optional[str]:
-    """
-    从远程设备读取屏幕ID
-    
-    Args:
-        telnet_client: Telnet客户端实例
-        
-    Returns:
-        str: 设备ID，如果读取失败返回None
-    """
-    try:
-        from fileTransfer.logger_utils import get_logger as _get_logger
-        logger = _get_logger("fileTransfer.ip_history_manager.DeviceIDReader")
-        
-        # 尝试读取设备ID文件
-        config_file = "/customer/screenId.ini"
-        result = await telnet_client.execute_command(f'cat "{config_file}"')
-        
-        if "No such file" in result or "not found" in result:
-            logger.warning(f"设备ID配置文件不存在: {config_file}")
-            return None
-        
-        # 解析配置文件内容
-        lines = [l.strip() for l in result.strip().split('\n') if l.strip()]
-
-        for line in lines:
-            # 支持"deviceId=XXX" 或文件只有纯ID
-            if line.lower().startswith('deviceid='):
-                device_id = line.split('=', 1)[1].strip()
-                if device_id:
-                    logger.info(f"成功读取设备ID: {device_id}")
-                    return device_id
-            else:
-                # 如果整行就是ID且长度合理（8-32），直接返回
-                if 6 <= len(line) <= 64 and all(c.isalnum() or c in '-_' for c in line):
-                    logger.info(f"读取到可能的设备ID: {line}")
-                    return line
-
-        logger.warning("未找到有效的设备ID")
-        return None
-        
-    except Exception as e:
-        logger.error(f"读取设备ID失败: {str(e)}")
-        return None
+# 注意：read_device_id_from_remote 函数已被移除，因为从未被使用
+# 如果将来需要设备ID读取功能，可以在实际使用的地方重新实现
 
 
 # 使用示例

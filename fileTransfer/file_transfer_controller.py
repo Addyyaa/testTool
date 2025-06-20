@@ -8,109 +8,12 @@
 
 import asyncio
 import os
-import time
 import tempfile
 import urllib.parse
 import urllib.request
-import tkinter as tk
-from tkinter import messagebox, scrolledtext
-from dataclasses import dataclass
-from enum import Enum
-from typing import List, Dict, Optional, Callable, Any
+from typing import Optional, Any
 import logging
-from datetime import datetime
 from fileTransfer.logger_utils import get_logger
-
-
-class TransferStatus(Enum):
-    """传输状态枚举"""
-    PENDING = "pending"
-    PREPARING = "preparing"
-    UPLOADING = "uploading"
-    DOWNLOADING = "downloading"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
-
-
-@dataclass
-class TransferTask:
-    """传输任务数据类"""
-    id: str
-    source_file: str
-    target_path: str
-    filename: str
-    file_size: int
-    status: TransferStatus
-    progress: float = 0.0
-    error_message: str = ""
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
-    retry_count: int = 0
-    temp_file_path: Optional[str] = None
-    download_url: Optional[str] = None
-
-
-class FileTransferController:
-    """文件传输控制器"""
-    
-    def __init__(self, http_server=None, telnet_client=None):
-        """初始化文件传输控制器"""
-        self.http_server = http_server
-        self.telnet_client = telnet_client
-        self.transfer_queue: List[TransferTask] = []
-        self.active_tasks: Dict[str, TransferTask] = {}
-        self.completed_tasks: List[TransferTask] = []
-        self.is_running = False
-        
-        # 回调函数
-        self.progress_callback: Optional[Callable[[TransferTask], None]] = None
-        self.status_callback: Optional[Callable[[TransferTask], None]] = None
-        
-        # 配置日志
-        self.logger = get_logger(self.__class__)
-        self.logger.setLevel(logging.DEBUG)
-    
-    def add_transfer_task(self, source_file: str, target_path: str, custom_filename: Optional[str] = None) -> Optional[str]:
-        """添加传输任务"""
-        try:
-            if not os.path.exists(source_file):
-                return None
-            
-            task_id = f"task_{int(time.time())}_{len(self.transfer_queue)}"
-            filename = custom_filename or os.path.basename(source_file)
-            file_size = os.path.getsize(source_file)
-            
-            task = TransferTask(
-                id=task_id,
-                source_file=source_file,
-                target_path=target_path,
-                filename=filename,
-                file_size=file_size,
-                status=TransferStatus.PENDING
-            )
-            
-            self.transfer_queue.append(task)
-            self.logger.info(f"传输任务已添加: {filename}")
-            return task_id
-            
-        except Exception as e:
-            self.logger.error(f"添加传输任务失败: {str(e)}")
-            return None
-    
-    def start_transfer(self):
-        """开始传输"""
-        if not self.http_server or not self.telnet_client:
-            return False
-        
-        self.is_running = True
-        self.logger.info("文件传输已开始")
-        return True
-    
-    def stop_transfer(self):
-        """停止传输"""
-        self.is_running = False
-        self.logger.info("文件传输已停止")
 
 
 class RemoteFileEditor:
@@ -322,4 +225,18 @@ class RemoteFileEditor:
                 return None
 
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, _fetch_bytes) 
+        return await loop.run_in_executor(None, _fetch_bytes)
+
+    # GUI兼容性方法
+    async def read_file_async(self, remote_path: str) -> str:
+        """GUI兼容性方法：异步读取文件内容"""
+        return await self.read_file(remote_path)
+    
+    async def download_file_async(self, remote_path: str) -> Optional[bytes]:
+        """GUI兼容性方法：异步下载文件字节数据"""
+        await self._ensure_httpd_service()
+        return await self.get_file_bytes(remote_path)
+    
+    async def write_file_async(self, remote_path: str, new_content: str) -> bool:
+        """GUI兼容性方法：异步写入文件内容"""
+        return await self.write_file(remote_path, new_content)

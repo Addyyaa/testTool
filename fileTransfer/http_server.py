@@ -157,6 +157,10 @@ class FileHTTPRequestHandler(BaseHTTPRequestHandler):
             file_size = os.path.getsize(file_path)
             content_type = self._get_content_type(requested_path)
             
+            # 检测是否为二进制文件
+            is_binary = self._is_binary_file(file_path)
+            file_type_indicator = "[二进制]" if is_binary else "[文本]"
+            
             # 发送响应头
             self._send_headers(200, content_type, file_size)
             
@@ -164,10 +168,34 @@ class FileHTTPRequestHandler(BaseHTTPRequestHandler):
             with open(file_path, 'rb') as f:
                 shutil.copyfileobj(f, self.wfile)
             
-            self.server_instance.logger.info(f"文件下载完成: {requested_path} ({file_size} bytes)")
+            self.server_instance.logger.info(f"文件下载完成: {requested_path} ({file_size} bytes) {file_type_indicator}")
+            
+            # 如果是需要可执行权限的二进制文件，记录需要添加可执行权限
+            if self._is_executable_binary_file(file_path):
+                self._schedule_chmod_executable(requested_path)
 
-            # 删除临时文件
-            self.server_instance.remove_file(file_path)
+            # 延迟删除临时文件，避免Windows文件占用问题
+            import threading
+            def delayed_remove():
+                import time
+                time.sleep(2)  # 增加等待时间到2秒
+                try:
+                    # 直接删除文件，不通过remove_file方法
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                        self.server_instance.logger.info(f"延迟删除文件成功: {os.path.basename(file_path)}")
+                        
+                        # 从映射中移除
+                        for source_path, temp_path in list(self.server_instance.file_mapping.items()):
+                            if temp_path == file_path:
+                                del self.server_instance.file_mapping[source_path]
+                                break
+                    else:
+                        self.server_instance.logger.warning(f"延迟删除时文件已不存在: {file_path}")
+                except Exception as e:
+                    self.server_instance.logger.error(f"延迟删除文件失败: {os.path.basename(file_path)} - {e}")
+            
+            threading.Thread(target=delayed_remove, daemon=True).start()
             
         except Exception as e:
             self.server_instance.logger.error(f"发送文件失败: {str(e)}")
@@ -309,6 +337,171 @@ class FileHTTPRequestHandler(BaseHTTPRequestHandler):
         
         return content_type
     
+    def _is_binary_file(self, file_path):
+        """检测文件是否为二进制文件"""
+        try:
+            # 1. 通过扩展名检测常见的二进制文件
+            binary_extensions = {
+                '.exe', '.bin', '.so', '.dll', '.dylib', '.a', '.o', '.obj',
+                '.zip', '.rar', '.7z', '.tar', '.gz', '.bz2', '.xz',
+                '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico', '.tiff',
+                '.mp3', '.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv',
+                '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+                '.deb', '.rpm', '.apk', '.ipa', '.dmg', '.iso'
+            }
+            
+            file_ext = os.path.splitext(file_path)[1].lower()
+            if file_ext in binary_extensions:
+                return True
+            
+            # 2. 通过文件内容检测
+            with open(file_path, 'rb') as f:
+                # 读取前1024字节进行检测
+                chunk = f.read(1024)
+                if not chunk:
+                    return False
+                
+                # 检测空字节（二进制文件的典型特征）
+                if b'\x00' in chunk:
+                    return True
+                
+                # 检测非ASCII字符的比例
+                non_ascii_count = sum(1 for byte in chunk if byte > 127)
+                non_ascii_ratio = non_ascii_count / len(chunk)
+                
+                # 如果非ASCII字符超过30%，认为是二进制文件
+                if non_ascii_ratio > 0.3:
+                    return True
+                
+                # 检测控制字符（除了常见的换行、制表符等）
+                control_chars = sum(1 for byte in chunk if byte < 32 and byte not in (9, 10, 13))
+                control_ratio = control_chars / len(chunk)
+                
+                # 如果控制字符超过5%，认为是二进制文件
+                if control_ratio > 0.05:
+                    return True
+            
+            return False
+            
+        except Exception as e:
+            self.server_instance.logger.warning(f"检测文件类型失败: {e}")
+            # 出错时默认为文本文件
+            return False
+    
+    def _is_executable_binary_file(self, file_path):
+        """检测文件是否为需要可执行权限的二进制文件"""
+        try:
+            # 只有这些扩展名的文件才需要可执行权限
+            executable_extensions = {
+                '.exe', '.bin', '.so', '.dll', '.dylib', '.a', '.o', '.obj',
+                '.deb', '.rpm', '.apk', '.ipa'
+            }
+            
+            file_ext = os.path.splitext(file_path)[1].lower()
+            if file_ext in executable_extensions:
+                return True
+            
+            # 对于没有扩展名的文件，通过内容检测
+            if not file_ext:
+                # 检测是否为ELF文件（Linux可执行文件）
+                try:
+                    with open(file_path, 'rb') as f:
+                        header = f.read(4)
+                        if header == b'\x7fELF':  # ELF魔数
+                            return True
+                except Exception:
+                    pass
+            
+            return False
+            
+        except Exception as e:
+            self.server_instance.logger.warning(f"检测可执行文件类型失败: {e}")
+            return False
+    
+    def _schedule_chmod_executable(self, requested_path):
+        """安排为二进制文件添加可执行权限"""
+        try:
+            # 延迟执行chmod命令，确保文件传输完成
+            import threading
+            def delayed_chmod():
+                import time
+                time.sleep(3)  # 等待3秒确保文件传输完成
+                try:
+                    # 通过telnet连接执行chmod命令
+                    if hasattr(self.server_instance, 'telnet_client') and self.server_instance.telnet_client:
+                        import asyncio
+                        
+                        # 创建异步任务执行chmod
+                        async def execute_chmod():
+                            try:
+                                # 获取telnet客户端
+                                telnet_client = self.server_instance.telnet_client
+                                
+                                # 执行chmod +x命令
+                                chmod_cmd = f'chmod +x "{requested_path}"'
+                                self.server_instance.logger.info(f"为二进制文件添加可执行权限: {chmod_cmd}")
+                                
+                                # 执行命令
+                                result = await telnet_client.execute_command(chmod_cmd, timeout=10)
+                                
+                                # 验证权限是否添加成功
+                                verify_cmd = f'ls -l "{requested_path}"'
+                                verify_result = await telnet_client.execute_command(verify_cmd, timeout=5)
+                                
+                                self.server_instance.logger.info(f"权限验证结果: {verify_result.strip()}")
+                                
+                                if 'x' in verify_result:
+                                    self.server_instance.logger.info(f"✅ 成功为二进制文件添加可执行权限: {requested_path}")
+                                else:
+                                    self.server_instance.logger.warning(f"⚠️ 可执行权限可能未成功添加: {requested_path}")
+                                    
+                            except Exception as e:
+                                self.server_instance.logger.error(f"❌ 添加可执行权限失败: {requested_path} - {e}")
+                        
+                        # 使用线程池执行异步任务，避免事件循环冲突
+                        try:
+                            # 检查是否有运行中的事件循环
+                            try:
+                                current_loop = asyncio.get_running_loop()
+                                # 如果有运行中的循环，使用concurrent.futures在线程中执行
+                                import concurrent.futures
+                                
+                                def run_in_thread():
+                                    # 在新线程中创建新的事件循环
+                                    new_loop = asyncio.new_event_loop()
+                                    asyncio.set_event_loop(new_loop)
+                                    try:
+                                        return new_loop.run_until_complete(execute_chmod())
+                                    finally:
+                                        new_loop.close()
+                                
+                                # 在线程池中执行
+                                with concurrent.futures.ThreadPoolExecutor() as executor:
+                                    future = executor.submit(run_in_thread)
+                                    future.result(timeout=15)  # 15秒超时
+                                    
+                            except RuntimeError:
+                                # 没有运行中的事件循环，直接创建新的
+                                loop = asyncio.new_event_loop()
+                                asyncio.set_event_loop(loop)
+                                try:
+                                    loop.run_until_complete(execute_chmod())
+                                finally:
+                                    loop.close()
+                                    
+                        except Exception as e:
+                            self.server_instance.logger.error(f"❌ 执行chmod命令失败: {e}")
+                    else:
+                        self.server_instance.logger.warning(f"⚠️ 无法获取telnet连接，跳过权限设置: {requested_path}")
+                        
+                except Exception as e:
+                    self.server_instance.logger.error(f"❌ 延迟chmod执行失败: {requested_path} - {e}")
+            
+            threading.Thread(target=delayed_chmod, daemon=True).start()
+            
+        except Exception as e:
+            self.server_instance.logger.error(f"安排chmod任务失败: {e}")
+    
     def log_message(self, format, *args):
         """重写日志输出方法，使用自定义logger"""
         if self.server_instance and self.server_instance.logger:
@@ -326,7 +519,7 @@ class FileHTTPServer:
     - 自动清理临时文件
     """
     
-    def __init__(self, port: int = 88, temp_dir: Optional[str] = None, parent_logger=None):
+    def __init__(self, port: int = 88, temp_dir: Optional[str] = None, parent_logger=None, telnet_client=None):
         """
         初始化HTTP文件服务器
         
@@ -334,6 +527,7 @@ class FileHTTPServer:
             port (int): 服务端口，默认88
             temp_dir (str, optional): 临时文件目录，默认自动创建
             parent_logger (logging.Logger, optional): 父logger
+            telnet_client (optional): telnet客户端，用于执行chmod命令
         """
         self.port = port
         self.temp_dir = temp_dir or self._create_temp_dir()
@@ -341,6 +535,7 @@ class FileHTTPServer:
         self.server_thread: Optional[threading.Thread] = None
         self.is_running = False
         self.file_mapping: Dict[str, str] = {}  # 原始文件路径到临时文件路径的映射
+        self.telnet_client = telnet_client  # 添加telnet客户端引用
         
         # 配置日志
         self.logger = (parent_logger or get_logger(self.__class__)
@@ -489,7 +684,23 @@ class FileHTTPServer:
         try:
             file_path = os.path.join(self.temp_dir, filename)
             if os.path.exists(file_path):
-                os.remove(file_path)
+                # Windows系统文件删除重试机制
+                import time
+                max_retries = 3
+                for attempt in range(max_retries):
+                    try:
+                        os.remove(file_path)
+                        break
+                    except PermissionError as pe:
+                        if attempt < max_retries - 1:
+                            self.logger.warning(f"文件删除失败，重试 {attempt + 1}/{max_retries}: {filename}")
+                            time.sleep(0.5)  # 等待0.5秒后重试
+                        else:
+                            self.logger.error(f"文件删除最终失败: {filename} - {pe}")
+                            return False
+                    except Exception as e:
+                        self.logger.error(f"文件删除异常: {filename} - {e}")
+                        return False
                 
                 # 从映射中移除
                 for source_path, temp_path in list(self.file_mapping.items()):
