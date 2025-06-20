@@ -28,7 +28,9 @@ def main():
     except ImportError as e:
         print(f"缺少依赖模块: {e}")
         print("请安装必要的依赖:")
-        print("pip install tkinterdnd2 telnetlib3")
+        print("pip install tkinterdnd2 telnetlib3 requests pywin32 Pillow")
+        print("或者使用:")
+        print("pip install -r requirements.txt")
     except Exception as e:
         print(f"程序启动失败: {e}")
         import traceback  

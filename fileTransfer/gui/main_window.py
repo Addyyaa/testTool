@@ -353,6 +353,10 @@ class ModernFileTransferGUI:
             # 启动HTTP服务器
             if not self.http_server:
                 self._start_http_server_delayed()
+            else:
+                # 如果HTTP服务器已启动，更新其telnet客户端引用以支持二进制文件自动chmod
+                self.logger.info("更新HTTP服务器的telnet客户端引用，启用二进制文件自动chmod功能")
+                self.http_server.telnet_client = self.telnet_client
             
             # 更新拖拽下载管理器的客户端
             self.drag_download_manager.set_clients(self.telnet_client, self.http_server, self.loop, self.telnet_lock)
@@ -918,8 +922,16 @@ class ModernFileTransferGUI:
             # 通过telnet下载
             result = await self._download_via_telnet(download_url, remote_path, actual_filename)
             
-            # 清理临时文件
-            self.http_server.remove_file(actual_filename)
+            # 延迟清理临时文件，避免Windows文件占用问题
+            def delayed_cleanup():
+                import time
+                time.sleep(2)  # 等待2秒确保文件不再被占用
+                try:
+                    self.http_server.remove_file(actual_filename)
+                except Exception as cleanup_error:
+                    self.logger.warning(f"延迟清理临时文件失败: {cleanup_error}")
+            
+            threading.Thread(target=delayed_cleanup, daemon=True).start()
             
             return result
             
@@ -939,16 +951,79 @@ class ModernFileTransferGUI:
             
             # 检查下载结果
             success_keywords = ['100%', 'saved', 'complete', 'downloaded']
+            download_success = False
+            
             if any(keyword in result.lower() for keyword in success_keywords):
-                return True
+                download_success = True
             else:
                 # 检查文件是否确实存在
                 check_cmd = f'ls -la "{filename}"'
                 check_result = await self.telnet_client.execute_command(check_cmd)
-                return filename in check_result and "-rw" in check_result
+                download_success = filename in check_result and "-rw" in check_result
+            
+            # 如果下载成功，检查是否需要添加可执行权限
+            if download_success:
+                await self._check_and_set_executable_permission(filename, remote_path)
+            
+            return download_success
                 
         except Exception as e:
             self.logger.error(f"telnet下载失败: {str(e)}")
+            return False
+    
+    async def _check_and_set_executable_permission(self, filename: str, remote_path: str):
+        """检查并设置二进制文件的可执行权限"""
+        try:
+            # 检测是否为需要可执行权限的二进制文件
+            if self._is_executable_binary_file(filename):
+                # 构建完整的远程文件路径
+                remote_file_path = f"{remote_path.rstrip('/')}/{filename}"
+                
+                # 添加可执行权限
+                chmod_cmd = f'chmod +x "{remote_file_path}"'
+                self.logger.info(f"为二进制文件添加可执行权限: {chmod_cmd}")
+                
+                await self.telnet_client.execute_command(chmod_cmd, timeout=10)
+                
+                # 验证权限是否添加成功
+                verify_cmd = f'ls -l "{remote_file_path}"'
+                verify_result = await self.telnet_client.execute_command(verify_cmd, timeout=5)
+                
+                self.logger.info(f"权限验证结果: {verify_result.strip()}")
+                
+                if 'x' in verify_result:
+                    self.logger.info(f"✅ 成功为二进制文件添加可执行权限: {filename}")
+                else:
+                    self.logger.warning(f"⚠️ 可执行权限可能未成功添加: {filename}")
+                    
+        except Exception as e:
+            self.logger.error(f"❌ 添加可执行权限失败: {filename} - {e}")
+    
+    def _is_executable_binary_file(self, filename: str) -> bool:
+        """检测文件是否为需要可执行权限的二进制文件"""
+        try:
+            # 只有这些扩展名的文件才需要可执行权限
+            executable_extensions = {
+                '.exe', '.bin', '.so', '.dll', '.dylib', '.a', '.o', '.obj',
+                '.deb', '.rpm', '.apk', '.ipa'
+            }
+            
+            file_ext = os.path.splitext(filename)[1].lower()
+            if file_ext in executable_extensions:
+                return True
+            
+            # 对于没有扩展名的文件，如果文件名包含常见的可执行文件特征
+            if not file_ext:
+                # 常见的可执行文件名模式
+                executable_patterns = ['bin', 'exec', 'run', 'start', 'launch']
+                filename_lower = filename.lower()
+                if any(pattern in filename_lower for pattern in executable_patterns):
+                    return True
+            
+            return False
+            
+        except Exception as e:
+            self.logger.warning(f"检测可执行文件类型失败: {e}")
             return False
     
     def _on_transfer_complete(self, success_count: int, total_count: int):

@@ -686,7 +686,7 @@ class FileHTTPServer:
             if os.path.exists(file_path):
                 # Windows系统文件删除重试机制
                 import time
-                max_retries = 3
+                max_retries = 5  # 增加重试次数
                 for attempt in range(max_retries):
                     try:
                         os.remove(file_path)
@@ -694,13 +694,18 @@ class FileHTTPServer:
                     except PermissionError as pe:
                         if attempt < max_retries - 1:
                             self.logger.warning(f"文件删除失败，重试 {attempt + 1}/{max_retries}: {filename}")
-                            time.sleep(0.5)  # 等待0.5秒后重试
+                            time.sleep(1.0 + attempt * 0.5)  # 递增等待时间：1s, 1.5s, 2s, 2.5s
                         else:
-                            self.logger.error(f"文件删除最终失败: {filename} - {pe}")
-                            return False
+                            self.logger.warning(f"文件删除最终失败，但不影响功能: {filename} - {pe}")
+                            # 不返回False，只是记录警告，让程序继续运行
+                            break
                     except Exception as e:
-                        self.logger.error(f"文件删除异常: {filename} - {e}")
-                        return False
+                        if attempt < max_retries - 1:
+                            self.logger.warning(f"文件删除异常，重试 {attempt + 1}/{max_retries}: {filename} - {e}")
+                            time.sleep(1.0 + attempt * 0.5)
+                        else:
+                            self.logger.warning(f"文件删除最终异常，但不影响功能: {filename} - {e}")
+                            break
                 
                 # 从映射中移除
                 for source_path, temp_path in list(self.file_mapping.items()):
