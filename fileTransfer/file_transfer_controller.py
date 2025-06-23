@@ -111,8 +111,10 @@ class RemoteFileEditor:
             # 写入本地临时文件
             import tempfile, os
             base_dir, filename = os.path.split(remote_path)
-            with tempfile.NamedTemporaryFile(delete=False, mode="w", encoding="utf-8", suffix=os.path.splitext(filename)[1]) as tmp:
-                tmp.write(new_content)
+            # 统一换行符为Unix格式（\n），避免Windows的\r\n导致Linux上显示^M
+            normalized_content = new_content.replace('\r\n', '\n').replace('\r', '\n')
+            with tempfile.NamedTemporaryFile(delete=False, mode="w", encoding="utf-8", suffix=os.path.splitext(filename)[1], newline='\n') as tmp:
+                tmp.write(normalized_content)
                 local_tmp_path = tmp.name
 
             # 上传文件

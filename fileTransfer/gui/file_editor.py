@@ -106,6 +106,9 @@ class RemoteFileEditorGUI:
             def _save_content():
                 try:
                     new_text = text_area.get('1.0', tk.END)
+                    # 移除Tkinter自动添加的末尾换行符
+                    if new_text.endswith('\n'):
+                        new_text = new_text[:-1]
                     status_var.set("保存中...")
                     
                     # 异步保存文件
