@@ -1,4 +1,27 @@
-from telnet_connecter import Telnet_connector
+import sys
+import os
+
+# 针对PyInstaller环境的导入修复
+def get_telnet_connector():
+    try:
+        # 优先尝试直接导入（PyInstaller环境）
+        from telnet_connecter import Telnet_connector
+        return Telnet_connector
+    except ImportError:
+        # 如果直接导入失败，尝试添加路径（开发环境）
+        if hasattr(sys, '_MEIPASS'):
+            # PyInstaller环境
+            sys.path.insert(0, sys._MEIPASS)
+        else:
+            # 开发环境
+            current_dir = os.path.dirname(__file__)
+            project_root = os.path.dirname(os.path.dirname(current_dir))
+            sys.path.insert(0, project_root)
+        
+        from telnet_connecter import Telnet_connector
+        return Telnet_connector
+
+Telnet_connector = get_telnet_connector()
 from .log_factory import LogFactory
 import re
 import asyncio
