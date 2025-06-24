@@ -56,6 +56,13 @@ class AdvancedTextEditor:
             r'\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2}',        # MM/DD HH:MM:SS
         ]
     
+    def is_window_valid(self):
+        """检查窗口是否仍然有效"""
+        try:
+            return hasattr(self, 'editor_win') and self.editor_win.winfo_exists()
+        except tk.TclError:
+            return False
+    
     def create_editor_window(self, title: str, content: str, save_callback=None):
         """创建增强编辑器窗口"""
         self.original_content = content
@@ -67,9 +74,12 @@ class AdvancedTextEditor:
         self.editor_win.geometry("1000x700")
         self.editor_win.configure(bg=self.theme.colors['bg_primary'])
         
-        # 置顶并居中
-        self.editor_win.attributes('-topmost', True)
+        # 改为transient而不是topmost，避免总是置顶
+        self.editor_win.transient(self.parent)
         self._center_window(self.editor_win, 1000, 700)
+        
+        # 绑定窗口关闭事件
+        self.editor_win.protocol("WM_DELETE_WINDOW", self._on_window_close)
         
         # 创建主框架
         main_frame = tk.Frame(self.editor_win, bg=self.theme.colors['bg_primary'])
@@ -91,6 +101,50 @@ class AdvancedTextEditor:
         self._bind_events()
         
         return self.editor_win
+    
+    def _on_window_close(self):
+        """窗口关闭事件处理"""
+        try:
+            # 取消所有定时器
+            if hasattr(self, '_search_timer'):
+                self.editor_win.after_cancel(self._search_timer)
+            
+            # 清理资源
+            if hasattr(self, 'text_area'):
+                self.text_area = None
+            
+            # 销毁窗口
+            self.editor_win.destroy()
+        except Exception as e:
+            self.logger.error(f"关闭编辑器窗口时出错: {e}")
+    
+    def _show_topmost_message(self, title: str, message: str, msg_type: str = "info"):
+        """显示置顶消息框"""
+        try:
+            # 创建临时的根窗口用于置顶显示
+            temp_root = tk.Tk()
+            temp_root.withdraw()  # 隐藏主窗口
+            temp_root.attributes('-topmost', True)  # 设置置顶
+            
+            # 显示消息
+            if msg_type == "info":
+                messagebox.showinfo(title, message, parent=temp_root)
+            elif msg_type == "error":
+                messagebox.showerror(title, message, parent=temp_root)
+            elif msg_type == "warning":
+                messagebox.showwarning(title, message, parent=temp_root)
+            
+            # 销毁临时窗口
+            temp_root.destroy()
+        except Exception as e:
+            self.logger.error(f"显示置顶消息失败: {e}")
+            # 回退到普通消息框
+            if msg_type == "info":
+                messagebox.showinfo(title, message)
+            elif msg_type == "error":
+                messagebox.showerror(title, message)
+            elif msg_type == "warning":
+                messagebox.showwarning(title, message)
     
     def _create_toolbar(self, parent, save_callback):
         """创建工具栏"""
@@ -283,77 +337,98 @@ class AdvancedTextEditor:
     
     def _search_text(self):
         """搜索文本"""
-        query = self.search_var.get().strip()
-        # 检查是否为占位符文本
-        if not query or query == "支持正则: \\d+错误|INFO.*成功":
-            self._clear_search_highlights()
+        if not self.is_window_valid():
             return
-        
+            
         try:
+            search_term = self.search_var.get().strip()
+            if not search_term:
+                self._clear_search_highlights()
+                return
+            
+            self._clear_search_highlights()
             self.search_results = []
+            
             content = self.text_area.get('1.0', tk.END)
             
             if self.regex_var.get():
                 # 正则表达式搜索
                 flags = 0 if self.case_var.get() else re.IGNORECASE
-                pattern = re.compile(query, flags)
-                
-                lines = content.split('\n')
-                for line_idx, line in enumerate(lines):
-                    for match in pattern.finditer(line):
-                        start_pos = f"{line_idx + 1}.{match.start()}"
-                        end_pos = f"{line_idx + 1}.{match.end()}"
-                        self.search_results.append((start_pos, end_pos))
+                try:
+                    pattern = re.compile(search_term, flags)
+                    for match in pattern.finditer(content):
+                        start_line = content[:match.start()].count('\n') + 1
+                        start_char = match.start() - content[:match.start()].rfind('\n') - 1
+                        if start_char < 0:
+                            start_char = match.start()
+                        
+                        end_line = content[:match.end()].count('\n') + 1
+                        end_char = match.end() - content[:match.end()].rfind('\n') - 1
+                        if end_char < 0:
+                            end_char = match.end()
+                        
+                        self.search_results.append((f"{start_line}.{start_char}", f"{end_line}.{end_char}"))
+                except re.error as e:
+                    if self.is_window_valid():
+                        self.status_var.set(f"正则表达式错误: {e}")
+                    return
             else:
                 # 普通文本搜索
-                search_content = content if self.case_var.get() else content.lower()
-                search_query = query if self.case_var.get() else query.lower()
+                if not self.case_var.get():
+                    search_term = search_term.lower()
+                    content = content.lower()
                 
-                start_idx = 0
-                lines = content.split('\n')
-                for line_idx, line in enumerate(lines):
-                    search_line = line if self.case_var.get() else line.lower()
-                    col_idx = 0
-                    while True:
-                        pos = search_line.find(search_query, col_idx)
-                        if pos == -1:
-                            break
-                        start_pos = f"{line_idx + 1}.{pos}"
-                        end_pos = f"{line_idx + 1}.{pos + len(query)}"
-                        self.search_results.append((start_pos, end_pos))
-                        col_idx = pos + 1
-            
-            self._highlight_search_results()
+                start_pos = 0
+                while True:
+                    pos = content.find(search_term, start_pos)
+                    if pos == -1:
+                        break
+                    
+                    start_line = content[:pos].count('\n') + 1
+                    start_char = pos - content[:pos].rfind('\n') - 1
+                    if start_char < 0:
+                        start_char = pos
+                    
+                    end_pos = pos + len(search_term)
+                    end_line = content[:end_pos].count('\n') + 1
+                    end_char = end_pos - content[:end_pos].rfind('\n') - 1
+                    if end_char < 0:
+                        end_char = end_pos
+                    
+                    self.search_results.append((f"{start_line}.{start_char}", f"{end_line}.{end_char}"))
+                    start_pos = pos + 1
             
             if self.search_results:
                 self.current_search_index = 0
+                self._highlight_search_results()
                 self._jump_to_current_search()
-                self.status_var.set(f"找到 {len(self.search_results)} 个结果")
+                if self.is_window_valid():
+                    self.status_var.set(f"找到 {len(self.search_results)} 个匹配项")
             else:
-                self.status_var.set("未找到匹配结果")
-                
-        except re.error as e:
-            messagebox.showerror("正则表达式错误", f"正则表达式语法错误: {e}")
+                if self.is_window_valid():
+                    self.status_var.set("未找到匹配项")
         except Exception as e:
-            self.logger.error(f"搜索失败: {e}")
-            messagebox.showerror("搜索失败", f"搜索过程中出现错误: {e}")
+            self.logger.error(f"搜索文本时出错: {e}")
+            if self.is_window_valid():
+                self.status_var.set(f"搜索出错: {e}")
     
     def _search_text_realtime(self):
-        """实时搜索（输入时触发）"""
-        # 如果没有启用实时搜索，直接返回
-        if not self.realtime_var.get():
+        """实时搜索文本"""
+        if not self.is_window_valid():
             return
             
-        query = self.search_var.get().strip()
-        # 检查是否为占位符文本或长度不足
-        if not query or query == "支持正则: \\d+错误|INFO.*成功" or len(query) < 3:
-            self._clear_search_highlights()
+        if not self.realtime_var.get():
             return
         
-        # 延迟搜索避免频繁触发，增加延迟时间以减少卡顿
-        if hasattr(self, '_search_timer'):
-            self.editor_win.after_cancel(self._search_timer)
-        self._search_timer = self.editor_win.after(800, self._search_text)
+        try:
+            # 取消上一个定时器
+            if hasattr(self, '_search_timer'):
+                self.editor_win.after_cancel(self._search_timer)
+            
+            # 设置新的定时器，避免过于频繁的搜索
+            self._search_timer = self.editor_win.after(300, self._search_text)
+        except Exception as e:
+            self.logger.error(f"实时搜索出错: {e}")
     
     def _highlight_search_results(self):
         """高亮搜索结果"""
@@ -369,21 +444,27 @@ class AdvancedTextEditor:
     
     def _jump_to_current_search(self):
         """跳转到当前搜索结果"""
-        if not self.search_results:
+        if not self.is_window_valid() or not self.search_results:
             return
         
-        # 清除当前高亮
-        self.text_area.tag_remove("current_search", '1.0', tk.END)
-        
-        # 高亮当前结果
-        start_pos, end_pos = self.search_results[self.current_search_index]
-        self.text_area.tag_add("current_search", start_pos, end_pos)
-        
-        # 滚动到当前位置
-        self.text_area.see(start_pos)
-        
-        # 更新状态
-        self.status_var.set(f"第 {self.current_search_index + 1}/{len(self.search_results)} 个结果")
+        try:
+            # 清除当前高亮
+            self.text_area.tag_remove("current_search", '1.0', tk.END)
+            
+            # 高亮当前结果
+            start_pos, end_pos = self.search_results[self.current_search_index]
+            self.text_area.tag_add("current_search", start_pos, end_pos)
+            
+            # 滚动到当前位置
+            self.text_area.see(start_pos)
+            
+            # 更新状态
+            if self.is_window_valid():
+                self.status_var.set(f"第 {self.current_search_index + 1}/{len(self.search_results)} 个结果")
+        except tk.TclError as e:
+            self.logger.error(f"跳转搜索结果失败: {e}")
+        except Exception as e:
+            self.logger.error(f"跳转到搜索结果时出错: {e}")
     
     def _search_next(self):
         """下一个搜索结果"""
@@ -403,6 +484,9 @@ class AdvancedTextEditor:
     
     def _filter_by_time(self):
         """按时间过滤日志"""
+        if not self.is_window_valid():
+            return
+            
         start_time = self.time_start_var.get().strip()
         end_time = self.time_end_var.get().strip()
         
@@ -451,7 +535,8 @@ class AdvancedTextEditor:
             self.filtered_content = '\n'.join(filtered_lines)
             self._insert_content_with_highlight()
             
-            self.status_var.set(f"时间过滤完成，显示 {len(filtered_lines)} 行")
+            if self.is_window_valid():
+                self.status_var.set(f"时间过滤完成，显示 {len(filtered_lines)} 行")
             
         except Exception as e:
             self.logger.error(f"时间过滤失败: {e}")
@@ -459,11 +544,15 @@ class AdvancedTextEditor:
     
     def _reset_filter(self):
         """重置过滤器"""
+        if not self.is_window_valid():
+            return
+            
         self.filtered_content = self.original_content
         self.time_start_var.set("")
         self.time_end_var.set("")
         self._insert_content_with_highlight()
-        self.status_var.set("已重置过滤器")
+        if self.is_window_valid():
+            self.status_var.set("已重置过滤器")
     
     def _toggle_wrap(self):
         """切换自动换行"""
@@ -516,11 +605,16 @@ class AdvancedTextEditor:
     
     def get_text_content(self):
         """获取文本内容"""
-        content = self.text_area.get('1.0', tk.END)
-        # 移除Tkinter自动添加的末尾换行符
-        if content.endswith('\n'):
-            content = content[:-1]
-        return content
+        if not self.is_window_valid():
+            return ""
+        try:
+            content = self.text_area.get('1.0', tk.END)
+            # 移除Tkinter自动添加的末尾换行符
+            if content.endswith('\n'):
+                content = content[:-1]
+            return content
+        except tk.TclError:
+            return ""
 
 
 class RemoteFileEditorGUI:
@@ -591,18 +685,21 @@ class RemoteFileEditorGUI:
             def save_callback():
                 try:
                     new_text = advanced_editor.get_text_content()
-                    advanced_editor.status_var.set("保存中...")
+                    if advanced_editor.is_window_valid():
+                        advanced_editor.status_var.set("保存中...")
                     
                     # 异步保存文件
                     future = self._run_async(self.remote_file_editor.write_file_async(remote_path, new_text))
                     if future:
                         future.add_done_callback(lambda f: self._on_save_result(f, advanced_editor))
                     else:
-                        advanced_editor.status_var.set("保存失败")
+                        if advanced_editor.is_window_valid():
+                            advanced_editor.status_var.set("保存失败")
                         messagebox.showerror("错误", "无法保存文件")
                 except Exception as e:
                     self.logger.error(f"保存文件失败: {e}")
-                    advanced_editor.status_var.set("保存失败")
+                    if advanced_editor.is_window_valid():
+                        advanced_editor.status_var.set("保存失败")
                     messagebox.showerror("错误", f"保存文件失败: {e}")
             
             # 创建编辑器窗口
@@ -624,14 +721,18 @@ class RemoteFileEditorGUI:
         try:
             success = future.result()
             if success:
-                advanced_editor.status_var.set("保存成功")
-                messagebox.showinfo("成功", "文件保存成功")
+                if advanced_editor.is_window_valid():
+                    advanced_editor.status_var.set("保存成功")
+                # 使用置顶消息显示保存成功
+                advanced_editor._show_topmost_message("成功", "文件保存成功", "info")
             else:
-                advanced_editor.status_var.set("保存失败")
+                if advanced_editor.is_window_valid():
+                    advanced_editor.status_var.set("保存失败")
                 messagebox.showerror("错误", "文件保存失败")
         except Exception as e:
             self.logger.error(f"保存结果处理失败: {e}")
-            advanced_editor.status_var.set("保存失败")
+            if advanced_editor.is_window_valid():
+                advanced_editor.status_var.set("保存失败")
             messagebox.showerror("错误", f"保存失败: {e}")
     
     def open_image_preview(self, remote_path: str):
@@ -642,7 +743,7 @@ class RemoteFileEditorGUI:
             win = tk.Toplevel(self.parent)
             win.title(os.path.basename(remote_path))
             win.geometry("800x600")
-            win.attributes('-topmost', True)
+            # 改为transient而不是topmost
             win.transient(self.parent)
             
             # 居中窗口
@@ -669,7 +770,7 @@ class RemoteFileEditorGUI:
                     
                     def render():
                         try:
-                            if not canvas.winfo_exists():
+                            if not win.winfo_exists():
                                 return
                             max_w = win.winfo_width() or 800
                             max_h = win.winfo_height() or 600
