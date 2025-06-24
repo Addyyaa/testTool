@@ -4,19 +4,523 @@
 远程文件编辑器组件
 
 提供远程文件编辑和图片预览功能
+增强功能：搜索（支持正则表达式）、日志等级高亮、时间过滤、自动换行
 """
 
 import tkinter as tk
+from tkinter import ttk, messagebox
 from tkinter.scrolledtext import ScrolledText
-from tkinter import messagebox
 import os
 import sys
 import asyncio
-from typing import Optional, Any
+import re
+from datetime import datetime
+from typing import Optional, Any, List, Dict
 
 # 添加父目录到系统路径以支持导入
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from file_transfer_controller import RemoteFileEditor
+
+
+class AdvancedTextEditor:
+    """增强文本编辑器，支持搜索、高亮、过滤等功能"""
+    
+    def __init__(self, parent_window, theme, logger):
+        """初始化增强文本编辑器"""
+        self.parent = parent_window
+        self.theme = theme
+        self.logger = logger
+        
+        # 文本内容相关
+        self.original_content = ""
+        self.filtered_content = ""
+        self.search_results = []
+        self.current_search_index = 0
+        
+        # 日志等级颜色配置
+        self.log_level_colors = {
+            'ERROR': '#FF4444',    # 红色
+            'WARN': '#FF8800',     # 橙色  
+            'INFO': '#0088FF',     # 蓝色
+            'DEBUG': '#888888',    # 灰色
+            'TRACE': '#666666',    # 深灰色
+            'FATAL': '#AA0000',    # 深红色
+            'CRITICAL': '#CC0000', # 暗红色
+        }
+        
+        # 时间戳正则表达式
+        self.timestamp_patterns = [
+            r'\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}',  # YYYY-MM-DD HH:MM:SS
+            r'\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2}',  # YYYY/MM/DD HH:MM:SS
+            r'\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}',        # MM-DD HH:MM:SS
+            r'\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2}',        # MM/DD HH:MM:SS
+        ]
+    
+    def create_editor_window(self, title: str, content: str, save_callback=None):
+        """创建增强编辑器窗口"""
+        self.original_content = content
+        self.filtered_content = content
+        
+        # 创建编辑窗口
+        self.editor_win = tk.Toplevel(self.parent)
+        self.editor_win.title(title)
+        self.editor_win.geometry("1000x700")
+        self.editor_win.configure(bg=self.theme.colors['bg_primary'])
+        
+        # 置顶并居中
+        self.editor_win.attributes('-topmost', True)
+        self._center_window(self.editor_win, 1000, 700)
+        
+        # 创建主框架
+        main_frame = tk.Frame(self.editor_win, bg=self.theme.colors['bg_primary'])
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # 创建工具栏
+        self._create_toolbar(main_frame, save_callback)
+        
+        # 创建文本区域
+        self._create_text_area(main_frame)
+        
+        # 创建状态栏
+        self._create_status_bar(main_frame)
+        
+        # 插入内容并应用高亮
+        self._insert_content_with_highlight()
+        
+        # 绑定事件
+        self._bind_events()
+        
+        return self.editor_win
+    
+    def _create_toolbar(self, parent, save_callback):
+        """创建工具栏"""
+        toolbar_frame = tk.Frame(parent, bg=self.theme.colors['bg_primary'])
+        toolbar_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        # 左侧工具栏
+        left_frame = tk.Frame(toolbar_frame, bg=self.theme.colors['bg_primary'])
+        left_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
+        # 搜索框
+        search_frame = tk.Frame(left_frame, bg=self.theme.colors['bg_primary'])
+        search_frame.pack(side=tk.LEFT, padx=(0, 10))
+        
+        tk.Label(search_frame, text="搜索:", bg=self.theme.colors['bg_primary'], 
+                fg=self.theme.colors['text_primary']).pack(side=tk.LEFT)
+        
+        self.search_var = tk.StringVar()
+        self.search_entry = tk.Entry(search_frame, textvariable=self.search_var, width=25)
+        self.search_entry.pack(side=tk.LEFT, padx=(5, 5))
+        
+        # 添加占位符文本效果
+        self._setup_placeholder(self.search_entry, "支持正则: \\d+错误|INFO.*成功")
+        
+        # 搜索选项
+        self.regex_var = tk.BooleanVar(value=True)
+        self.case_var = tk.BooleanVar(value=False)
+        self.realtime_var = tk.BooleanVar(value=False)  # 默认关闭实时搜索
+        
+        tk.Checkbutton(search_frame, text="正则", variable=self.regex_var,
+                      bg=self.theme.colors['bg_primary'], fg=self.theme.colors['text_primary'],
+                      selectcolor=self.theme.colors['bg_card']).pack(side=tk.LEFT, padx=2)
+        
+        tk.Checkbutton(search_frame, text="大小写", variable=self.case_var,
+                      bg=self.theme.colors['bg_primary'], fg=self.theme.colors['text_primary'],
+                      selectcolor=self.theme.colors['bg_card']).pack(side=tk.LEFT, padx=2)
+        
+        tk.Checkbutton(search_frame, text="实时", variable=self.realtime_var,
+                      bg=self.theme.colors['bg_primary'], fg=self.theme.colors['text_primary'],
+                      selectcolor=self.theme.colors['bg_card']).pack(side=tk.LEFT, padx=2)
+        
+        # 搜索按钮
+        btn_search = tk.Button(search_frame, text="🔍", command=self._search_text,
+                              bg=self.theme.colors['bg_button'], fg='white', width=3)
+        btn_search.pack(side=tk.LEFT, padx=2)
+        
+        btn_prev = tk.Button(search_frame, text="↑", command=self._search_prev,
+                            bg=self.theme.colors['bg_button'], fg='white', width=3)
+        btn_prev.pack(side=tk.LEFT, padx=1)
+        
+        btn_next = tk.Button(search_frame, text="↓", command=self._search_next,
+                            bg=self.theme.colors['bg_button'], fg='white', width=3)
+        btn_next.pack(side=tk.LEFT, padx=1)
+        
+        # 时间过滤框
+        filter_frame = tk.Frame(left_frame, bg=self.theme.colors['bg_primary'])
+        filter_frame.pack(side=tk.LEFT, padx=(20, 10))
+        
+        tk.Label(filter_frame, text="时间过滤:", bg=self.theme.colors['bg_primary'],
+                fg=self.theme.colors['text_primary']).pack(side=tk.LEFT)
+        
+        self.time_start_var = tk.StringVar()
+        self.time_end_var = tk.StringVar()
+        
+        start_entry = tk.Entry(filter_frame, textvariable=self.time_start_var, width=12)
+        start_entry.pack(side=tk.LEFT, padx=(5, 2))
+        self._setup_placeholder(start_entry, "10:00:00")
+        
+        tk.Label(filter_frame, text="至", bg=self.theme.colors['bg_primary'],
+                fg=self.theme.colors['text_primary']).pack(side=tk.LEFT, padx=2)
+        
+        end_entry = tk.Entry(filter_frame, textvariable=self.time_end_var, width=12)
+        end_entry.pack(side=tk.LEFT, padx=(2, 5))
+        self._setup_placeholder(end_entry, "18:00:00")
+        
+        btn_filter = tk.Button(filter_frame, text="过滤", command=self._filter_by_time,
+                              bg=self.theme.colors['bg_button'], fg='white')
+        btn_filter.pack(side=tk.LEFT, padx=2)
+        
+        btn_reset = tk.Button(filter_frame, text="重置", command=self._reset_filter,
+                             bg=self.theme.colors['bg_secondary'], fg='black')
+        btn_reset.pack(side=tk.LEFT, padx=2)
+        
+        # 右侧工具栏
+        right_frame = tk.Frame(toolbar_frame, bg=self.theme.colors['bg_primary'])
+        right_frame.pack(side=tk.RIGHT)
+        
+        # 自动换行选项
+        self.wrap_var = tk.BooleanVar(value=False)
+        tk.Checkbutton(right_frame, text="自动换行", variable=self.wrap_var,
+                      command=self._toggle_wrap, bg=self.theme.colors['bg_primary'],
+                      fg=self.theme.colors['text_primary'],
+                      selectcolor=self.theme.colors['bg_card']).pack(side=tk.LEFT, padx=10)
+        
+        # 保存按钮
+        if save_callback:
+            btn_save = tk.Button(right_frame, text="💾 保存", command=save_callback,
+                               bg=self.theme.colors['bg_button'], fg='white')
+            btn_save.pack(side=tk.LEFT, padx=5)
+    
+    def _create_text_area(self, parent):
+        """创建文本区域"""
+        text_frame = tk.Frame(parent, bg=self.theme.colors['bg_primary'])
+        text_frame.pack(fill=tk.BOTH, expand=True, pady=5)
+        
+        # 创建文本区域（默认不换行）
+        self.text_area = ScrolledText(text_frame, font=('Consolas', 11), 
+                                     wrap=tk.NONE, undo=True, maxundo=50,
+                                     bg='white', fg='black', insertbackground='black')
+        self.text_area.pack(fill=tk.BOTH, expand=True)
+        
+        # 配置文本标签样式
+        self._configure_text_tags()
+    
+    def _create_status_bar(self, parent):
+        """创建状态栏"""
+        status_frame = tk.Frame(parent, bg=self.theme.colors['bg_primary'])
+        status_frame.pack(fill=tk.X, pady=(5, 0))
+        
+        self.status_var = tk.StringVar(value="已加载，Ctrl+S 保存，Ctrl+F 搜索，回车执行搜索")
+        status_label = tk.Label(status_frame, textvariable=self.status_var,
+                               bg=self.theme.colors['bg_primary'], 
+                               fg=self.theme.colors['text_secondary'])
+        status_label.pack(side=tk.LEFT)
+        
+        # 行列信息
+        self.position_var = tk.StringVar(value="行: 1, 列: 1")
+        position_label = tk.Label(status_frame, textvariable=self.position_var,
+                                 bg=self.theme.colors['bg_primary'],
+                                 fg=self.theme.colors['text_secondary'])
+        position_label.pack(side=tk.RIGHT)
+    
+    def _configure_text_tags(self):
+        """配置文本标签样式"""
+        # 搜索高亮
+        self.text_area.tag_configure("search_highlight", background="#FFFF00", foreground="#000000")
+        self.text_area.tag_configure("current_search", background="#FF8800", foreground="#FFFFFF")
+        
+        # 日志等级高亮
+        for level, color in self.log_level_colors.items():
+            self.text_area.tag_configure(f"level_{level}", foreground=color, font=('Consolas', 11, 'bold'))
+        
+        # 时间戳高亮
+        self.text_area.tag_configure("timestamp", foreground="#008800", font=('Consolas', 11, 'bold'))
+    
+    def _insert_content_with_highlight(self):
+        """插入内容并应用高亮"""
+        self.text_area.delete('1.0', tk.END)
+        self.text_area.insert(tk.END, self.filtered_content)
+        
+        # 应用日志等级和时间戳高亮
+        self._apply_log_highlighting()
+    
+    def _apply_log_highlighting(self):
+        """应用日志等级和时间戳高亮"""
+        content = self.text_area.get('1.0', tk.END)
+        lines = content.split('\n')
+        
+        for line_idx, line in enumerate(lines):
+            line_start = f"{line_idx + 1}.0"
+            
+            # 高亮日志等级
+            for level in self.log_level_colors.keys():
+                # 匹配各种格式的日志等级
+                pattern = rf'\b{level}\b'
+                for match in re.finditer(pattern, line, re.IGNORECASE):
+                    start_pos = f"{line_idx + 1}.{match.start()}"
+                    end_pos = f"{line_idx + 1}.{match.end()}"
+                    self.text_area.tag_add(f"level_{level}", start_pos, end_pos)
+            
+            # 高亮时间戳
+            for pattern in self.timestamp_patterns:
+                for match in re.finditer(pattern, line):
+                    start_pos = f"{line_idx + 1}.{match.start()}"
+                    end_pos = f"{line_idx + 1}.{match.end()}"
+                    self.text_area.tag_add("timestamp", start_pos, end_pos)
+    
+    def _bind_events(self):
+        """绑定事件"""
+        # 快捷键绑定
+        self.editor_win.bind('<Control-f>', lambda e: (self.search_entry.focus(), 'break'))
+        self.editor_win.bind('<F3>', lambda e: self._search_next())
+        self.editor_win.bind('<Shift-F3>', lambda e: self._search_prev())
+        self.search_entry.bind('<Return>', lambda e: self._search_text())
+        self.search_entry.bind('<KeyRelease>', lambda e: self._search_text_realtime())
+        
+        # 光标位置更新
+        self.text_area.bind('<KeyRelease>', self._update_cursor_position)
+        self.text_area.bind('<Button-1>', self._update_cursor_position)
+    
+    def _search_text(self):
+        """搜索文本"""
+        query = self.search_var.get().strip()
+        # 检查是否为占位符文本
+        if not query or query == "支持正则: \\d+错误|INFO.*成功":
+            self._clear_search_highlights()
+            return
+        
+        try:
+            self.search_results = []
+            content = self.text_area.get('1.0', tk.END)
+            
+            if self.regex_var.get():
+                # 正则表达式搜索
+                flags = 0 if self.case_var.get() else re.IGNORECASE
+                pattern = re.compile(query, flags)
+                
+                lines = content.split('\n')
+                for line_idx, line in enumerate(lines):
+                    for match in pattern.finditer(line):
+                        start_pos = f"{line_idx + 1}.{match.start()}"
+                        end_pos = f"{line_idx + 1}.{match.end()}"
+                        self.search_results.append((start_pos, end_pos))
+            else:
+                # 普通文本搜索
+                search_content = content if self.case_var.get() else content.lower()
+                search_query = query if self.case_var.get() else query.lower()
+                
+                start_idx = 0
+                lines = content.split('\n')
+                for line_idx, line in enumerate(lines):
+                    search_line = line if self.case_var.get() else line.lower()
+                    col_idx = 0
+                    while True:
+                        pos = search_line.find(search_query, col_idx)
+                        if pos == -1:
+                            break
+                        start_pos = f"{line_idx + 1}.{pos}"
+                        end_pos = f"{line_idx + 1}.{pos + len(query)}"
+                        self.search_results.append((start_pos, end_pos))
+                        col_idx = pos + 1
+            
+            self._highlight_search_results()
+            
+            if self.search_results:
+                self.current_search_index = 0
+                self._jump_to_current_search()
+                self.status_var.set(f"找到 {len(self.search_results)} 个结果")
+            else:
+                self.status_var.set("未找到匹配结果")
+                
+        except re.error as e:
+            messagebox.showerror("正则表达式错误", f"正则表达式语法错误: {e}")
+        except Exception as e:
+            self.logger.error(f"搜索失败: {e}")
+            messagebox.showerror("搜索失败", f"搜索过程中出现错误: {e}")
+    
+    def _search_text_realtime(self):
+        """实时搜索（输入时触发）"""
+        # 如果没有启用实时搜索，直接返回
+        if not self.realtime_var.get():
+            return
+            
+        query = self.search_var.get().strip()
+        # 检查是否为占位符文本或长度不足
+        if not query or query == "支持正则: \\d+错误|INFO.*成功" or len(query) < 3:
+            self._clear_search_highlights()
+            return
+        
+        # 延迟搜索避免频繁触发，增加延迟时间以减少卡顿
+        if hasattr(self, '_search_timer'):
+            self.editor_win.after_cancel(self._search_timer)
+        self._search_timer = self.editor_win.after(800, self._search_text)
+    
+    def _highlight_search_results(self):
+        """高亮搜索结果"""
+        self._clear_search_highlights()
+        
+        for start_pos, end_pos in self.search_results:
+            self.text_area.tag_add("search_highlight", start_pos, end_pos)
+    
+    def _clear_search_highlights(self):
+        """清除搜索高亮"""
+        self.text_area.tag_remove("search_highlight", '1.0', tk.END)
+        self.text_area.tag_remove("current_search", '1.0', tk.END)
+    
+    def _jump_to_current_search(self):
+        """跳转到当前搜索结果"""
+        if not self.search_results:
+            return
+        
+        # 清除当前高亮
+        self.text_area.tag_remove("current_search", '1.0', tk.END)
+        
+        # 高亮当前结果
+        start_pos, end_pos = self.search_results[self.current_search_index]
+        self.text_area.tag_add("current_search", start_pos, end_pos)
+        
+        # 滚动到当前位置
+        self.text_area.see(start_pos)
+        
+        # 更新状态
+        self.status_var.set(f"第 {self.current_search_index + 1}/{len(self.search_results)} 个结果")
+    
+    def _search_next(self):
+        """下一个搜索结果"""
+        if not self.search_results:
+            return
+        
+        self.current_search_index = (self.current_search_index + 1) % len(self.search_results)
+        self._jump_to_current_search()
+    
+    def _search_prev(self):
+        """上一个搜索结果"""
+        if not self.search_results:
+            return
+        
+        self.current_search_index = (self.current_search_index - 1) % len(self.search_results)
+        self._jump_to_current_search()
+    
+    def _filter_by_time(self):
+        """按时间过滤日志"""
+        start_time = self.time_start_var.get().strip()
+        end_time = self.time_end_var.get().strip()
+        
+        # 检查是否为占位符文本
+        if start_time == "10:00:00":
+            start_time = ""
+        if end_time == "18:00:00":
+            end_time = ""
+        
+        if not start_time and not end_time:
+            messagebox.showwarning("时间过滤", "请输入开始时间或结束时间")
+            return
+        
+        try:
+            filtered_lines = []
+            lines = self.original_content.split('\n')
+            
+            for line in lines:
+                # 提取时间戳
+                timestamp = None
+                for pattern in self.timestamp_patterns:
+                    match = re.search(pattern, line)
+                    if match:
+                        timestamp = match.group()
+                        break
+                
+                if timestamp:
+                    # 提取时间部分（HH:MM:SS）
+                    time_match = re.search(r'(\d{2}:\d{2}:\d{2})', timestamp)
+                    if time_match:
+                        line_time = time_match.group(1)
+                        
+                        # 检查是否在时间范围内
+                        in_range = True
+                        if start_time and line_time < start_time:
+                            in_range = False
+                        if end_time and line_time > end_time:
+                            in_range = False
+                        
+                        if in_range:
+                            filtered_lines.append(line)
+                else:
+                    # 没有时间戳的行也保留（可能是多行日志的一部分）
+                    filtered_lines.append(line)
+            
+            self.filtered_content = '\n'.join(filtered_lines)
+            self._insert_content_with_highlight()
+            
+            self.status_var.set(f"时间过滤完成，显示 {len(filtered_lines)} 行")
+            
+        except Exception as e:
+            self.logger.error(f"时间过滤失败: {e}")
+            messagebox.showerror("过滤失败", f"时间过滤过程中出现错误: {e}")
+    
+    def _reset_filter(self):
+        """重置过滤器"""
+        self.filtered_content = self.original_content
+        self.time_start_var.set("")
+        self.time_end_var.set("")
+        self._insert_content_with_highlight()
+        self.status_var.set("已重置过滤器")
+    
+    def _toggle_wrap(self):
+        """切换自动换行"""
+        if self.wrap_var.get():
+            self.text_area.configure(wrap=tk.WORD)
+        else:
+            self.text_area.configure(wrap=tk.NONE)
+    
+    def _update_cursor_position(self, event=None):
+        """更新光标位置显示"""
+        try:
+            cursor_pos = self.text_area.index(tk.INSERT)
+            line, col = cursor_pos.split('.')
+            self.position_var.set(f"行: {line}, 列: {int(col) + 1}")
+        except:
+            pass
+    
+    def _setup_placeholder(self, entry_widget, placeholder_text):
+        """为Entry组件设置占位符文本"""
+        def on_focus_in(event):
+            if entry_widget.get() == placeholder_text:
+                entry_widget.delete(0, tk.END)
+                entry_widget.config(fg='black')
+        
+        def on_focus_out(event):
+            if not entry_widget.get():
+                entry_widget.insert(0, placeholder_text)
+                entry_widget.config(fg='gray')
+        
+        # 初始设置占位符
+        entry_widget.insert(0, placeholder_text)
+        entry_widget.config(fg='gray')
+        
+        # 绑定事件
+        entry_widget.bind('<FocusIn>', on_focus_in)
+        entry_widget.bind('<FocusOut>', on_focus_out)
+    
+    def _center_window(self, win: tk.Toplevel, min_w: int = 400, min_h: int = 300):
+        """将Toplevel窗口居中并设置最小尺寸"""
+        self.parent.update_idletasks()
+        w = max(min_w, win.winfo_reqwidth())
+        h = max(min_h, win.winfo_reqheight())
+        root_x = self.parent.winfo_x()
+        root_y = self.parent.winfo_y()
+        root_w = self.parent.winfo_width()
+        root_h = self.parent.winfo_height()
+        x = root_x + (root_w - w) // 2
+        y = root_y + (root_h - h) // 2
+        win.geometry(f"{w}x{h}+{x}+{y}")
+    
+    def get_text_content(self):
+        """获取文本内容"""
+        content = self.text_area.get('1.0', tk.END)
+        # 移除Tkinter自动添加的末尾换行符
+        if content.endswith('\n'):
+            content = content[:-1]
+        return content
 
 
 class RemoteFileEditorGUI:
@@ -62,7 +566,7 @@ class RemoteFileEditorGUI:
                     # 异步加载文件内容
                     future = self._run_async(self.remote_file_editor.read_file_async(remote_path))
                     if future:
-                        future.add_done_callback(lambda f: self._show_editor_window(remote_path, f))
+                        future.add_done_callback(lambda f: self._show_enhanced_editor_window(remote_path, f))
                     else:
                         messagebox.showerror("错误", "无法加载文件内容")
                 except Exception as e:
@@ -75,81 +579,59 @@ class RemoteFileEditorGUI:
             self.logger.error(f"打开文件编辑器失败: {e}")
             messagebox.showerror("错误", f"打开文件编辑器失败: {e}")
     
-    def _show_editor_window(self, remote_path: str, future):
-        """显示编辑器窗口"""
+    def _show_enhanced_editor_window(self, remote_path: str, future):
+        """显示增强编辑器窗口"""
         try:
             content = future.result()
             
-            # 创建编辑窗口
-            editor_win = tk.Toplevel(self.parent)
-            editor_win.title(f"编辑: {os.path.basename(remote_path)}")
-            editor_win.geometry("800x600")
-            editor_win.configure(bg=self.theme.colors['bg_primary'])
+            # 创建增强文本编辑器
+            advanced_editor = AdvancedTextEditor(self.parent, self.theme, self.logger)
             
-            # 置顶并居中
-            editor_win.attributes('-topmost', True)
-            self._center_window(editor_win, 800, 600)
-            
-            # 文本区域
-            text_area = ScrolledText(editor_win, font=('Consolas', 11), wrap=tk.NONE, undo=True)
-            text_area.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-            
-            # 插入内容
-            text_area.delete('1.0', tk.END)
-            text_area.insert(tk.END, content)
-            
-            status_var = tk.StringVar(value="已加载，Ctrl+S 保存")
-            status_label = tk.Label(editor_win, textvariable=status_var, 
-                                  bg=self.theme.colors['bg_primary'], fg=self.theme.colors['text_secondary'])
-            status_label.pack(anchor='w', padx=12)
-            
-            def _save_content():
+            # 定义保存回调函数
+            def save_callback():
                 try:
-                    new_text = text_area.get('1.0', tk.END)
-                    # 移除Tkinter自动添加的末尾换行符
-                    if new_text.endswith('\n'):
-                        new_text = new_text[:-1]
-                    status_var.set("保存中...")
+                    new_text = advanced_editor.get_text_content()
+                    advanced_editor.status_var.set("保存中...")
                     
                     # 异步保存文件
                     future = self._run_async(self.remote_file_editor.write_file_async(remote_path, new_text))
                     if future:
-                        future.add_done_callback(lambda f: self._on_save_result(f, status_var, editor_win))
+                        future.add_done_callback(lambda f: self._on_save_result(f, advanced_editor))
                     else:
-                        status_var.set("保存失败")
+                        advanced_editor.status_var.set("保存失败")
                         messagebox.showerror("错误", "无法保存文件")
                 except Exception as e:
                     self.logger.error(f"保存文件失败: {e}")
-                    status_var.set("保存失败")
+                    advanced_editor.status_var.set("保存失败")
                     messagebox.showerror("错误", f"保存文件失败: {e}")
             
-            # 保存按钮
-            btn_frame = tk.Frame(editor_win, bg=self.theme.colors['bg_primary'])
-            btn_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
-            save_btn = tk.Button(btn_frame, text="💾 保存", command=_save_content, 
-                               bg=self.theme.colors['bg_button'], fg='#ffffff', relief='flat')
-            save_btn.pack(side=tk.LEFT)
+            # 创建编辑器窗口
+            editor_win = advanced_editor.create_editor_window(
+                title=f"编辑: {os.path.basename(remote_path)}",
+                content=content,
+                save_callback=save_callback
+            )
             
-            # 绑定快捷键
-            editor_win.bind('<Control-s>', lambda e: (_save_content(), 'break'))
+            # 绑定保存快捷键
+            editor_win.bind('<Control-s>', lambda e: (save_callback(), 'break'))
             
         except Exception as e:
             self.logger.error(f"显示编辑器窗口失败: {e}")
             messagebox.showerror("错误", f"显示编辑器窗口失败: {e}")
     
-    def _on_save_result(self, future, status_var, editor_win):
+    def _on_save_result(self, future, advanced_editor):
         """处理保存结果"""
         try:
             success = future.result()
             if success:
-                status_var.set("保存成功")
+                advanced_editor.status_var.set("保存成功")
                 messagebox.showinfo("成功", "文件保存成功")
             else:
-                status_var.set("保存失败")
+                advanced_editor.status_var.set("保存失败")
                 messagebox.showerror("错误", "文件保存失败")
         except Exception as e:
             self.logger.error(f"保存结果处理失败: {e}")
-            status_var.set("保存失败")
+            advanced_editor.status_var.set("保存失败")
             messagebox.showerror("错误", f"保存失败: {e}")
     
     def open_image_preview(self, remote_path: str):

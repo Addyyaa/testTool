@@ -494,15 +494,25 @@ class ModernFileTransferGUI:
         
         if self.is_refreshing:
             self.logger.warning("已有刷新任务在进行中")
-            return
+            # 检查是否超时，如果超时则重置状态
+            if hasattr(self, '_refresh_start_time'):
+                if time.time() - self._refresh_start_time > 30:  # 30秒超时
+                    self.logger.warning("刷新任务超时，重置状态")
+                    self.is_refreshing = False
+                    self.root.after(0, lambda: self.directory_panel.set_refresh_status(False))
+                else:
+                    return
+            else:
+                return
             
         threading.Thread(target=self._refresh_directory_async, daemon=True).start()
     
     def _refresh_directory_async(self):
         """异步刷新目录"""
         try:
-            # 设置刷新状态
+            # 设置刷新状态和开始时间
             self.is_refreshing = True
+            self._refresh_start_time = time.time()
             self.refresh_pending = False
             
             # 更新UI状态
@@ -558,6 +568,8 @@ class ModernFileTransferGUI:
         finally:
             # 重置刷新状态
             self.is_refreshing = False
+            if hasattr(self, '_refresh_start_time'):
+                del self._refresh_start_time
             
             # 更新UI状态
             self.root.after(0, lambda: self.directory_panel.set_refresh_status(False))

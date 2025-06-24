@@ -190,8 +190,28 @@ class IPHistoryManager:
         try:
             suggestions = []
             
-            for record in self.history_data['ip_history']:
-                ip = record['ip']
+            # 确保history_data和ip_history存在
+            if not isinstance(self.history_data, dict):
+                self.logger.warning("history_data不是字典格式，重新初始化")
+                self._init_default_data()
+                return []
+            
+            ip_history = self.history_data.get('ip_history', [])
+            if not isinstance(ip_history, list):
+                self.logger.warning("ip_history不是列表格式，重新初始化")
+                self.history_data['ip_history'] = []
+                return []
+            
+            for record in ip_history:
+                # 验证记录格式
+                if not isinstance(record, dict):
+                    self.logger.warning(f"跳过无效的记录格式: {type(record)} - {record}")
+                    continue
+                
+                ip = record.get('ip')
+                if not ip or not isinstance(ip, str):
+                    self.logger.warning(f"跳过无效的IP记录: {record}")
+                    continue
                 
                 # 过滤匹配的IP
                 if not partial_ip or ip.startswith(partial_ip):
