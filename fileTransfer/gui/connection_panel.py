@@ -15,7 +15,7 @@ import os
 
 # 添加父目录到系统路径以支持导入
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from ip_history_manager import IPHistoryManager
+from fileTransfer.ip_history_manager import IPHistoryManager
 
 
 class ConnectionPanel:

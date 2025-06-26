@@ -17,10 +17,8 @@ Version: 1.0
 
 import json
 import os
-import logging
 from datetime import datetime
-from typing import List, Dict, Optional, Tuple
-from pathlib import Path
+from typing import List, Dict, Optional
 from fileTransfer.logger_utils import get_logger
 
 

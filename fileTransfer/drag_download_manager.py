@@ -11,8 +11,7 @@ import os
 import threading
 import tempfile
 from typing import List, Dict, Any, Optional, Callable
-from pathlib import Path
-import requests
+
 
 from fileTransfer.logger_utils import get_logger
 

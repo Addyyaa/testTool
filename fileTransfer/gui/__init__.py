@@ -12,6 +12,6 @@
 - styles: 样式配置
 """
 
-from .main_window import ModernFileTransferGUI
+from fileTransfer.gui.main_window import ModernFileTransferGUI
 
 __all__ = ['ModernFileTransferGUI'] 

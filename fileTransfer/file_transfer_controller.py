@@ -7,10 +7,6 @@
 """
 
 import asyncio
-import os
-import tempfile
-import urllib.parse
-import urllib.request
 from typing import Optional, Any
 import logging
 from fileTransfer.logger_utils import get_logger

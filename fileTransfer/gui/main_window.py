@@ -22,21 +22,17 @@ import re
 # 添加父目录到系统路径
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from telnetTool.telnetConnect import CustomTelnetClient
-
-# 修复相对导入
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from http_server import FileHTTPServer
-from file_transfer_controller import RemoteFileEditor
-from ip_history_manager import IPHistoryManager
-from logger_utils import get_logger
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from fileTransfer.http_server import FileHTTPServer
+from fileTransfer.logger_utils import get_logger
 
 # 导入组件模块
-from .styles import ModernTheme
-from .connection_panel import ConnectionPanel
-from .directory_panel import DirectoryPanel
-from .transfer_panel import TransferPanel
-from .file_editor import RemoteFileEditorGUI
-from ..drag_download_manager import DragDownloadManager
+from fileTransfer.gui.styles import ModernTheme
+from fileTransfer.gui.connection_panel import ConnectionPanel
+from fileTransfer.gui.directory_panel import DirectoryPanel
+from fileTransfer.gui.transfer_panel import TransferPanel
+from fileTransfer.gui.file_editor import RemoteFileEditorGUI
+from fileTransfer.drag_download_manager import DragDownloadManager
 
 
 class ModernFileTransferGUI:

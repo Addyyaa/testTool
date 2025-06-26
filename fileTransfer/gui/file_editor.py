@@ -8,18 +8,16 @@
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import messagebox
 from tkinter.scrolledtext import ScrolledText
 import os
 import sys
 import asyncio
 import re
-from datetime import datetime
-from typing import Optional, Any, List, Dict
 
 # 添加父目录到系统路径以支持导入
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from file_transfer_controller import RemoteFileEditor
+from fileTransfer.file_transfer_controller import RemoteFileEditor
 
 
 class AdvancedTextEditor:
