@@ -587,7 +587,7 @@ class ModernFileTransferGUI:
             self._refresh_directory()
     
     async def _get_directory_listing(self, path):
-        """获取目录列表"""
+        """获取目录列表 - 修复版本，简化目录检查逻辑"""
         try:
             normalized_path = self._normalize_unix_path(path)
             self.logger.info(f"获取目录列表: '{path}' -> '{normalized_path}'")
@@ -598,44 +598,67 @@ class ModernFileTransferGUI:
             
             # 使用锁保护telnet连接
             async with self.telnet_lock:
-                # 检查路径是否存在
-                exist_result = await self.telnet_client.execute_command(f'test -e "{normalized_path}" && echo "EXISTS" || echo "NOT_EXISTS"')
+                # 简化逻辑：直接尝试创建目录（如果已存在会被忽略）
+                self.logger.debug(f"确保目录存在: {normalized_path}")
+                mkdir_result = await self.telnet_client.execute_command(f'mkdir -p "{normalized_path}" 2>/dev/null; echo "MKDIR_DONE"')
+                self.logger.debug(f"mkdir命令结果: {repr(mkdir_result)}")
                 
-                if "NOT_EXISTS" in exist_result:
-                    self.logger.warning(f"路径 {normalized_path} 不存在")
-                    # 尝试创建目录
-                    self.logger.info(f"尝试创建目录: {normalized_path}")
-                    mkdir_result = await self.telnet_client.execute_command(f'mkdir -p "{normalized_path}"')
-                    
-                    # 再次检查是否创建成功
-                    exist_check = await self.telnet_client.execute_command(f'test -d "{normalized_path}" && echo "CREATED" || echo "CREATE_FAILED"')
-                    if "CREATE_FAILED" in exist_check:
-                        self.logger.error(f"无法创建目录: {normalized_path}")
-                        return []
-                    else:
-                        self.logger.info(f"成功创建目录: {normalized_path}")
-                
-                # 检查路径是否是目录
-                test_result = await self.telnet_client.execute_command(f'test -d "{normalized_path}" && echo "IS_DIR" || echo "NOT_DIR"')
-                
-                if "NOT_DIR" in test_result:
-                    self.logger.warning(f"路径 {normalized_path} 存在但不是目录")
-                    return []
-                
-                # 尝试使用带颜色的ls命令
-                ls_cmd = f'ls -la --color=always "{normalized_path}"'
+                # 最终检查：尝试列出目录内容
+                ls_cmd = f'ls -la --color=always "{normalized_path}" 2>/dev/null'
                 self.logger.debug(f"执行ls命令: {ls_cmd}")
                 result = await self.telnet_client.execute_command(ls_cmd)
-                self.logger.debug(f"ls命令原始输出: {repr(result)}")
+                self.logger.debug(f"ls命令原始输出长度: {len(result)} 字符")
+                
+                # 如果ls命令没有输出或者出错，再尝试一次基本的目录检查
+                if not result or len(result.strip()) < 10:
+                    self.logger.warning(f"ls命令输出异常，尝试基本检查: {repr(result)}")
+                    
+                    # 检查目录是否真的存在
+                    check_cmd = f'test -d "{normalized_path}" && echo "DIR_EXISTS" || echo "DIR_NOT_EXISTS"'
+                    check_result = await self.telnet_client.execute_command(check_cmd)
+                    self.logger.info(f"目录存在性检查: {check_result}")
+                    
+                    if "DIR_NOT_EXISTS" in check_result:
+                        self.logger.error(f"目录不存在且无法创建: {normalized_path}")
+                        # 检查父目录状态
+                        parent_path = self._get_unix_parent_path(normalized_path)
+                        parent_info = await self.telnet_client.execute_command(f'ls -la "{parent_path}" 2>&1')
+                        self.logger.error(f"父目录信息: {parent_info}")
+                        return []
+                    else:
+                        # 目录存在但ls失败，可能是权限问题或目录为空
+                        self.logger.warning(f"目录存在但ls命令失败，返回空列表")
+                        return []
             
             # 解析目录内容
             items = self._parse_directory_output(result, path)
-            self.logger.debug(f"解析得到 {len(items)} 个项目")
+            self.logger.info(f"最终解析得到 {len(items)} 个项目")
             return items
             
         except Exception as e:
             self.logger.error(f"获取目录列表失败: {str(e)}")
+            import traceback
+            self.logger.error(f"详细错误信息: {traceback.format_exc()}")
             return []
+    
+    def _get_unix_parent_path(self, path: str) -> str:
+        """获取Unix风格的父路径"""
+        if path == '/':
+            return '/'
+        
+        path = path.replace('\\', '/')
+        path = path.rstrip('/')
+        
+        if not path:
+            return '/'
+        
+        last_slash = path.rfind('/')
+        if last_slash == -1:
+            return '/'
+        elif last_slash == 0:
+            return '/'
+        else:
+            return path[:last_slash]
     
     def _parse_directory_output(self, output: str, base_path: str) -> List[Dict[str, Any]]:
         """解析目录输出"""
@@ -737,10 +760,18 @@ class ModernFileTransferGUI:
             self.logger.error(f"删除结果处理失败: {e}")
     
     def _on_delete_success(self, filename: str):
-        """删除成功"""
+        """删除成功 - 增强版本，添加延迟刷新"""
         self.logger.info(f"文件删除成功: {filename}")
         self._update_status(f"文件删除成功: {filename}")
-        self._refresh_directory()
+        
+        # 延迟刷新目录，避免时序问题
+        def delayed_refresh():
+            if self.is_connected and not self.is_refreshing:
+                self.logger.info("执行删除后的延迟刷新")
+                self._refresh_directory()
+        
+        # 500ms后刷新，确保文件系统状态同步
+        threading.Timer(0.5, delayed_refresh).start()
     
     def _on_delete_failed(self, filename: str):
         """删除失败"""
@@ -910,7 +941,7 @@ class ModernFileTransferGUI:
         return success_count
     
     async def _transfer_single_file_async(self, local_file: str, remote_path: str, filename: str):
-        """异步传输单个文件"""
+        """异步传输单个文件 - 增强版本，确保目录存在"""
         try:
             if not self.http_server:
                 self.logger.error("HTTP服务器未启动")
@@ -927,28 +958,59 @@ class ModernFileTransferGUI:
             actual_filename = os.path.basename(server_file_path)
             
             # 获取下载URL
-            host_ip = self._get_local_ip()
-            download_url = self.http_server.get_download_url(actual_filename, host_ip)
+            download_url = self.http_server.get_download_url(actual_filename)
             self.logger.info(f"生成下载URL: {download_url}")
             
-            # 通过telnet下载
-            result = await self._download_via_telnet(download_url, remote_path, actual_filename)
+            if not download_url:
+                self.logger.error("无法获取下载URL")
+                return False
             
-            # 延迟清理临时文件，避免Windows文件占用问题
+            # 确保远程目录存在
+            normalized_remote_path = self._normalize_unix_path(remote_path)
+            self.logger.info(f"确保远程目录存在: {normalized_remote_path}")
+            
+            # 创建目录（如果不存在）
+            mkdir_cmd = f'mkdir -p "{normalized_remote_path}"'
+            mkdir_result = await self.telnet_client.execute_command(mkdir_cmd)
+            self.logger.debug(f"创建目录结果: {mkdir_result}")
+            
+            # 等待目录创建完成
+            await asyncio.sleep(0.1)
+            
+            # 验证目录是否创建成功
+            dir_check = await self.telnet_client.execute_command(f'test -d "{normalized_remote_path}" && echo "DIR_OK" || echo "DIR_FAILED"')
+            if "DIR_FAILED" in dir_check:
+                self.logger.error(f"无法创建或访问远程目录: {normalized_remote_path}")
+                return False
+            
+            # 切换到远程目录
+            self.logger.info(f"切换到远程目录: {normalized_remote_path}")
+            cd_result = await self.telnet_client.execute_command(f'cd "{normalized_remote_path}"')
+            
+            # 执行下载
+            download_success = await self._download_via_telnet(download_url, normalized_remote_path, actual_filename)
+            
+            if download_success:
+                # 检查并设置可执行权限（如果是二进制文件）
+                await self._check_and_set_executable_permission(actual_filename, normalized_remote_path)
+            
+            # 延迟清理HTTP服务器文件
             def delayed_cleanup():
-                import time
-                time.sleep(2)  # 等待2秒确保文件不再被占用
                 try:
-                    self.http_server.remove_file(actual_filename)
+                    if self.http_server:
+                        self.http_server.remove_file(actual_filename)
                 except Exception as cleanup_error:
-                    self.logger.warning(f"延迟清理临时文件失败: {cleanup_error}")
+                    self.logger.error(f"清理HTTP文件失败: {cleanup_error}")
             
-            threading.Thread(target=delayed_cleanup, daemon=True).start()
+            # 3秒后清理
+            threading.Timer(3.0, delayed_cleanup).start()
             
-            return result
+            return download_success
             
         except Exception as e:
-            self.logger.error(f"异步传输文件失败: {str(e)}")
+            self.logger.error(f"传输文件失败: {str(e)}")
+            import traceback
+            self.logger.error(f"详细错误信息: {traceback.format_exc()}")
             return False
     
     async def _download_via_telnet(self, download_url: str, remote_path: str, filename: str):
