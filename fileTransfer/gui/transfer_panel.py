@@ -379,8 +379,9 @@ class TransferPanel:
         self.file_path_mapping.clear()
         self._update_queue_count()
         
-        if self.on_clear_queue_callback:
-            self.on_clear_queue_callback()
+        # 移除递归调用 - 回调应该由外部调用方决定是否执行
+        # if self.on_clear_queue_callback:
+        #     self.on_clear_queue_callback()
     
     def _start_transfer(self):
         """开始传输"""

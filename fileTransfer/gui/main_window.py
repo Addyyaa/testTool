@@ -607,7 +607,8 @@ class ModernFileTransferGUI:
                 ls_cmd = f'ls -la --color=always "{normalized_path}" 2>/dev/null'
                 self.logger.debug(f"执行ls命令: {ls_cmd}")
                 result = await self.telnet_client.execute_command(ls_cmd)
-                self.logger.debug(f"ls命令原始输出长度: {len(result)} 字符")
+                self.logger.info(f"ls命令原始输出长度: {len(result)} 字符")
+                self.logger.info(f"ls命令原始输出内容: {repr(result)}")
                 
                 # 如果ls命令没有输出或者出错，再尝试一次基本的目录检查
                 if not result or len(result.strip()) < 10:
@@ -667,7 +668,8 @@ class ModernFileTransferGUI:
             # 清理ANSI转义序列
             cleaned_result = self._clean_ansi_codes(output)
             lines = cleaned_result.strip().split('\n')
-            self.logger.debug(f"清理后的输出行数: {len(lines)}")
+            self.logger.info(f"清理后的输出行数: {len(lines)}")
+            self.logger.info(f"清理后的输出内容: {repr(cleaned_result)}")
             
             for i, line in enumerate(lines):
                 line = line.strip()
@@ -877,6 +879,12 @@ class ModernFileTransferGUI:
     
     def _clear_transfer_queue(self):
         """清空传输队列"""
+        if hasattr(self, 'transfer_panel') and self.transfer_panel:
+            # 直接清空队列，不触发回调避免递归
+            self.transfer_panel.queue_listbox.delete(0, tk.END)
+            self.transfer_panel.file_path_mapping.clear()
+            self.transfer_panel._update_queue_count()
+            self.logger.info("传输队列已清空")
         self._update_status("队列已清空")
     
     def _start_transfer(self):
@@ -896,8 +904,9 @@ class ModernFileTransferGUI:
             messagebox.showerror("错误", "HTTP服务器未启动，无法进行文件传输")
             return
         
-        self.logger.info(f"开始传输 {len(transfer_tasks)} 个文件")
-        self.transfer_panel.update_transfer_button_state(False, '传输中...')
+        self.logger.info(f"🚀 开始传输 {len(transfer_tasks)} 个文件到目录: {self.current_remote_path}")
+        self._update_status(f"开始传输 {len(transfer_tasks)} 个文件...")
+        self.transfer_panel.update_transfer_button_state(False, '🔄 传输中...')
         threading.Thread(target=self._transfer_files_async, args=(transfer_tasks,), daemon=True).start()
     
     def _transfer_files_async(self, transfer_tasks: List[tuple]):
@@ -932,11 +941,18 @@ class ModernFileTransferGUI:
                 async with self.telnet_lock:
                     if await self._transfer_single_file_async(local_file, remote_path, filename):
                         success_count += 1
-                        self.logger.info(f"文件传输成功: {filename}")
+                        self.logger.info(f"✅ 文件传输成功: {filename} ({i}/{len(transfer_tasks)})")
+                        # 在UI中显示进度
+                        self.root.after(0, lambda f=filename, n=i, t=len(transfer_tasks): 
+                                       self._update_status(f"已完成: {f} ({n}/{t})"))
                     else:
-                        self.logger.error(f"文件传输失败: {filename}")
+                        self.logger.error(f"❌ 文件传输失败: {filename} ({i}/{len(transfer_tasks)})")
+                        # 在UI中显示失败信息
+                        self.root.after(0, lambda f=filename, n=i, t=len(transfer_tasks): 
+                                       self._update_status(f"传输失败: {f} ({n}/{t})"))
             except Exception as e:
-                self.logger.error(f"传输文件 {filename} 时出错: {str(e)}")
+                self.logger.error(f"💥 传输文件 {filename} 时出错: {str(e)}")
+                self.root.after(0, lambda f=filename: self._update_status(f"传输出错: {f}"))
         
         return success_count
     
@@ -969,19 +985,24 @@ class ModernFileTransferGUI:
             normalized_remote_path = self._normalize_unix_path(remote_path)
             self.logger.info(f"确保远程目录存在: {normalized_remote_path}")
             
-            # 创建目录（如果不存在）
-            mkdir_cmd = f'mkdir -p "{normalized_remote_path}"'
+            # 简化逻辑：直接创建目录并尝试访问
+            mkdir_cmd = f'mkdir -p "{normalized_remote_path}" 2>/dev/null; echo "MKDIR_DONE"'
             mkdir_result = await self.telnet_client.execute_command(mkdir_cmd)
-            self.logger.debug(f"创建目录结果: {mkdir_result}")
+            self.logger.debug(f"创建目录结果: {repr(mkdir_result)}")
             
-            # 等待目录创建完成
-            await asyncio.sleep(0.1)
+            # 验证目录是否可访问（通过ls命令）
+            ls_check = await self.telnet_client.execute_command(f'ls -la "{normalized_remote_path}" 2>/dev/null | head -1')
+            self.logger.debug(f"目录访问检查: {repr(ls_check)}")
             
-            # 验证目录是否创建成功
-            dir_check = await self.telnet_client.execute_command(f'test -d "{normalized_remote_path}" && echo "DIR_OK" || echo "DIR_FAILED"')
-            if "DIR_FAILED" in dir_check:
+            # 如果ls命令没有输出，说明目录不存在或不可访问
+            if not ls_check or len(ls_check.strip()) < 5:
                 self.logger.error(f"无法创建或访问远程目录: {normalized_remote_path}")
+                # 尝试获取更详细的错误信息
+                error_info = await self.telnet_client.execute_command(f'ls -la "{normalized_remote_path}" 2>&1')
+                self.logger.error(f"详细错误信息: {error_info}")
                 return False
+            else:
+                self.logger.info(f"成功确认目录可访问: {normalized_remote_path}")
             
             # 切换到远程目录
             self.logger.info(f"切换到远程目录: {normalized_remote_path}")
@@ -993,6 +1014,16 @@ class ModernFileTransferGUI:
             if download_success:
                 # 检查并设置可执行权限（如果是二进制文件）
                 await self._check_and_set_executable_permission(actual_filename, normalized_remote_path)
+                
+                # 验证文件是否真的存在
+                verify_cmd = f'ls -la "{normalized_remote_path}/{actual_filename}"'
+                verify_result = await self.telnet_client.execute_command(verify_cmd)
+                self.logger.info(f"传输后文件验证: {verify_result.strip()}")
+                
+                # 同时检查目录内容
+                dir_check_cmd = f'ls -la "{normalized_remote_path}"'
+                dir_check_result = await self.telnet_client.execute_command(dir_check_cmd)
+                self.logger.info(f"传输后目录内容: {repr(dir_check_result)}")
             
             # 延迟清理HTTP服务器文件
             def delayed_cleanup():
@@ -1102,19 +1133,54 @@ class ModernFileTransferGUI:
     
     def _on_transfer_complete(self, success_count: int, total_count: int):
         """传输完成"""
-        self.transfer_panel.update_transfer_button_state(True, '▶️ 开始')
+        self.logger.info(f"传输完成回调触发: 成功={success_count}, 总数={total_count}")
+        self.transfer_panel.update_transfer_button_state(True, '▶️ 开始传输')
         
-        if success_count == total_count:
-            messagebox.showinfo("传输完成", f"成功传输 {success_count} 个文件")
-        else:
-            messagebox.showwarning("传输完成", f"成功: {success_count}, 失败: {total_count - success_count}")
-        
-        self._clear_transfer_queue()
+        try:
+            if success_count == total_count and total_count > 0:
+                # 全部传输成功，清空队列并自动刷新目录
+                self.logger.info("全部文件传输成功，显示成功提示并清空队列")
+                
+                # 先显示成功提示
+                success_msg = f"🎉 传输完成！\n\n✅ 成功传输 {success_count} 个文件\n📂 传输目录: {self.current_remote_path}\n🗑️ 传输队列已自动清空"
+                messagebox.showinfo("传输成功", success_msg)
+                
+                # 然后清空队列和刷新目录
+                self._clear_transfer_queue()
+                self._refresh_directory()
+                
+            elif success_count > 0:
+                # 部分传输成功，询问是否清空队列
+                self.logger.info(f"部分传输成功: {success_count}/{total_count}")
+                
+                partial_msg = f"⚠️ 传输部分完成\n\n✅ 成功: {success_count} 个文件\n❌ 失败: {total_count - success_count} 个文件\n\n是否清空传输队列？\n（选择'否'可保留失败文件重新传输）"
+                result = messagebox.askyesnocancel("传输部分完成", partial_msg)
+                
+                if result is True:  # 选择是
+                    self.logger.info("用户选择清空传输队列")
+                    self._clear_transfer_queue()
+                elif result is False:  # 选择否
+                    self.logger.info("用户选择保留失败的文件在队列中")
+                # 选择取消则不做任何操作
+                
+            else:
+                # 全部传输失败，不清空队列
+                self.logger.error(f"全部文件传输失败: {total_count} 个文件")
+                
+                fail_msg = f"❌ 传输失败\n\n🔥 所有 {total_count} 个文件传输失败\n📋 队列保持不变，可重新尝试传输\n\n建议检查:\n• 网络连接是否正常\n• 远程目录权限\n• 文件是否被占用"
+                messagebox.showerror("传输失败", fail_msg)
+                
+        except Exception as e:
+            self.logger.error(f"传输完成处理出错: {e}")
+            messagebox.showerror("错误", f"传输完成处理出错:\n{str(e)}")
     
     def _on_transfer_error(self, error_msg: str):
         """传输错误"""
-        self.transfer_panel.update_transfer_button_state(True, '▶️ 开始')
-        messagebox.showerror("传输错误", f"传输时出错:\n{error_msg}")
+        self.logger.error(f"传输过程发生错误: {error_msg}")
+        self.transfer_panel.update_transfer_button_state(True, '▶️ 开始传输')
+        
+        error_detail = f"💥 传输过程发生错误\n\n❌ 错误信息:\n{error_msg}\n\n🔧 建议:\n• 检查网络连接\n• 确认设备状态\n• 重新尝试传输"
+        messagebox.showerror("传输错误", error_detail)
     
     # 工具方法
     def _update_status(self, message: str):
