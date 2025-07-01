@@ -218,6 +218,7 @@ class DragDownloadManager:
         """
         try:
             import requests
+            import asyncio
             
             self.logger.info(f"开始从远程设备下载文件: {task.remote_file_path}")
             
@@ -229,6 +230,30 @@ class DragDownloadManager:
             remote_ip = getattr(self.telnet_client, 'host', None)
             if not remote_ip:
                 raise Exception("无法获取远程设备IP地址")
+            
+            # 确保远程设备httpd服务已启动
+            self.logger.info("检查并启动远程设备httpd服务...")
+            try:
+                # 使用同步方式调用异步方法
+                if self.event_loop and self.telnet_lock:
+                    # 在异步事件循环中运行
+                    if asyncio.get_event_loop() != self.event_loop:
+                        # 当前不在事件循环中，使用 asyncio.run_coroutine_threadsafe
+                        future = asyncio.run_coroutine_threadsafe(
+                            self._ensure_httpd_service_async(), self.event_loop
+                        )
+                        future.result(timeout=30)  # 等待最多30秒
+                    else:
+                        # 当前在事件循环中，直接await
+                        asyncio.create_task(self._ensure_httpd_service_async())
+                else:
+                    # 降级到同步方式检查httpd服务
+                    self._ensure_httpd_service_sync()
+                    
+                self.logger.info("httpd服务检查完成")
+            except Exception as e:
+                self.logger.warning(f"启动httpd服务时出现异常: {e}")
+                self.logger.info("继续尝试下载，可能httpd服务已经在运行...")
             
             # 构建远程HTTP下载URL
             import urllib.parse
@@ -299,6 +324,70 @@ class DragDownloadManager:
             task.error_message = f"下载文件时发生错误: {str(e)}"
             self.logger.error(task.error_message)
             return False
+    
+    async def _ensure_httpd_service_async(self):
+        """异步方式确保远端根目录httpd服务已启动"""
+        try:
+            async with self.telnet_lock:
+                # 检查httpd进程
+                ps_res = await self.telnet_client.execute_command("pidof httpd")
+                need_restart = True
+                if ps_res.strip():
+                    # 进程存在，检查工作目录是否为/
+                    pid = ps_res.strip()
+                    cwd_cmd = f'readlink -f /proc/{pid}/cwd'
+                    cwd = await self.telnet_client.execute_command(cwd_cmd)
+                    cwd = cwd.strip()
+                    self.logger.info(f"httpd当前工作目录: {cwd}")
+                    if cwd == "/" or cwd == "":
+                        need_restart = False
+                        self.logger.info("httpd服务已在根目录运行")
+                
+                if need_restart:
+                    self.logger.info("重新启动httpd服务以确保位于根目录...")
+                    await self.telnet_client.execute_command('killall -9 httpd || true')
+                    # 等待进程完全停止
+                    await asyncio.sleep(1)
+                    await self.telnet_client.execute_command('cd / && httpd -p 88')
+                    # 等待服务启动
+                    await asyncio.sleep(2)
+                    self.logger.info("httpd服务已重新启动")
+                    
+        except Exception as e:
+            self.logger.error(f"确保httpd服务时出错: {e}")
+            raise
+    
+    def _ensure_httpd_service_sync(self):
+        """同步方式确保远端httpd服务已启动（降级方案）"""
+        try:
+            import subprocess
+            import telnetlib
+            
+            # 获取远程设备IP
+            remote_ip = getattr(self.telnet_client, 'host', None)
+            if not remote_ip:
+                raise Exception("无法获取远程设备IP地址")
+            
+            self.logger.info(f"同步方式检查httpd服务: {remote_ip}")
+            
+            # 简单检查88端口是否可访问
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(5)
+            result = sock.connect_ex((remote_ip, 88))
+            sock.close()
+            
+            if result == 0:
+                self.logger.info("httpd服务端口88已可访问")
+                return
+            
+            self.logger.info("httpd服务端口88不可访问，尝试启动服务...")
+            # 注意：这里需要有其他方式启动httpd，或者给用户提示
+            raise Exception("httpd服务未启动，需要手动在远程设备上执行: cd / && httpd -p 88")
+            
+        except Exception as e:
+            self.logger.error(f"同步检查httpd服务失败: {e}")
+            raise
     
     def get_download_status(self) -> Dict[str, Any]:
         """获取下载状态

@@ -360,6 +360,9 @@ class ModernFileTransferGUI:
             # 启用拖拽下载功能
             self.directory_panel.enable_drag_download()
             
+            # 确保远程设备httpd服务已启动
+            self.root.after(1000, self._ensure_remote_httpd_service)
+            
             # 更新状态
             self._update_status(f"成功连接到 {current_ip}")
             
@@ -376,6 +379,72 @@ class ModernFileTransferGUI:
             
         except Exception as e:
             self.logger.error(f"连接成功处理过程中出错: {e}")
+    
+    def _ensure_remote_httpd_service(self):
+        """确保远程设备httpd服务已启动"""
+        if not self.is_connected or not self.telnet_client:
+            return
+            
+        try:
+            self.logger.info("检查远程设备httpd服务状态...")
+            self._update_status("检查远程httpd服务...")
+            
+            # 创建异步任务来启动httpd服务
+            async def start_httpd_task():
+                try:
+                    async with self.telnet_lock:
+                        # 检查httpd进程
+                        ps_res = await self.telnet_client.execute_command("pidof httpd")
+                        need_restart = True
+                        
+                        if ps_res.strip():
+                            # 进程存在，检查工作目录是否为/
+                            pid = ps_res.strip()
+                            cwd_cmd = f'readlink -f /proc/{pid}/cwd 2>/dev/null || echo "/"'
+                            cwd = await self.telnet_client.execute_command(cwd_cmd)
+                            cwd = cwd.strip()
+                            self.logger.info(f"httpd当前工作目录: {cwd}")
+                            
+                            if cwd == "/" or cwd == "" or "/ #" in cwd:
+                                need_restart = False
+                                self.logger.info("httpd服务已在根目录运行")
+                                self.root.after(0, lambda: self._update_status("httpd服务运行正常，拖拽下载功能可用"))
+                        
+                        if need_restart:
+                            self.logger.info("重新启动httpd服务以确保位于根目录...")
+                            self.root.after(0, lambda: self._update_status("正在启动远程httpd服务..."))
+                            
+                            # 停止现有的httpd进程
+                            await self.telnet_client.execute_command('killall -9 httpd 2>/dev/null || true')
+                            await asyncio.sleep(1)
+                            
+                            # 启动httpd服务在根目录
+                            await self.telnet_client.execute_command('cd / && httpd -p 88 &')
+                            await asyncio.sleep(2)
+                            
+                            # 验证服务是否启动成功
+                            ps_check = await self.telnet_client.execute_command("pidof httpd")
+                            if ps_check.strip():
+                                self.logger.info("远程httpd服务启动成功")
+                                self.root.after(0, lambda: self._update_status("远程httpd服务启动成功，拖拽下载功能已可用"))
+                            else:
+                                self.logger.warning("远程httpd服务启动失败")
+                                self.root.after(0, lambda: self._update_status("远程httpd服务启动失败，拖拽下载功能可能不可用"))
+                                
+                except Exception as e:
+                    self.logger.error(f"启动远程httpd服务时出错: {e}")
+                    self.root.after(0, lambda: self._update_status(f"启动远程httpd服务失败: {str(e)}"))
+            
+            # 在异步循环中执行任务
+            if self.loop:
+                asyncio.run_coroutine_threadsafe(start_httpd_task(), self.loop)
+            else:
+                self.logger.warning("没有可用的事件循环，无法启动远程httpd服务")
+                self._update_status("无法启动远程httpd服务：缺少事件循环")
+                
+        except Exception as e:
+            self.logger.error(f"确保远程httpd服务时出错: {e}")
+            self._update_status(f"检查远程httpd服务失败: {str(e)}")
     
     def _on_connect_failed(self, error_msg: str):
         """连接失败"""
@@ -583,7 +652,7 @@ class ModernFileTransferGUI:
             self._refresh_directory()
     
     async def _get_directory_listing(self, path):
-        """获取目录列表 - 修复版本，简化目录检查逻辑"""
+        """获取目录列表 - 增强版本，改进命令执行和错误处理"""
         try:
             normalized_path = self._normalize_unix_path(path)
             self.logger.info(f"获取目录列表: '{path}' -> '{normalized_path}'")
@@ -594,37 +663,121 @@ class ModernFileTransferGUI:
             
             # 使用锁保护telnet连接
             async with self.telnet_lock:
+                # 先检查当前工作目录
+                pwd_result = await self.telnet_client.execute_command('pwd', timeout=10)
+                self.logger.debug(f"当前工作目录: {repr(pwd_result)}")
+                
                 # 简化逻辑：直接尝试创建目录（如果已存在会被忽略）
                 self.logger.debug(f"确保目录存在: {normalized_path}")
-                mkdir_result = await self.telnet_client.execute_command(f'mkdir -p "{normalized_path}" 2>/dev/null; echo "MKDIR_DONE"')
+                mkdir_cmd = f'mkdir -p "{normalized_path}" 2>/dev/null; echo "MKDIR_DONE"'
+                mkdir_result = await self.telnet_client.execute_command(mkdir_cmd, timeout=15)
                 self.logger.debug(f"mkdir命令结果: {repr(mkdir_result)}")
                 
-                # 最终检查：尝试列出目录内容
-                ls_cmd = f'ls -la --color=always "{normalized_path}" 2>/dev/null'
-                self.logger.debug(f"执行ls命令: {ls_cmd}")
-                result = await self.telnet_client.execute_command(ls_cmd)
-                self.logger.info(f"ls命令原始输出长度: {len(result)} 字符")
-                self.logger.info(f"ls命令原始输出内容: {repr(result)}")
+                # 尝试多种ls命令变体，找到能工作的版本
+                ls_commands = [
+                    f'cd "{normalized_path}" && ls -la . 2>/dev/null || echo "LS_FAILED"',
+                    f'ls -la "{normalized_path}" 2>/dev/null || echo "LS_FAILED"',
+                    f'ls -l "{normalized_path}" 2>/dev/null || echo "LS_FAILED"', 
+                    f'ls -a "{normalized_path}" 2>/dev/null || echo "LS_FAILED"',
+                    f'find "{normalized_path}" -maxdepth 1 -ls 2>/dev/null || echo "LS_FAILED"'
+                ]
                 
-                # 如果ls命令没有输出或者出错，再尝试一次基本的目录检查
+                result = ""
+                for i, ls_cmd in enumerate(ls_commands):
+                    self.logger.debug(f"尝试ls命令变体 {i+1}: {ls_cmd}")
+                    try:
+                        # 等待一小段时间，确保命令执行完成
+                        await asyncio.sleep(0.1)
+                        result = await self.telnet_client.execute_command(ls_cmd, timeout=25)
+                        self.logger.info(f"ls命令变体{i+1}输出长度: {len(result)} 字符")
+                        self.logger.info(f"ls命令变体{i+1}输出内容: {repr(result[:300])}")  # 显示前300字符
+                        
+                        # 检查是否是有效输出（不只是命令提示符或错误信息）
+                        cleaned_result = result.strip()
+                        lines = cleaned_result.split('\n')
+                        # 过滤掉命令提示符行
+                        content_lines = []
+                        for line in lines:
+                            stripped_line = line.strip()
+                            if (stripped_line and 
+                                not stripped_line.startswith('/ #') and 
+                                not stripped_line.endswith('/ #') and
+                                '/ #' != stripped_line):
+                                content_lines.append(line)
+                        
+                        # 检查是否包含有效的文件/目录信息
+                        has_content = False
+                        if content_lines:
+                            # 检查是否包含常见的目录名或文件信息
+                            content_text = ' '.join(content_lines).lower()
+                            common_dirs = ['bin', 'etc', 'var', 'usr', 'tmp', 'home', 'root', 'dev', 'proc', 'sys']
+                            file_indicators = ['drwx', '-rw', 'total', ':', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+                            
+                            if any(dir_name in content_text for dir_name in common_dirs) or \
+                               any(indicator in content_text for indicator in file_indicators):
+                                has_content = True
+                        
+                        if (cleaned_result and 
+                            len(cleaned_result) > 10 and 
+                            'LS_FAILED' not in cleaned_result and
+                            has_content and
+                            len(content_lines) > 0):
+                            self.logger.info(f"ls命令变体{i+1}成功，内容行数: {len(content_lines)}")
+                            # 对于简化格式的ls输出，需要特殊处理
+                            # 索引: 0=cd+ls -la, 1=ls -la, 2=ls -l, 3=ls -a, 4=find
+                            if i >= 2:  # ls -l, ls -a 或 find 命令可能是简化格式
+                                # 检查是否确实是简化格式（没有详细权限信息）
+                                is_simple_format = True
+                                for line in content_lines[:3]:  # 检查前几行
+                                    if line.strip().startswith(('drwx', '-rw', 'total')):
+                                        is_simple_format = False
+                                        break
+                                
+                                if is_simple_format:
+                                    self.logger.info("检测到简化格式的ls输出，进行特殊解析")
+                                    result = self._convert_simple_ls_to_detailed(result, normalized_path)
+                            break
+                        else:
+                            self.logger.warning(f"ls命令变体{i+1}输出无效: 内容行数={len(content_lines)}, 有内容={has_content}")
+                            self.logger.debug(f"输出内容: {repr(cleaned_result[:200])}")
+                            result = ""
+                    except asyncio.TimeoutError:
+                        self.logger.warning(f"ls命令变体{i+1}超时")
+                        result = ""
+                    except Exception as e:
+                        self.logger.warning(f"ls命令变体{i+1}异常: {e}")
+                        result = ""
+                
+                # 如果所有ls命令都失败，进行最终检查
                 if not result or len(result.strip()) < 10:
-                    self.logger.warning(f"ls命令输出异常，尝试基本检查: {repr(result)}")
+                    self.logger.warning(f"所有ls命令变体都失败，进行目录存在性检查")
                     
                     # 检查目录是否真的存在
                     check_cmd = f'test -d "{normalized_path}" && echo "DIR_EXISTS" || echo "DIR_NOT_EXISTS"'
-                    check_result = await self.telnet_client.execute_command(check_cmd)
-                    self.logger.info(f"目录存在性检查: {check_result}")
-                    
-                    if "DIR_NOT_EXISTS" in check_result:
-                        self.logger.error(f"目录不存在且无法创建: {normalized_path}")
-                        # 检查父目录状态
-                        parent_path = self._get_unix_parent_path(normalized_path)
-                        parent_info = await self.telnet_client.execute_command(f'ls -la "{parent_path}" 2>&1')
-                        self.logger.error(f"父目录信息: {parent_info}")
-                        return []
-                    else:
-                        # 目录存在但ls失败，可能是权限问题或目录为空
-                        self.logger.warning(f"目录存在但ls命令失败，返回空列表")
+                    try:
+                        check_result = await self.telnet_client.execute_command(check_cmd, timeout=10)
+                        self.logger.info(f"目录存在性检查结果: {repr(check_result)}")
+                        
+                        if "DIR_NOT_EXISTS" in check_result:
+                            self.logger.error(f"目录不存在且无法创建: {normalized_path}")
+                            # 检查父目录状态
+                            parent_path = self._get_unix_parent_path(normalized_path)
+                            parent_info_cmd = f'ls -la "{parent_path}" 2>&1 || echo "PARENT_CHECK_FAILED"'
+                            parent_info = await self.telnet_client.execute_command(parent_info_cmd, timeout=10)
+                            self.logger.error(f"父目录信息: {repr(parent_info)}")
+                            return []
+                        elif "DIR_EXISTS" in check_result:
+                            # 目录存在但ls失败，可能是权限问题或目录为空
+                            self.logger.warning(f"目录存在但ls命令失败，尝试简单文件计数")
+                            count_cmd = f'find "{normalized_path}" -maxdepth 1 -type f 2>/dev/null | wc -l'
+                            count_result = await self.telnet_client.execute_command(count_cmd, timeout=10)
+                            self.logger.info(f"目录文件计数: {repr(count_result)}")
+                            return []  # 返回空列表表示目录存在但为空或无法访问
+                        else:
+                            self.logger.error(f"目录检查命令返回异常: {repr(check_result)}")
+                            return []
+                    except Exception as e:
+                        self.logger.error(f"目录存在性检查异常: {e}")
                         return []
             
             # 解析目录内容
@@ -637,6 +790,83 @@ class ModernFileTransferGUI:
             import traceback
             self.logger.error(f"详细错误信息: {traceback.format_exc()}")
             return []
+    
+    def _convert_simple_ls_to_detailed(self, simple_output: str, base_path: str) -> str:
+        """将简化格式的ls输出转换为详细格式"""
+        try:
+            self.logger.info("开始转换简化格式的ls输出")
+            
+            # 清理ANSI转义序列
+            cleaned_output = self._clean_ansi_codes(simple_output)
+            lines = cleaned_output.strip().split('\n')
+            
+            # 过滤掉命令提示符行，提取内容行
+            content_lines = []
+            for line in lines:
+                stripped_line = line.strip()
+                if (stripped_line and 
+                    not stripped_line.startswith('/ #') and 
+                    not stripped_line.endswith('/ #') and
+                    '/ #' != stripped_line):
+                    content_lines.append(line)
+            
+            if not content_lines:
+                self.logger.warning("简化格式输出中没有有效内容")
+                return ""
+            
+            # 解析文件名（简化格式是多列显示）
+            file_names = []
+            for line in content_lines:
+                # 简化格式的ls输出是空格分隔的多列
+                # 需要小心处理，因为文件名可能包含空格
+                parts = line.split()
+                for part in parts:
+                    # 过滤掉特殊项
+                    if part not in ['.', '..'] and part.strip():
+                        file_names.append(part.strip())
+            
+            self.logger.info(f"从简化输出中提取到 {len(file_names)} 个文件名: {file_names[:10]}")  # 只显示前10个
+            
+            # 生成模拟的详细格式输出
+            detailed_lines = []
+            for filename in file_names:
+                # 根据文件名推测类型和权限
+                if filename in ['bin', 'etc', 'var', 'usr', 'tmp', 'home', 'dev', 'proc', 'sys', 'lib', 'sbin', 'opt', 'boot']:
+                    # 系统目录
+                    permissions = "drwxr-xr-x"
+                    file_type = "directory"
+                elif filename.startswith('.'):
+                    # 隐藏文件/目录
+                    permissions = "drwxr-xr-x" if len(filename) > 1 else "drwxr-xr-x" 
+                    file_type = "directory"
+                elif filename in ['config', 'customer', 'software', 'upgrade', 'appconfigs', 'vendor']:
+                    # 应用目录
+                    permissions = "drwxrwxr-x"
+                    file_type = "directory"
+                else:
+                    # 默认为目录（大多数情况下根目录下都是目录）
+                    permissions = "drwxr-xr-x"
+                    file_type = "directory"
+                
+                # 生成模拟的详细格式行
+                # 格式: permissions links owner group size date time name
+                detailed_line = f"{permissions}    2 root     root         160 Jan  1  1970 {filename}"
+                detailed_lines.append(detailed_line)
+            
+            # 添加total行（模拟）
+            if detailed_lines:
+                total_line = f"total {len(detailed_lines)}"
+                detailed_lines.insert(0, total_line)
+            
+            result = '\n'.join(detailed_lines)
+            self.logger.info(f"生成了 {len(detailed_lines)} 行详细格式输出")
+            self.logger.debug(f"转换结果: {repr(result[:200])}")
+            
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"转换简化格式失败: {e}")
+            return simple_output  # 返回原始输出
     
     def _get_unix_parent_path(self, path: str) -> str:
         """获取Unix风格的父路径"""
