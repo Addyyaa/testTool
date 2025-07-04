@@ -4,8 +4,7 @@ import sys
 import requests
 
 # 配置 logging 模块
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s - Line: %(lineno)d')
+logger = logging.getLogger(__name__)
 
 
 class Login:
@@ -44,7 +43,7 @@ class Login:
             rp = response.json()
             # 提取token
             self.header['X-TOKEN'] = rp["data"]
-            print("登录成功！")
+            logger.info("登录成功！")
             return rp["data"]
         else:
             logging.error(response.text)

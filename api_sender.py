@@ -3,9 +3,9 @@ import logging
 import sys
 
 import requests
-from login import Login
+from .login import Login
 
-logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s %(filename)s:%(lineno)d')
+logger = logging.getLogger(__name__)
 class Api_sender:
     def __init__(self, user, passwd, server="139.224.192.36", port="8082"):
         self.user = user
@@ -40,6 +40,7 @@ class Api_sender:
         self.get_pic_withNoTf = f"{base_url}/api/v1/host/screen?screenDeviceId="  #  获取没有TF卡的屏幕图片
         self.get_pic_withTF = f"{base_url}/api/v1/screenPicture/page/list?pageNum=1&pageSize=10000&screenId="  #  获取有TF卡的屏幕图片
         self.device_type = f"{base_url}/api/v1/host/screen/group/list/relationWithVersion?screenGroupId="  #  获取设备类型
+        self.add_gift = f"{base_url}/api/v1/gifts/add"
         self.qiuniutoken = None
         self.header = {
             "Content-Type": "application/json",
@@ -67,7 +68,7 @@ class Api_sender:
                 self.__set_token()
                 return self.send_api(api, data, method)
             else:
-                logging.error(f"请求发生错误：{e}")
+                logger.error(f"请求发生错误：{e}")
                 return None
     
             
