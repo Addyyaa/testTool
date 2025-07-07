@@ -25,6 +25,13 @@ ota_inner_dir = {
         "qunchuang": "10_800_1280_fp7721bx2_innolux",
         "BOE": "10_800_1280_fp7721bx2_boe"
     },
+    "ts": {
+        "10.1": "10_1920_1200_vvx10f002a",
+        "13.3": "13_1920_1080_nv156fhm",
+        "16": "16_1920_1200_vvx10f002a",
+        "qunchuang": "10_800_1280_fp7721bx2_innolux",
+        "BOE": "10_800_1280_fp7721bx2_boe"
+    }
 }
 
 class OtaPatcher:
@@ -395,12 +402,45 @@ class PatcherApp(ctk.CTk):
         self.tree.delete(*self.tree.get_children())
         contents = self.patcher.list_contents(self.selected_package)
         if contents:
-            nodes = {}
+            nodes = {'': ''} # path -> node_id mapping. Root is ''.
             for path in sorted(contents):
-                parent_path, name = os.path.split(path)
+                if not path: continue
+                
+                # --- FIX START: Ensure parent nodes are created ---
+                # Normalize path separators for consistency
+                norm_path = path.replace("\\", "/")
+                
+                # Handle directory paths that end with a slash
+                if norm_path.endswith('/'):
+                    norm_path = norm_path.rstrip('/')
+                
+                parent_path, name = os.path.split(norm_path)
+                
+                # If parent does not exist in our node tracker, create it.
+                # This loop handles nested parents (e.g., creating 'a' then 'a/b' for 'a/b/c').
+                if parent_path and parent_path not in nodes:
+                    temp_parent_id = ''
+                    # Iterate through parts of the parent path and create nodes
+                    path_parts = parent_path.split('/')
+                    cumulative_path = ''
+                    for part in path_parts:
+                        if cumulative_path:
+                            cumulative_path += '/'
+                        cumulative_path += part
+                        if cumulative_path not in nodes:
+                            node_id = self.tree.insert(temp_parent_id, 'end', text=part, values=[cumulative_path], open=False)
+                            nodes[cumulative_path] = node_id
+                            temp_parent_id = node_id
+                        else:
+                            temp_parent_id = nodes[cumulative_path]
+
                 parent_id = nodes.get(parent_path, '')
-                node_id = self.tree.insert(parent_id, 'end', text=name, values=[path], open=False)
-                nodes[path] = node_id
+                
+                # Do not re-insert a node if it was created as a parent directory
+                if norm_path not in nodes:
+                    node_id = self.tree.insert(parent_id, 'end', text=name, values=[path], open=False)
+                    nodes[norm_path] = node_id
+                # --- FIX END ---
         
         self.start_button.configure(state="normal" if self.package_listbox.size() > 0 else "disabled")
     
