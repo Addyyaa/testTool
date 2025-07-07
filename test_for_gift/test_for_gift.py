@@ -6,6 +6,7 @@ import sys
 import time
 import random
 import tkinter as tk
+import tkinter as tk
 from tkinter import filedialog
 import datetime
 import logging
@@ -24,6 +25,11 @@ from .switch_display_mode import SwitchDisplayMode
 protocol = "http"
 host = "139.224.192.36"
 port = "8082"
+gift_sender_account = "test2@tester.com"
+gift_sender_passwd = "sf123123"
+gift_receiver_account = "15250996938"
+gift_receiver_passwd = "sf123123"
+screen_id = None
 gift_sender_account = "test2@tester.com"
 gift_sender_passwd = "sf123123"
 gift_receiver_account = "15250996938"
@@ -59,6 +65,13 @@ class AddGift:
         else:
             self.greetingContent = greetingContent
             
+        
+        # 优化: 确保 greetingContent 是字符串类型
+        if isinstance(greetingContent, list):
+            self.greetingContent = "\n".join(greetingContent)
+        else:
+            self.greetingContent = greetingContent
+            
         self.greentingTitile = greentingTitile
         self.greetingImg = greetingImg
         self.receiver_name = receiver_name
@@ -73,6 +86,8 @@ class AddGift:
             "signature": self.sender_name,
             "sendTime": datetime.datetime.now().strftime("%Y-%m-%d"),
         }
+        self.user = gift_sender_account
+        self.passwd = gift_sender_passwd
         self.user = gift_sender_account
         self.passwd = gift_sender_passwd
         self.api_sender = Api_sender(self.user, self.passwd, host, port)
@@ -297,9 +312,13 @@ class file_uploader_to_fileServer:
     def __init__(self):
         self.user = gift_sender_account
         self.passwd = gift_sender_passwd
+        self.user = gift_sender_account
+        self.passwd = gift_sender_passwd
         self.api_sender = Api_sender(self.user, self.passwd, host, port)
         self.qiniu_token = None
         self.userid = None
+        self.max_long_side = Config.MAX_LONG_SIDE
+        self.max_short_side = Config.MAX_SHORT_SIDE
         self.max_long_side = Config.MAX_LONG_SIDE
         self.max_short_side = Config.MAX_SHORT_SIDE
         self.qiniu_header = {
@@ -312,6 +331,7 @@ class file_uploader_to_fileServer:
             'Charset': 'UTF-8',
         }
         self._get_userid()
+
     
     def _get_userid(self):
         """获取用户ID"""
@@ -331,6 +351,7 @@ class file_uploader_to_fileServer:
                 sys.exit(1)
     
     def read_local_file(self):
+        """读取本地文件"""
         """读取本地文件"""
         try:
             # 创建临时顶层窗口作为文件对话框的父窗口
@@ -362,6 +383,7 @@ class file_uploader_to_fileServer:
             root.destroy()
             return file_path
             
+            
         except Exception as e:
             logger.error(f"选择文件失败: {e}")
             return None
@@ -385,6 +407,8 @@ class file_uploader_to_fileServer:
         except Exception as e:
             logger.error(f"检查图片分辨率失败 {file_path}: {e}")
             return True  # 出错时默认需要转换
+
+    
 
     def check_video_specs(self, file_path):
         """检查视频分辨率和帧率是否超过限制"""
@@ -441,6 +465,7 @@ class file_uploader_to_fileServer:
             return True  # 出错时默认需要转换
 
     def judge_file_type(self, file_path):
+        """判断文件类型"""
         """判断文件类型"""
         if not file_path or not isinstance(file_path, str):
             logger.warning("提供的文件路径无效。")
@@ -515,6 +540,8 @@ class file_uploader_to_fileServer:
                     logger.error(f"处理文件时发生错误: {e}")
         return result
 
+
+
     def _generate_convert_file_list(self, file_path_list: Iterable):
         """生成需要转换的文件列表 - 包含分辨率和帧率检查"""
         video_convert_list = []
@@ -537,6 +564,20 @@ class file_uploader_to_fileServer:
                     # 支持的格式，但需要检查分辨率
                     if self.check_image_resolution(file_path):
                         image_convert_list.append(file_path)
+                        logger.debug(f"图片 {file_path} 分辨率超限，需要转换")
+                    else:
+                        no_convert_list.append(file_path)
+                        logger.debug(f"图片 {file_path} 无需转换")
+                        
+            elif isinstance(file_type, dict) and "video" in file_type:
+                # 视频处理逻辑
+                if file_type["video"] != ".mp4":
+                    # 不支持的视频格式，需要转换
+                    video_convert_list.append(file_path)
+                    logger.debug(f"视频 {file_path} 格式不支持，需要转换为MP4")
+                else:
+                    # 支持的格式，但需要检查分辨率和帧率
+                    if self.check_video_specs(file_path):
                         logger.debug(f"图片 {file_path} 分辨率超限，需要转换")
                     else:
                         no_convert_list.append(file_path)
@@ -727,6 +768,12 @@ class file_uploader_to_fileServer:
     def start(self, screen_info: dict):
         """启动文件上传流程"""
         temp_dir = self.convert_file_to_support_format()
+        
+        # 读取该目录下的所有文件，生成完整路径
+        file_list = [os.path.join(temp_dir, f) for f in os.listdir(temp_dir) if os.path.isfile(os.path.join(temp_dir, f))]
+        
+        logger.info(f"准备上传 {len(file_list)} 个文件: {[os.path.basename(f) for f in file_list]}")
+        
         
         # 读取该目录下的所有文件，生成完整路径
         file_list = [os.path.join(temp_dir, f) for f in os.listdir(temp_dir) if os.path.isfile(os.path.join(temp_dir, f))]
