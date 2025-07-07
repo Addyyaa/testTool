@@ -1,0 +1,272 @@
+{
+  "origin": [
+    "【#domain#】#domain_sentence#",
+    "#greeting#，我想与你分享一句关于#domain#的话：#domain_sentence# #signature#",
+    "今日#domain#感悟：#domain_sentence#",
+    "你知道吗？在#domain#领域，人们常说：#domain_sentence#",
+    "#joke_template#",
+    "#proverb_template#",
+    "#poem_template#"
+  ],
+
+  "domain": ["科技", "商业", "教育", "生活", "文学", "励志", "幽默", "旅游", "健康", "美食", "历史", "艺术", "体育", "编程", "金融"],
+
+  "domain_sentence": [
+    "#tech_sentence#",
+    "#business_sentence#",
+    "#education_sentence#",
+    "#life_sentence#",
+    "#literature_sentence#",
+    "#motivation_sentence#",
+    "#travel_sentence#",
+    "#health_sentence#",
+    "#food_sentence#",
+    "#history_sentence#",
+    "#art_sentence#",
+    "#sports_sentence#",
+    "#programming_sentence#",
+    "#finance_sentence#"
+  ],
+
+  "tech_sentence": [
+    "#tech_object#的#tech_advancement#正在改变#tech_field#的未来。",
+    "人工智能的#tech_concept#预示着一个#tech_future#的到来。",
+    "量子计算的突破将#tech_verb#我们解决#tech_problem#的能力。",
+    "区块链技术通过#tech_feature#确保了#tech_value#的安全性。"
+  ],
+  "tech_object": ["算法", "神经网络", "大数据", "物联网设备", "5G网络"],
+  "tech_advancement": ["快速发展", "指数级增长", "范式转移", "深刻变革"],
+  "tech_field": ["医疗健康", "自动驾驶", "金融科技", "智慧城市"],
+  "tech_concept": ["深度学习", "自然语言处理", "强化学习", "生成对抗网络"],
+  "tech_future": ["更智能", "更高效", "更自动化", "充满无限可能"],
+  "tech_verb": ["彻底改变", "极大地提升", "重新定义", "颠覆"],
+  "tech_problem": ["复杂计算问题", "数据隐私问题", "全球性挑战"],
+  "tech_feature": ["去中心化", "加密算法", "不可篡改的特性"],
+  "tech_value": ["数据", "交易", "身份信息"],
+
+  "business_sentence": [
+    "成功的#business_entity#都关注#business_core_value#。",
+    "在#business_market#中，#business_strategy#是取胜的关键。",
+    "通过#business_action#，公司可以提升其#business_metric#。",
+    "一个好的#business_leader#需要具备#business_quality#。"
+  ],
+  "business_entity": ["初创公司", "跨国企业", "独角兽公司", "百年老店"],
+  "business_core_value": ["客户价值", "持续创新", "品牌建设", "高效运营"],
+  "business_market": ["蓝海市场", "红海市场", "存量市场", "新兴市场"],
+  "business_strategy": ["差异化竞争", "成本领先", "平台战略", "生态系统构建"],
+  "business_action": ["数字化转型", "精益管理", "并购重组", "全球化布局"],
+  "business_metric": ["市场份额", "客户满意度", "股东回报率", "品牌影响力"],
+  "business_leader": ["企业家", "CEO", "管理者", "团队领导"],
+  "business_quality": ["远见卓识", "决策力", "同理心", "坚韧不拔的精神"],
+  
+  "education_sentence": [
+    "#education_concept#是培养#education_ability#的核心。",
+    "未来的教育将更加注重#education_focus#。",
+    "一个优秀的#education_role#能够#education_verb#学生的#education_potential#。",
+    "通过#education_method#，学习可以变得#education_result#。"
+  ],
+  "education_concept": ["终身学习", "项目制学习（PBL）", "个性化教育", "STEAM教育"],
+  "education_ability": ["批判性思维", "创新能力", "解决问题的能力", "协作能力"],
+  "education_focus": ["个性化发展", "跨学科融合", "实践能力", "情商培养"],
+  "education_role": ["老师", "导师", "引路人", "赋能者"],
+  "education_verb": ["激发", "点燃", "挖掘", "塑造"],
+  "education_potential": ["无限潜能", "内在动力", "好奇心", "创造力"],
+  "education_method": ["游戏化学习", "翻转课堂", "探究式学习", "混合式学习"],
+  "education_result": ["更高效", "更有趣", "更深刻", "更有意义"],
+
+  "life_sentence": [
+    "生活的#life_core#在于#life_action#。",
+    "在#life_journey#中，我们应该学会#life_attitude#。",
+    "#life_happiness#往往来源于#life_source#。",
+    "要记住，#life_wisdom#"
+  ],
+  "life_core": ["真谛", "意义", "乐趣", "本质"],
+  "life_action": ["发现美", "感恩当下", "不断尝试", "与人分享"],
+  "life_journey": ["漫漫长路", "旅途", "起起落落"],
+  "life_attitude": ["拥抱不确定性", "接受不完美", "保持乐观", "活在当下"],
+  "life_happiness": ["真正的快乐", "幸福感", "内心的平静"],
+  "life_source": ["简单的日常", "真诚的人际关系", "小小的成就感", "内心的丰盈"],
+  "life_wisdom": ["健康是最大的财富。", "时间无法倒流，珍惜每一刻。", "改变你能改变的，接受你不能改变的。", "最大的风险就是从不冒险。"],
+  
+  "literature_sentence": [
+    "#literature_author#的作品以其#literature_style#而闻名。",
+    ""#literature_quote#"这句名言出自#literature_work#。",
+    "#literature_genre#常常探讨#literature_theme#。",
+    "文学是#literature_metaphor#。"
+  ],
+  "literature_author": ["莎士比亚", "托尔斯泰", "鲁迅", "博尔赫斯", "马尔克斯"],
+  "literature_style": ["深刻的心理描写", "华丽的语言", "魔幻现实主义风格", "简洁而有力的笔触"],
+  "literature_quote": ["生存还是毁灭，这是一个问题。", "幸福的家庭都是相似的，不幸的家庭各有各的不幸。", "世上本没有路，走的人多了，也便成了路。"],
+  "literature_work": ["《哈姆雷特》", "《安娜·卡列尼娜》", "《故乡》", "《百年孤独》"],
+  "literature_genre": ["诗歌", "小说", "散文", "戏剧"],
+  "literature_theme": ["爱与背叛", "人性的复杂", "社会的变迁", "生与死的哲思"],
+  "literature_metaphor": ["映照时代的一面镜子", "人类灵魂的避难所", "没有疆界的语言"],
+  
+  "motivation_sentence": [
+    "不要害怕#motivation_fear#，因为#motivation_reason#。",
+    "每一次#motivation_action#，都是在靠近#motivation_goal#。",
+    "相信#motivation_belief#，你就能#motivation_result#。",
+    "记住，#motivation_proverb#"
+  ],
+  "motivation_fear": ["失败", "犯错", "未知的挑战", "他人的眼光"],
+  "motivation_reason": ["它是成功之母", "那是成长的必经之路", "它会让你变得更强大"],
+  "motivation_action": ["微小的努力", "勇敢的尝试", "跌倒后爬起"],
+  "motivation_goal": ["你的梦想", "更好的自己", "成功的彼岸"],
+  "motivation_belief": ["你的潜力", "坚持的力量", "时间会给你答案"],
+  "motivation_result": ["创造奇迹", "超越自己", "实现目标"],
+  "motivation_proverb": ["千里之行，始于足下。", "有志者，事竟成。", "不积跬步，无以至千里。"],
+  
+  "travel_sentence": [
+    "去#travel_destination#感受#travel_experience#。",
+    "旅行的意义在于#travel_meaning#。",
+    "在#travel_location#，你会发现#travel_discovery#。",
+    "带上#travel_item#，开始一场#travel_journey#吧！"
+  ],
+  "travel_destination": ["巴黎的街头", "冰岛的极光下", "京都的古寺里", "撒哈拉的沙漠中"],
+  "travel_experience": ["当地的文化", "不一样的日出", "历史的沉淀", "自然的壮丽"],
+  "travel_meaning": ["看见世界，也看见自己", "跳出舒适圈", "收集故事", "寻找灵感"],
+  "travel_location": ["世界的某个角落", "陌生的城市", "山川湖海之间"],
+  "travel_discovery": ["不期而遇的惊喜", "久违的感动", "全新的视角"],
+  "travel_item": ["相机", "好奇心", "开放的心态"],
+  "travel_journey": ["说走就走的旅行", "涤荡心灵的旅程", "充满未知的冒险"],
+
+  "health_sentence": [
+    "保持#health_habit#是#health_goal#的关键。",
+    "多吃#health_food#，有助于#health_benefit#。",
+    "#health_exercise#能有效#health_effect#。",
+    "记住，#health_tip#。"
+  ],
+  "health_habit": ["充足的睡眠", "均衡的饮食", "规律的运动", "积极的心态"],
+  "health_goal": ["身心健康", "精力充沛", "延年益寿"],
+  "health_food": ["蔬菜水果", "粗粮", "优质蛋白"],
+  "health_benefit": ["增强免疫力", "改善新陈代谢", "提供能量"],
+  "health_exercise": ["每天半小时的有氧运动", "力量训练", "瑜伽"],
+  "health_effect": ["缓解压力", "增强心肺功能", "塑造体型"],
+  "health_tip": ["预防大于治疗", "笑是最好的药", "每天八杯水"],
+
+  "food_sentence": [
+    "这道#food_dish#，以其#food_flavor#而闻名。",
+    "品尝#food_ingredient#的原汁原味，是#food_experience#。",
+    "#food_verb#一份#food_style#的#food_name#，简直是#food_adj#的享受。",
+    "美食的奥秘在于#food_secret#。"
+  ],
+  "food_dish": ["麻婆豆腐", "北京烤鸭", "意大利面", "寿司"],
+  "food_flavor": ["麻辣鲜香", "酥脆可口", "浓郁的奶香", "清新的口感"],
+  "food_ingredient": ["最新鲜的海鲜", "当季的蔬菜", "顶级的牛肉"],
+  "food_experience": ["一种味觉的冒险", "对自然的尊重", "极致的幸福"],
+  "food_verb": ["来一份", "品尝", "享用"],
+  "food_style": ["法式", "日式", "家常", "创意"],
+  "food_name": ["甜点", "牛排", "拉面"],
+  "food_adj": ["无与伦比", "人间值得", "天堂般"],
+  "food_secret": ["食材的搭配", "火候的掌握", "用心的烹饪"],
+
+  "history_sentence": [
+    "在#history_period#，#history_event#改变了世界的格局。",
+    "#history_figure#是一位#history_adj#的历史人物。",
+    "历史给我们的教训是：#history_lesson#。",
+    "研究#history_relic#可以帮助我们了解#history_past#。"
+  ],
+  "history_period": ["古罗马时期", "文艺复兴时期", "工业革命时期", "信息时代"],
+  "history_event": ["十字军东征", "大航海时代", "第二次世界大战"],
+  "history_figure": ["凯撒大帝", "达芬奇", "拿破仑", "秦始皇"],
+  "history_adj": ["充满争议的", "富有远见的", "传奇的"],
+  "history_lesson": ["忘记过去，就意味着背叛。", "历史总在重演。", "和平来之不易。"],
+  "history_relic": ["金字塔", "长城", "兵马俑"],
+  "history_past": ["古代文明的辉煌", "当时的社会生活", "古人的智慧"],
+
+  "art_sentence": [
+    "#art_artist#的#art_work#展现了#art_style#的魅力。",
+    "艺术是#art_metaphor#。",
+    "在#art_museum#里，你可以欣赏到#art_era#的杰作。",
+    "每一种#art_form#都是一种独特的#art_expression#。"
+  ],
+  "art_artist": ["梵高", "毕加索", "莫奈", "张大千"],
+  "art_work": ["《星空》", "《格尔尼卡》", "《日出·印象》"],
+  "art_style": ["印象派", "立体主义", "表现主义", "野兽派"],
+  "art_metaphor": ["情感的宣泄", "思想的载体", "超越语言的沟通"],
+  "art_museum": ["卢浮宫", "大都会博物馆", "故宫博物院"],
+  "art_era": ["文艺复兴时期", "巴洛克时期", "现代"],
+  "art_form": ["绘画", "雕塑", "音乐", "舞蹈"],
+  "art_expression": ["情感表达", "审美体验", "文化传承"],
+  
+  "sports_sentence": [
+    "#sports_athlete#在#sports_event#中展现了#sports_spirit#。",
+    "体育的魅力在于#sports_magic#。",
+    "每一次#sports_action#，都离#sports_goal#更近一步。",
+    "#sports_team#赢得了#sports_championship#的冠军。"
+  ],
+  "sports_athlete": ["迈克尔·乔丹", "梅西", "博尔特", "苏炳添"],
+  "sports_event": ["奥运会", "世界杯", "NBA总决赛"],
+  "sports_spirit": ["永不放弃的精神", "超越极限的勇气", "团队合作的力量"],
+  "sports_magic": ["不可预测性", "瞬间的激情", "共同的呐喊"],
+  "sports_action": ["精准的投篮", "完美的过人", "冲刺的瞬间"],
+  "sports_goal": ["冠军", "纪录", "胜利"],
+  "sports_team": ["湖人队", "阿根廷队", "中国女排"],
+  "sports_championship": ["总冠军", "世界冠军", "奥运金牌"],
+
+  "programming_sentence": [
+    ""#programming_quote#"是程序员的信条。",
+    "使用#programming_language#可以高效地解决#programming_problem#。",
+    "一个优雅的#programming_concept#能够让代码#programming_adj#。",
+    "修复一个#programming_bug#的感觉就像#programming_feeling#。"
+  ],
+  "programming_quote": ["Hello, World!", "Talk is cheap, show me the code.", "Stay hungry, stay foolish."],
+  "programming_language": ["Python", "JavaScript", "Rust", "Go"],
+  "programming_problem": ["数据处理问题", "并发挑战", "系统架构设计"],
+  "programming_concept": ["算法", "设计模式", "架构", "函数式编程"],
+  "programming_adj": ["更易读", "更高效", "更易于维护"],
+  "programming_bug": ["隐藏很深的bug", "逻辑错误", "内存泄漏"],
+  "programming_feeling": ["侦探破案", "拯救世界", "大海捞针"],
+  
+  "finance_sentence": [
+    "在#finance_market#中，#finance_concept#是重要的原则。",
+    "理解#finance_indicator#可以帮助我们#finance_action#。",
+    "#finance_product#是一种#finance_adj#的投资工具。",
+    "投资的第一条原则是：#finance_rule#。"
+  ],
+  "finance_market": ["股票市场", "加密货币市场", "房地产市场"],
+  "finance_concept": ["风险分散", "复利效应", "价值投资"],
+  "finance_indicator": ["市盈率（PE）", "国内生产总值（GDP）", "通货膨胀率"],
+  "finance_action": ["做出更明智的决策", "规避风险", "发现机会"],
+  "finance_product": ["指数基金", "国债", "期权"],
+  "finance_adj": ["高风险高回报", "稳健", "复杂"],
+  "finance_rule": ["不要亏钱", "永远记住第一条", "不懂不投"],
+
+  "joke_template": [
+    "为什么#joke_object_1#不能和#joke_object_2#一起玩？因为#joke_reason#！",
+    "一个#joke_role#走进酒吧，对酒保说：#joke_line#。",
+    "你知道#joke_animal#是怎么笑的吗？#joke_answer#！"
+  ],
+  "joke_object_1": ["程序员", "产品经理", "鱼"],
+  "joke_object_2": ["bug", "需求变更", "自行车"],
+  "joke_reason": ["它会修复它", "它总在变", "它没有脚蹬"],
+  "joke_role": ["程序员", "袋鼠", "幽灵"],
+  "joke_line": [""给我一杯啤酒，再给地板一杯。"", ""我想要一杯水。"", ""你们这里卖烈酒吗？"""],
+  "joke_animal": ["猫头鹰", "蛇"],
+  "joke_answer": ["""Who who who""地笑", ""Sssssss""地笑"],
+  
+  "proverb_template": [
+    "中国有句古话叫""#chinese_proverb#""，意思是#proverb_meaning#。",
+    "正如那句谚语所说，""#western_proverb#""。"
+  ],
+  "chinese_proverb": ["画蛇添足", "守株待兔", "亡羊补牢", "一叶障目，不见泰山"],
+  "proverb_meaning": ["多此一举，反而不美", "比喻死守经验，不知变通", "出了问题以后想办法补救，可以防止继续受损"],
+  "western_proverb": ["An apple a day keeps the doctor away", "Actions speak louder than words", "Rome wasn't built in a day"],
+
+  "poem_template": [
+    "我想为你读一首诗：""#poem_line_1#，#poem_line_2#。"",
+    """#poem_line_3#，#poem_line_4#。""这句诗描绘了#poem_scene#的景象。"
+  ],
+  "poem_line_1": ["黑夜给了我黑色的眼睛", "面朝大海", "君不见黄河之水天上来"],
+  "poem_line_2": ["我却用它寻找光明", "春暖花开", "奔流到海不复回"],
+  "poem_line_3": ["枯藤老树昏鸦", "明月几时有"],
+  "poem_line_4": ["小桥流水人家", "把酒问青天"],
+  "poem_scene": ["萧瑟的秋日黄昏", "对宇宙和人生的哲思"],
+
+  "greeting": [
+    "亲爱的朋友", "你好呀", "嘿"
+  ],
+  "signature": [
+    "一个朋友", "你的AI助手", "路人甲"
+  ]
+} 

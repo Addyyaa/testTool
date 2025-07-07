@@ -1,0 +1,90 @@
+{
+  "origin": [
+    "#greeting# #wish# #signature#",
+    "#greeting#, #scene#. #wish# #signature#",
+    "#greeting#, Happy #festival#! #wish# #signature#",
+    "#greeting#, #joke# #signature#",
+    "#greeting#, #encourage# #signature#"
+  ],
+  "greeting": [
+    "Dear friend",
+    "Respected colleague",
+    "Beloved family",
+    "Dear #recipient#",
+    "My dearest #title# #recipient#"
+  ],
+  "wish": [
+    "Wishing you happiness and health!",
+    "May your future be bright!",
+    "Hope you have a joyful day and all the best!",
+    "May your dreams come true!",
+    "Wishing you a successful career and a happy life!",
+    "May you always smile and never worry!",
+    "Wishing you longevity and youth!",
+    "May wealth and success come your way!",
+    "Wishing you sweet love and a harmonious family!"
+  ],
+  "signature": [
+    "From #sender#",
+    "—Best wishes, #sender#",
+    "#sender# sends regards",
+    "With you always, #sender#"
+  ],
+  "recipient": [
+    "friend",
+    "colleague",
+    "family",
+    "teacher",
+    "classmate",
+    "boss",
+    "loved one"
+  ],
+  "sender": [
+    "Andyya",
+    "MR.SHEN",
+    "Tom",
+    "Lucy",
+    "Wang",
+    "Your old friend"
+  ],
+  "title": [
+    "lovely",
+    "amazing",
+    "dear",
+    "respected"
+  ],
+  "scene": [
+    "on this sunny day",
+    "at this special moment",
+    "on your birthday",
+    "in the new year",
+    "at an important milestone in your life",
+    "when you achieve success",
+    "when you face challenges",
+    "when you need encouragement"
+  ],
+  "festival": [
+    "Spring Festival",
+    "Mid-Autumn Festival",
+    "National Day",
+    "Dragon Boat Festival",
+    "Christmas",
+    "New Year",
+    "Valentine's Day",
+    "Teacher's Day",
+    "Children's Day"
+  ],
+  "joke": [
+    "Don't forget to smile every day, or you'll get wrinkles!",
+    "They say people who receive this message become more handsome/beautiful!",
+    "May your wallet be full and your weight stay the same!",
+    "May you encounter good things every day, just like I met you!"
+  ],
+  "encourage": [
+    "No matter what difficulties you face, always believe in yourself!",
+    "Go for it! You can do it!",
+    "There is no obstacle you can't overcome!",
+    "Believe that tomorrow will be better!",
+    "Every effort is a prelude to good luck!"
+  ]
+} 

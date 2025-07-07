@@ -6,13 +6,23 @@ import requests
 from .login import Login
 
 logger = logging.getLogger(__name__)
+
 class Api_sender:
-    def __init__(self, user, passwd, server="139.224.192.36", port="8082"):
+    def __init__(self, user, passwd, host, port, login_type=None):
         self.user = user
         self.passwd = passwd
-        self.server = server 
-        self.port = port     
-        base_url = f"http://{server}:{port}"
+        self.server = host
+        self.port = port
+        
+        self.login = Login(self.user, self.passwd, self.server, self.port)
+        self.login.login()  # 执行登录
+        self.header = self.login.header # 获取登录后的header
+
+        if not self.header.get("X-TOKEN"):
+            logger.error("获取token失败,请检查账号密码")
+            return
+
+        base_url = f"http://{self.server}:{self.port}"
         self.login_interface = f"{base_url}/api/v1/account/login"
         self.get_device = f"{base_url}/api/v1/host/screen/group/device/list"
         self.screen_list = f"{base_url}/api/v1/host/screen/group/list/relationWithVersion?screenGroupId="
@@ -41,6 +51,10 @@ class Api_sender:
         self.get_pic_withTF = f"{base_url}/api/v1/screenPicture/page/list?pageNum=1&pageSize=10000&screenId="  #  获取有TF卡的屏幕图片
         self.device_type = f"{base_url}/api/v1/host/screen/group/list/relationWithVersion?screenGroupId="  #  获取设备类型
         self.add_gift = f"{base_url}/api/v1/gifts/add"
+        self.get_gift = f"{base_url}/api/v1/gifts/receive"
+        self.gift_del = f"{base_url}/api/v1/gifts/del"
+        self.gift_list = f"{base_url}/api/v1/gifts/list"
+        self.gift_list_receive = f"{base_url}/api/v1/gifts/receive/list"
         self.qiuniutoken = None
         self.header = {
             "Content-Type": "application/json",
@@ -76,6 +90,9 @@ class Api_sender:
     def __set_token(self):
         token = Login(self.user, self.passwd, self.server, self.port).login()
         self.header['X-TOKEN'] = token
+    
+    def get_token(self):
+        return self.header['X-TOKEN']
 
 
 
