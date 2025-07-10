@@ -12,6 +12,7 @@ import datetime
 import logging
 from typing import Iterable, Optional
 from PIL import Image
+from requests import api
 from ..api_sender import Api_sender
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
@@ -36,6 +37,15 @@ gift_receiver_account = "15250996938"
 gift_receiver_passwd = "sf123123"
 screen_id = None
 logger = logging.getLogger(__name__)
+reverse_account = True
+if reverse_account:
+    # 反转发送者和接收者账号
+    tmp_account = gift_sender_account
+    tmp_passwd = gift_sender_passwd
+    gift_sender_account = gift_receiver_account
+    gift_sender_passwd = gift_receiver_passwd
+    gift_receiver_account = tmp_account
+    gift_receiver_passwd = tmp_passwd
 
 
 
@@ -257,11 +267,12 @@ class Get_screen_info:
         def get_ota_data() -> list[dict]:
             api_sender1 = self.api_sender
             response = api_sender1.send_api(api_sender1.ota_list, data="", method="get")
-            if response.status_code == 200 and response.json()["code"] == 20:
+            if response and response.status_code == 200 and response.json()["code"] == 20:
                 group_device_relation = response.json()["data"]
                 return group_device_relation
             else:
-                logging.error(response.text)
+                error_msg = response.text if response else "请求失败"
+                logging.error(error_msg)
                 sys.exit()
 
         def show_all_screen_info():
@@ -876,6 +887,26 @@ class bind_media_to_gift_code:
         return gift_code, screen_info
 
     def read_uploaded_file(self):
+        _api_sender = Api_sender(gift_receiver_account, gift_receiver_passwd, host, port)
+        # 获取接收礼物账号下的所有屏幕信息
+        def get_ota_data() -> list[dict]:
+            response = _api_sender.send_api(_api_sender.ota_list, data="", method="get")
+            if response and response.status_code == 200 and response.json()["code"] == 20:
+                group_device_relation = response.json()["data"]
+                return group_device_relation
+            else:
+                error_msg = response.text if response else "请求失败"
+                logging.error(error_msg)
+                sys.exit()
+
+        def return_all_screen_info():
+            group_device_relation = get_ota_data()
+            all_screens = []
+            for group in group_device_relation:
+                for screen in group['screenList']:
+                    all_screens.append(screen['screenId'])
+            return all_screens
+        all_screens = return_all_screen_info()
         video_list = []
         image_list = []
         screen_info = []
@@ -884,10 +915,10 @@ class bind_media_to_gift_code:
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 for _ in data['records']:
-                    logger.info(f"record: {_}")
-                    video_list.extend(_['videos'])
-                    image_list.extend(_['images'])
-                    screen_info.extend(_['screen_info'])
+                    if list(_['screen_info'].keys())[0] in all_screens:
+                        video_list.extend(_['videos'])
+                        image_list.extend(_['images'])
+                        screen_info.extend(_['screen_info'])
                 logger.info(f"video_list: {video_list}")
                 logger.info(f"image_list: {image_list}")
                 logger.info(f"screen_info: {screen_info}")
@@ -907,10 +938,11 @@ class Gift_receiver:
         }
         result = self.api_sender.send_api(self.api_sender.get_gift, data, "post")
         for _ in range(3):
-            if result.status_code == 200 and result.json().get("code") == 20:
+            if result and result.status_code == 200 and result.json().get("code") == 20:
                 return result.json()
             else:
-                logger.error(f"获取礼物失败: {result.text}\n{data}")
+                error_msg = result.text if result else "请求失败"
+                logger.error(f"获取礼物失败: {error_msg}\n{data}")
                 time.sleep(1)
         return result
 
@@ -922,12 +954,15 @@ class Batch_prepare_giftCode:
         logger.debug(f"gift_code: {gift_code}")
         logger.debug(f"screen_info: {screen_info}")
         # 只取giftCode字符串
-        real_gift_code = gift_code["giftCode"] if isinstance(gift_code, dict) else gift_code
+        real_gift_code = gift_code["giftCode"] if isinstance(gift_code, dict) else str(gift_code)
         global screen_id
-        screen_id = screen_info[0]
-        receiver = Gift_receiver(real_gift_code, screen_info[0])
-        gift_info = receiver.receive_gift()
-        logger.info(f"gift_info: {gift_info}")
+        screen_id = screen_info[0] if screen_info else None
+        if real_gift_code and screen_id:
+            receiver = Gift_receiver(real_gift_code, screen_id)
+            gift_info = receiver.receive_gift()
+            logger.info(f"gift_info: {gift_info}")
+        else:
+            logger.error("gift_code或screen_id为空，无法接收礼物")
 
     
 
@@ -963,11 +998,13 @@ class Batch_upload_file:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d ===> %(message)s')
     # batch_upload_file = Batch_upload_file()  # 先上传文件到云端，上传后可以不需要执行该方法，除非有新的文件需要上传
+    # sys.exit(0)
     # batch_prepare_giftCode = Batch_prepare_giftCode()
     switch_display_mode = Display_mode_switcher(gift_receiver_account, gift_receiver_passwd, host, port)
     logger.info(f"screen_id: {screen_id}")
     while True:
         batch_prepare_giftCode = Batch_prepare_giftCode()
+        sys.exit(0)
         sleep_time = random.randint(10, 100)
         time.sleep(sleep_time)
         switch_display_mode.switch_with_random_mode(screen_id)

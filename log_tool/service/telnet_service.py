@@ -72,7 +72,7 @@ class TelnetService:
                     print(f"第 {attempt + 1} 次检查打包结果...")
                     response = await asyncio.wait_for(
                         conn.send_command("ls -l *.tar.gz"),
-                        timeout=5.0
+                        timeout=10.0
                     )
                     print(f"ls 原始输出: {response}")
                     # 如果响应中包含登录提示，说明需要重新登录
@@ -101,8 +101,8 @@ class TelnetService:
                                 print(f"启动 HTTP 服务结果: {http_result}")
                             return
 
-                    print(f"未找到目标文件，等待{2 * attempt}秒后重试...")
-                    await asyncio.sleep(2 * attempt)
+                    print(f"未找到目标文件，等待{4 * attempt}秒后重试...")
+                    await asyncio.sleep(4 * attempt)
 
                 except asyncio.TimeoutError:
                     print(f"命令执行超时，重试中... ({attempt + 1}/{max_retries})")
