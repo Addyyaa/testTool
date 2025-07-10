@@ -24,8 +24,13 @@ from .switch_display_mode import SwitchDisplayMode
 
 # 全局变量
 protocol = "http"
+# 国内测试环境
 host = "139.224.192.36"
 port = "8082"
+# 海外测试环境
+# host = "18.215.241.226"
+# port = "8080"
+
 gift_sender_account = "test2@tester.com"
 gift_sender_passwd = "sf123123"
 gift_receiver_account = "15250996938"
@@ -36,6 +41,8 @@ gift_sender_passwd = "sf123123"
 gift_receiver_account = "15250996938"
 gift_receiver_passwd = "sf123123"
 screen_id = None
+max_long_side = None
+max_short_side = None
 logger = logging.getLogger(__name__)
 reverse_account = True
 if reverse_account:
@@ -114,7 +121,7 @@ class AddGift:
         elif result:
             logger.error(f"添加礼物失败: {result.status_code}\t{result.text}")
         else:
-            logger.error(f"添加礼物失败: {result.text}\n{json.dumps(self.data)}")
+            logger.error(f"添加礼物失败: 请求返回为空\n{json.dumps(self.data)}")
 
 class FileProcessor:
     """独立的文件处理类，所有方法都是静态方法，支持多进程"""
@@ -135,6 +142,9 @@ class FileProcessor:
         logger = logging.getLogger(__name__)
         logger.debug(f"🔍 convert_image_to_jpg 使用分辨率限制: {max_long_side}x{max_short_side}")
         
+        # 在多进程环境中，强制输出到控制台以便调试
+        print(f"[子进程] 🔍 convert_image_to_jpg 使用分辨率限制: {max_long_side}x{max_short_side}")
+        
         now = datetime.datetime.now()
         timestamp = now.strftime("%Y%m%d%H%M%S") + f"{now.microsecond // 1000:03d}"
         file_name = f"{userid}_{timestamp}"
@@ -142,6 +152,7 @@ class FileProcessor:
         full_save_path = save_path / file_name_with_extension
         
         try:
+            print(f"[子进程] 开始转换图片-{file_path}为JPG格式")
             with Image.open(file_path) as img:
                 # 转换颜色模式
                 if img.mode in ('RGBA', 'P', 'LA', 'L'):
@@ -188,6 +199,9 @@ class FileProcessor:
         logger = logging.getLogger(__name__)
         logger.debug(f"🔍 convert_video_to_mp4 使用分辨率限制: {max_long_side}x{max_short_side}")
         
+        # 在多进程环境中，强制输出到控制台以便调试
+        print(f"[子进程] 🔍 convert_video_to_mp4 使用分辨率限制: {max_long_side}x{max_short_side}")
+        
         now = datetime.datetime.now()
         timestamp = now.strftime("%Y%m%d%H%M%S") + f"{now.microsecond // 1000:03d}"
         file_name = f"{userid}_{timestamp}"
@@ -196,11 +210,11 @@ class FileProcessor:
         
         try:
             logger.info(f"开始转换视频-{file_path}为mp4格式")
+            print(f"[子进程] 开始转换视频-{file_path}为mp4格式")
             
             # 构建ffmpeg命令，限制分辨率和帧率
             # 使用if/gte和-2参数，可以智能判断视频方向、保持比例、防止放大，并确保宽高为偶数
             scale_filter = f"scale=w='if(gte(a,{max_long_side}/{max_short_side}),min({max_long_side},iw),-2)':h='if(gte(a,{max_long_side}/{max_short_side}),-2,min({max_short_side},ih))'"
-            
             cmd = [
                 'ffmpeg',
                 '-i', str(file_path),
@@ -244,6 +258,9 @@ class FileProcessor:
         logger = logging.getLogger(__name__)
         logger.debug(f"🔍 copy_file_to_temp_dir 使用分辨率限制: {max_long_side}x{max_short_side}")
         
+        # 在多进程环境中，强制输出到控制台以便调试
+        print(f"[子进程] 🔍 copy_file_to_temp_dir 使用分辨率限制: {max_long_side}x{max_short_side}")
+        
         try:
             now = datetime.datetime.now()
             timestamp = now.strftime("%Y%m%d%H%M%S") + f"{now.microsecond // 1000:03d}"
@@ -252,6 +269,7 @@ class FileProcessor:
             file_name_with_extension = f"{file_name}{file_extension}"
             full_save_path = temp_dir / file_name_with_extension
             
+            print(f"[子进程] 开始复制文件-{file_path}到{full_save_path}")
             shutil.copy2(file_path, full_save_path)
             logger.info(f"复制文件{file_path}到{full_save_path}")
             return full_save_path
@@ -461,12 +479,12 @@ class file_uploader_to_fileServer:
                     # 检查分辨率限制：使用实例变量
                     long_side = max(width, height)
                     short_side = min(width, height)
-                    
-                    if long_side > self.max_long_side or short_side > self.max_short_side or fps > 30:
-                        logger.info(f"视频 {file_path} 超过限制(分辨率≤{self.max_short_side}x{self.max_long_side}, 帧率≤30fps)")
+                    # TODO 视频的分辨率限制目前只能使用固定值，因为202最高支持720P
+                    if long_side > 1280 or short_side > 720 or fps > 30:
+                        logger.info(f"视频 {file_path} 超过限制(分辨率≤1280x720, 帧率≤30fps)")
                         return True  # 需要转换
                     else:
-                        logger.info(f"视频 {file_path} 符合要求(分辨率≤{self.max_short_side}x{self.max_long_side}, 帧率≤30fps)")
+                        logger.info(f"视频 {file_path} 符合要求(分辨率≤1280x720, 帧率≤30fps)")
                         return False  # 不需要转换
             
             return True  # 未找到视频流，默认需要转换
@@ -538,18 +556,23 @@ class file_uploader_to_fileServer:
         
         return dir_path
 
-    def _multiprocess_convert(self, file_list: list, save_path: Path, worker_func, max_workers: int = 4):
+    def _multiprocess_convert(self, file_list: list, save_path: Path, worker_func, max_long_side: int, max_short_side: int, max_workers: int = 4):
         """使用多进程转换文件"""
-        result = []
-        with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            # 不传递分辨率参数，让静态方法使用Config的当前值
-            futures = [executor.submit(worker_func, file, save_path, self.userid) for file in file_list]
-            for future in as_completed(futures):
-                try:
-                    result.append(future.result())
-                except Exception as e:
-                    logger.error(f"处理文件时发生错误: {e}")
-        return result
+        try:
+            result = []
+            with ProcessPoolExecutor(max_workers=max_workers) as executor:
+                # 不传递分辨率参数，让静态方法使用Config的当前值
+                futures = [executor.submit(worker_func, file, save_path, self.userid, max_long_side, max_short_side) for file in file_list]
+                for future in as_completed(futures):
+                    try:
+                        result.append(future.result())
+                    except Exception as e:
+                        logger.error(f"处理文件时发生错误: {e}")
+                logger.debug(f"多进程处理结果：{result}")
+            return result
+        except Exception as e:
+            logger.error(f"处理文件发生错误: {e}")
+            sys.exit(1)
 
 
 
@@ -564,8 +587,7 @@ class file_uploader_to_fileServer:
             if file_type == "invalid_path" or file_type == "error":
                 logger.error(f"文件路径无效或判断文件类型时出错: {file_path}")
                 sys.exit(1) 
-            
-            if isinstance(file_type, dict) and "image" in file_type:
+            if isinstance(file_type, dict) and "image" in list(file_type.keys())[0]:
                 # 图片处理逻辑
                 if file_type["image"] not in [".jpg", ".png"]:
                     # 不支持的图片格式，需要转换
@@ -580,21 +602,7 @@ class file_uploader_to_fileServer:
                         no_convert_list.append(file_path)
                         logger.debug(f"图片 {file_path} 无需转换")
                         
-            elif isinstance(file_type, dict) and "video" in file_type:
-                # 视频处理逻辑
-                if file_type["video"] != ".mp4":
-                    # 不支持的视频格式，需要转换
-                    video_convert_list.append(file_path)
-                    logger.debug(f"视频 {file_path} 格式不支持，需要转换为MP4")
-                else:
-                    # 支持的格式，但需要检查分辨率和帧率
-                    if self.check_video_specs(file_path):
-                        logger.debug(f"图片 {file_path} 分辨率超限，需要转换")
-                    else:
-                        no_convert_list.append(file_path)
-                        logger.debug(f"图片 {file_path} 无需转换")
-                        
-            elif isinstance(file_type, dict) and "video" in file_type:
+            elif isinstance(file_type, dict) and "video" in list(file_type.keys())[0]:
                 # 视频处理逻辑
                 if file_type["video"] != ".mp4":
                     # 不支持的视频格式，需要转换
@@ -627,19 +635,19 @@ class file_uploader_to_fileServer:
         
         # 生成需要转换的文件列表
         image_convert_list, video_convert_list, no_convert_list = self._generate_convert_file_list(file_path_list)
-        
+        logger.info(f"image_convert_list: {image_convert_list}\nvideo_convert_list: {video_convert_list}\nno_convert_list: {no_convert_list}")
         # 使用多进程转换文件，传递静态方法
         pic_process_result = self._multiprocess_convert(
-            image_convert_list, temp_dir, FileProcessor.convert_image_to_jpg
-        ) if image_convert_list else []
+            image_convert_list, temp_dir, FileProcessor.convert_image_to_jpg, self.max_long_side, self.max_short_side
+        ) if len(image_convert_list) > 0 else []
         
         video_process_result = self._multiprocess_convert(
-            video_convert_list, temp_dir, FileProcessor.convert_video_to_mp4
-        ) if video_convert_list else []
+            video_convert_list, temp_dir, FileProcessor.convert_video_to_mp4, 1280, 720
+        ) if len(video_convert_list) > 0 else []
         
         copy_result = self._multiprocess_convert(
-            no_convert_list, temp_dir, FileProcessor.copy_file_to_temp_dir
-        ) if no_convert_list else []
+            no_convert_list, temp_dir, FileProcessor.copy_file_to_temp_dir, self.max_long_side, self.max_short_side
+        ) if len(no_convert_list) > 0 else []
         
         all_results = pic_process_result + video_process_result + copy_result
         success_count = sum(1 for result in all_results if result is not None)
@@ -878,6 +886,9 @@ class bind_media_to_gift_code:
         media_list_video = [{"fileId": _, "thumbnail": _, "mediaType": 1} for _ in gift_video_list]
         media_list = media_list_image + media_list_video
         greetingContent = self.paragraph_generator.generate_paragraph(count=2)
+        # 确保greetingContent是字符串类型
+        if isinstance(greetingContent, list):
+            greetingContent = "\n".join(greetingContent)
         greentingTitile = "文本随机生成测试!"
         sender_name = "MR.SHEN"
         receiver_name = "Addya"
@@ -996,12 +1007,12 @@ class Batch_upload_file:
         fu.start(screen_info)
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d ===> %(message)s')
-    # batch_upload_file = Batch_upload_file()  # 先上传文件到云端，上传后可以不需要执行该方法，除非有新的文件需要上传
-    # sys.exit(0)
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d ===> %(message)s')
+    batch_upload_file = Batch_upload_file()  # 先上传文件到云端，上传后可以不需要执行该方法，除非有新的文件需要上传
+    sys.exit(0)
     # batch_prepare_giftCode = Batch_prepare_giftCode()
     switch_display_mode = Display_mode_switcher(gift_receiver_account, gift_receiver_passwd, host, port)
-    logger.info(f"screen_id: {screen_id}")
+    logger.DEBUG(f"screen_id: {screen_id}")
     while True:
         batch_prepare_giftCode = Batch_prepare_giftCode()
         sys.exit(0)
