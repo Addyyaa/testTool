@@ -33,7 +33,7 @@ config = {
     "user": "root",
     "password": "ya!2dkwy7-934^",
     "ota_wait_time": 60,  # 升级所需要的时间，单位秒
-    "hosts": ['192.168.1.45'],
+    "hosts": ['192.168.1.6', '192.168.1.36'],
     "test_times": 1000
 }
 
@@ -370,7 +370,9 @@ if __name__ == "__main__":
     # password = input("请输入密码: ")
     account = 'test2@tester.com'
     password = 'sf123123'
-    api_sender = Api_sender(account, password)
+    host = '139.224.192.36'
+    port = '8082'
+    api_sender = Api_sender(account, password, host, port)
     pool = DatabaseConnectionPool()
     # 显示菜单
     selected_screens1, screen_lastest_version_map1 = OTA_test.show_screen_menus()

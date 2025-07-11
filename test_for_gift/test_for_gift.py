@@ -36,15 +36,10 @@ gift_sender_passwd = "sf123123"
 gift_receiver_account = "15250996938"
 gift_receiver_passwd = "sf123123"
 screen_id = None
-gift_sender_account = "test2@tester.com"
-gift_sender_passwd = "sf123123"
-gift_receiver_account = "15250996938"
-gift_receiver_passwd = "sf123123"
-screen_id = None
 max_long_side = None
 max_short_side = None
 logger = logging.getLogger(__name__)
-reverse_account = True
+reverse_account = False  # TODO 反转发送者和接收者账号
 if reverse_account:
     # 反转发送者和接收者账号
     tmp_account = gift_sender_account
@@ -964,10 +959,26 @@ class Batch_prepare_giftCode:
         gift_code, screen_info = binder.bind_media_to_gift_code()
         logger.debug(f"gift_code: {gift_code}")
         logger.debug(f"screen_info: {screen_info}")
+        screen_info = list(set(screen_info))
+        while True:
+            print(f"选择接收礼物的屏幕：")
+            for index, screen in enumerate(screen_info):
+                print(f"{index}: {screen}")
+            option = input(f"请选择：")
+            if option.isdigit():
+                option = int(option)
+                if 0 <= option < len(screen_info):
+                    screen_id_inner = screen_info[option]
+                    break
+            else:
+                logger.error("输入错误，请重新输入")
+                continue
+        
+
         # 只取giftCode字符串
         real_gift_code = gift_code["giftCode"] if isinstance(gift_code, dict) else str(gift_code)
         global screen_id
-        screen_id = screen_info[0] if screen_info else None
+        screen_id = screen_id_inner if screen_id_inner else None
         if real_gift_code and screen_id:
             receiver = Gift_receiver(real_gift_code, screen_id)
             gift_info = receiver.receive_gift()
@@ -1008,11 +1019,11 @@ class Batch_upload_file:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d ===> %(message)s')
-    batch_upload_file = Batch_upload_file()  # 先上传文件到云端，上传后可以不需要执行该方法，除非有新的文件需要上传
-    sys.exit(0)
+    # batch_upload_file = Batch_upload_file()  # 先上传文件到云端，上传后可以不需要执行该方法，除非有新的文件需要上传
+    # sys.exit(0)
     # batch_prepare_giftCode = Batch_prepare_giftCode()
     switch_display_mode = Display_mode_switcher(gift_receiver_account, gift_receiver_passwd, host, port)
-    logger.DEBUG(f"screen_id: {screen_id}")
+    logger.debug(f"screen_id: {screen_id}")
     while True:
         batch_prepare_giftCode = Batch_prepare_giftCode()
         sys.exit(0)
