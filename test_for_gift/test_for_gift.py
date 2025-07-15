@@ -39,7 +39,7 @@ screen_id = None
 max_long_side = None
 max_short_side = None
 logger = logging.getLogger(__name__)
-reverse_account = False  # TODO 反转发送者和接收者账号
+reverse_account = True  # TODO 反转发送者和接收者账号
 if reverse_account:
     # 反转发送者和接收者账号
     tmp_account = gift_sender_account

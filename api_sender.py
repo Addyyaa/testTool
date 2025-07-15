@@ -3,7 +3,7 @@ import logging
 import sys
 
 import requests
-from .login import Login
+from testTool.login import Login
 
 logger = logging.getLogger(__name__)
 

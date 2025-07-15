@@ -1,6 +1,6 @@
 import logging
 import sys
-
+import time
 import requests
 
 # 配置 logging 模块
@@ -40,17 +40,21 @@ class Login:
             self.body_data['loginType'] = '2'  # 明确设置手机登录类型
         self.body_data["account"] = self.account
         self.body_data["password"] = self.password
-        response = requests.post(self.login_interface, json=self.body_data, headers=self.header)
-        if response.status_code == 200 and response.json()["code"] == 20:
-            rp = response.json()
-            # 提取token
-            self.header['X-TOKEN'] = rp["data"]
-            logger.info(f"body_data: {self.body_data}")
-            logger.info("登录成功！")
-            return rp["data"]
-        else:
-            logging.error(f"{response.text}\n{self.body_data}")
-            sys.exit()
-    
+        for i in range(3):
+            response = requests.post(self.login_interface, json=self.body_data, headers=self.header)
+            if response.status_code == 200 and response.json()["code"] == 20:
+                rp = response.json()
+                # 提取token
+                self.header['X-TOKEN'] = rp["data"]
+                logger.debug(f"body_data: {self.body_data}")
+                logger.debug("登录成功！")
+                return rp["data"]
+            else:
+                logger.error(f"{response.status_code}\n{response.text}\n{self.body_data}")
+                logger.error(f"登录失败，重试{i+1}次")
+                time.sleep(1)
+        sys.exit()
+            
+        
     def get_header(self):
         return self.header

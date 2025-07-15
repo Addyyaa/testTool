@@ -12,18 +12,18 @@ from io import BytesIO
 
 class Upload_pic_size_test:
     def __init__(self):
-        # self.user, self.passwd = self.ask_login_info()
-        self.user = "test2@tester.com"
-        self.passwd = "sf123123"
+        self.user, self.passwd = self.ask_login_info()
+        # self.user = "test2@tester.com"
+        # self.passwd = "sf123123"
         # self.port = 8080
-        self.port = 8082
+        self.port = 8080
         self.protocol = "http"
-        # self.server = "cloud-service.austinelec.com"
-        self.server = "139.224.192.36"
+        self.server = "cloud-service.austinelec.com"
+        # self.server = "139.224.192.36"
         self.base_url = f"{self.protocol}://{self.server}"
         self.api_sender = Api_sender(self.user, self.passwd, self.server, self.port)
-        # self.file_domian = "files-static.austinelec.com"  # 环境切换需要更换
-        self.file_domian = "files-static-test.austinelec.com"  # 环境切换需要更换
+        self.file_domian = "files-static.austinelec.com"  # 环境切换需要更换
+        # self.file_domian = "files-static-test.austinelec.com"  # 环境切换需要更换
         self.detect_item = {"detect_file_size": self.detect_file_size_info, "detect_screen_resolution": self.detect_picture_resolution_item}
         self.alubm_detect_item = {"detect_album_file_size": self.detect_album_file_size_info, "detect_album_picture_resolution": self.detect_album_picture_resolution_item}
         self.test_flag = True
