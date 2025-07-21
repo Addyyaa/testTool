@@ -162,10 +162,10 @@ class CheckScreenType:
             sys.exit(1)
         return screen_info
 
-class TransferFileToScreen:
-    def __init__(self, api_sender):
+class Ask_user_for_info:
+    def __init__(self, api_sender) -> None:
         self.api_sender = api_sender
-
+    
     def show_album_list(self):
         """
         return:
@@ -194,6 +194,14 @@ class TransferFileToScreen:
                 print("请输入有效的屏幕编号")
         screen_id = screen_list[int(screen_id) - 1]["screenId"]
         return screen_id, screen_list
+    
+
+
+class TransferFileToScreen:
+    def __init__(self, api_sender):
+        self.api_sender = api_sender
+
+    
 
     def transfer_file_to_screen(self, pic_list: list, screen_id: str, group_id: str):
         check_screen_type = CheckScreenType(self.api_sender, screen_id, group_id)
@@ -244,17 +252,8 @@ class TransferFileToScreen:
                 logger.error(f"文件传输失败: {e}")
                 sys.exit(1)
 
-    def main(self):
-        # 先获取相册列表
-        pic_list = self.show_album_list()
-        # 获取屏幕信息
-        screen_id, screen_list = self.show_screen_list()
-        group_id = None
-        for screen in screen_list:
-            if screen["screenId"] == screen_id:
-                group_id = str(screen["groupId"])
-                logger.info(f"group_id: {group_id}")
-                break
+    def main(self, pic_list: list, screen_id: str, group_id: str):
+        logger.info(f"提交图片{pic_list}到屏幕: {screen_id}")
         self.transfer_file_to_screen(pic_list, screen_id, group_id)
         return pic_list, screen_id
 
@@ -405,12 +404,22 @@ if __name__ == "__main__":
     for handler in logging.root.handlers:
         handler.flush()
 
-    api_sender = Api_sender("test2@tester.com", "sf123123", "139.224.192.36", "8082")
+    api_sender = Api_sender("15250996938", "sf123123", "139.224.192.36", "8082")
     transfer_file_to_screen = TransferFileToScreen(api_sender)
-    pic_list, screen_id = transfer_file_to_screen.main()
+    ask_user_for_info = Ask_user_for_info(api_sender)
+    pic_list = ask_user_for_info.show_album_list()
+    screen_id, screen_list = ask_user_for_info.show_screen_list()
+    for screen in screen_list:
+            if screen["screenId"] == screen_id:
+                group_id = str(screen["groupId"])
+                logger.info(f"group_id: {group_id}")
+                break
+
     pic_len = len(pic_list)
+
     # 从piclist随机挑选形成要测试的图片列表
     while True:
-        test_pic_list = random.sample(pic_list, pic_len // 2)
+        test_pic_list = random.choice(pic_list, int(pic_len * 0.8))
+        pic_list, screen_id = transfer_file_to_screen.main(test_pic_list, screen_id, group_id)
         ck = CheckScreeenDownlaod()
         asyncio.run(ck.check_screen_download(screen_id, test_pic_list))
