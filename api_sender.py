@@ -3,7 +3,7 @@ import logging
 import sys
 
 import requests
-from testTool.login import Login
+from login import Login
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,8 @@ class Api_sender:
         self.display = f"{base_url}/api/v1/host/screen/update/display"
         self.album_list = f"{base_url}/api/v1/photo/list"
         self.album_picture_list = f"{base_url}/api/v1/photo/album/list?albumId="
+        self.album_picture_list_with_page = f"{base_url}/api/v1/photo/album/list"
+        self.group_list = f"{base_url}/api/v1/host/screen/group/list?pageNum=1&pageSize=10000"
         self.qiniu_filesystem = "http://up-z2.qiniup.com"
         self.qiniu_token = f"{base_url}/api/v1/files/token?code=86"
         self.meta_api = f"{base_url}/api/v1/capacity/file/meta"
@@ -50,6 +52,7 @@ class Api_sender:
         self.get_pic_withNoTf = f"{base_url}/api/v1/host/screen?screenDeviceId="  #  获取没有TF卡的屏幕图片
         self.get_pic_withTF = f"{base_url}/api/v1/screenPicture/page/list?pageNum=1&pageSize=10000&screenId="  #  获取有TF卡的屏幕图片
         self.device_type = f"{base_url}/api/v1/host/screen/group/list/relationWithVersion?screenGroupId="  #  获取设备类型
+        self.screen_type_info = f"{base_url}/api/v1/host/screen/group/list/relationWithVersionStorage?screenGroupId="
         self.add_gift = f"{base_url}/api/v1/gifts/add"
         self.get_gift = f"{base_url}/api/v1/gifts/receive"
         self.gift_del = f"{base_url}/api/v1/gifts/del"

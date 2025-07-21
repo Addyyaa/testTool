@@ -111,7 +111,7 @@ if __name__ == "__main__":
         "13": "混播随机播放",
     }
     screen_list = [
-        "PinturaV2test00001",
+        # "PinturaV2test00001",
         "PinturaTest173459",
         "PinturaV2test09529",
         "PSd4117cL000289",
