@@ -5,6 +5,7 @@ import random
 import sys
 import os
 import time
+from turtle import circle
 from unittest import result
 import requests
 
@@ -408,6 +409,7 @@ if __name__ == "__main__":
     transfer_file_to_screen = TransferFileToScreen(api_sender)
     ask_user_for_info = Ask_user_for_info(api_sender)
     pic_list = ask_user_for_info.show_album_list()
+    pic_list_copy = pic_list.copy()
     screen_id, screen_list = ask_user_for_info.show_screen_list()
     for screen in screen_list:
             if screen["screenId"] == screen_id:
@@ -416,10 +418,12 @@ if __name__ == "__main__":
                 break
 
     pic_len = len(pic_list)
-
+    circle_count = 0
     # 从piclist随机挑选形成要测试的图片列表
     while True:
-        test_pic_list = random.choice(pic_list, int(pic_len * 0.8))
+        test_pic_list = random.choices(pic_list_copy, k=int(pic_len * 0.8))
         pic_list, screen_id = transfer_file_to_screen.main(test_pic_list, screen_id, group_id)
+        logger.info(f"circle_count: {circle_count}")
+        circle_count += 1
         ck = CheckScreeenDownlaod()
         asyncio.run(ck.check_screen_download(screen_id, test_pic_list))
