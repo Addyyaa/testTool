@@ -1,6 +1,7 @@
 import asyncio
 from calendar import c
 from datetime import datetime
+from doctest import debug
 import random
 import sys
 import os
@@ -320,16 +321,19 @@ class CheckScreeenDownlaod:
             try:
                 logger.info(f"pic_list: {pic_list}")
                 if len(pic_list) == 0:
+                    config_list = [ f"/customer/config/picture_config_{i}.ini" for i in range(1, 16)]
                     # 图片都已经下载完了，需要检查图片播放配置是否配置正确
-                    pic_config = await self.send_cmd_with_newest_content.send_cmd_with_newest_content("cat /customer/config/picture_config.ini")
-                    for pic in pic_list_config:
-                        if pic not in pic_config:
-                            logger.error(f"图片{pic}未配置")
-                            logger.info(f"pic_config: {pic_config}")
+                    for index, pic in enumerate(pic_list_config, 1):
+                        logger.info(f"检查图片{index}/{len(pic_list_config)}: {pic}是否配置")
+                        for config in config_list:
+                            pic_config = await self.send_cmd_with_newest_content.send_cmd_with_newest_content(f"cat {config} | grep {pic}")
+                            if pic in pic_config:
+                                logger.info(f"图片{pic}已配置")
+                                break
+                        logger.info(f"图片{pic}未配置")
                     break
                 try: 
                     pic_cache = await self.send_cmd_with_newest_content.send_cmd_with_newest_content("ls /customer/picture_cache/ |wc -l") 
-                    pic_cache = int(pic_cache.split("\r\n/ #")[-2].strip())
                 except Exception as e:
                     logger.error(f"转换pic_cache失败: {e}")
                     continue
