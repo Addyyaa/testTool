@@ -328,9 +328,10 @@ class CheckScreeenDownlaod:
                         for config in config_list:
                             pic_config = await self.send_cmd_with_newest_content.send_cmd_with_newest_content(f"cat {config} | grep {pic}")
                             if pic in pic_config:
+                                pic_list_config.remove(pic)
                                 logger.info(f"图片{pic}已配置")
                                 break
-                        logger.info(f"图片{pic}未配置")
+                    logger.info(f"图片{pic_list_config}未配置")
                     break
                 try: 
                     pic_cache = await self.send_cmd_with_newest_content.send_cmd_with_newest_content("ls /customer/picture_cache/ |wc -l") 
@@ -349,14 +350,14 @@ class CheckScreeenDownlaod:
                         return
                     if len(pic_list) == 0:
                         return
-                    for pic in pic_list:
+                    for index, pic in enumerate(pic_list, 1):
                         cmd_pic = cmd_pic_dir + pic
                         result = await self.send_cmd_with_newest_content.send_cmd_with_newest_content(cmd_pic)
                         if pic in result:
-                            logger.info(f"图片{pic}已下载完成")
+                            logger.info(f"图片{index}/{len(pic_list)}: {pic}已下载完成")
                             pic_list.remove(pic)
                         else:
-                            logger.info(f"图片{pic}未检测到，等待下一轮查询")
+                            logger.info(f"图片{index}/{len(pic_list)}: {pic}未检测到，等待下一轮查询")
                         await asyncio.sleep(1)
                     
                     # 直接递归调用，无需 asyncio.run
@@ -409,7 +410,7 @@ if __name__ == "__main__":
     for handler in logging.root.handlers:
         handler.flush()
 
-    api_sender = Api_sender("15250996938", "sf123123", "139.224.192.36", "8082")
+    api_sender = Api_sender("test2@tester.com", "sf123123", "139.224.192.36", "8082")
     transfer_file_to_screen = TransferFileToScreen(api_sender)
     ask_user_for_info = Ask_user_for_info(api_sender)
     pic_list = ask_user_for_info.show_album_list()
@@ -425,7 +426,7 @@ if __name__ == "__main__":
     circle_count = 0
     # 从piclist随机挑选形成要测试的图片列表
     while True:
-        test_pic_list = random.choices(pic_list_copy, k=int(pic_len * 0.8))
+        test_pic_list = random.sample(pic_list_copy, k=int(pic_len * 0.1))
         pic_list, screen_id = transfer_file_to_screen.main(test_pic_list, screen_id, group_id)
         logger.info(f"circle_count: {circle_count}")
         circle_count += 1
