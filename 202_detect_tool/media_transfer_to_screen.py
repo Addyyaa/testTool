@@ -10,6 +10,7 @@ from turtle import circle
 from unittest import result
 import requests
 
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from api_sender import Api_sender
 from login import Manager
@@ -131,6 +132,7 @@ class CheckScreenType:
     def check_screen_has_tf(self):
         screen_info = self.get_screen_type_info(self.screen_id, self.gourp_id)
         if int(screen_info["totalStorage"]) > 0:
+            logger.info(f"screen_tf_info====>: {screen_info}")
             return True
         else:
             return False
@@ -150,7 +152,7 @@ class CheckScreenType:
     def get_screen_type_info(self, screen_id: str, gourp_id: str):
         logger.info(f"screen_id: {screen_id}, gourp_id: {gourp_id}")
         try:
-            type_info = self.api_sender.send_api(self.api_sender.screen_type_info + gourp_id, {}, "get").json()["data"]
+            type_info = self.api_sender.send_api(self.api_sender.screen_type_info + gourp_id, {}, "get", print_curl=True).json()["data"]
         except Exception as e:
             logger.error(f"获取屏幕信息失败: {e}")
             sys.exit(1)
@@ -213,7 +215,7 @@ class TransferFileToScreen:
                 body = []
                 for index, pic in enumerate(pic_list, 1):
                     body.append({"pictureFileId": pic, "pictureSeq": index + 1, "screenDeviceId": screen_id})
-                result = self.api_sender.send_api(self.api_sender.publish1, body, "post").json()
+                result = self.api_sender.send_api(self.api_sender.publish1, body, "post", print_curl=True).json()
                 logger.info(f"result: {result}")
                 if result and result["code"] == 20:
                     logger.info(f"文件传输成功")
@@ -229,9 +231,11 @@ class TransferFileToScreen:
                 body = {"screenId": screen_id, "screenPictureSet": []}
                 for index, pic in enumerate(pic_list, 1):
                     body["screenPictureSet"].append({"fileId": pic, "sortOrder": index, "screenId": screen_id, "thumbnail": pic, "fileMd5": ""})
-                result = self.api_sender.send_api(self.api_sender.publish_sync, body, "post").json()
+                result = self.api_sender.send_api(self.api_sender.publish_sync, body, "post", print_curl=True).json()
+                logger.info(f"result: {result}")
                 if result and result["code"] == 20:
                     logger.info(f"文件传输成功")
+                    logger.info(f"提交图片{pic_list}到屏幕: {screen_id}")
                 else:
                     logger.error(f"文件传输失败: {result["data"]}")
                     sys.exit(1)
@@ -244,9 +248,10 @@ class TransferFileToScreen:
                 body = {"screenId": screen_id, "screenPictureSet": []}
                 for index, pic in enumerate(pic_list, 1):
                     body["screenPictureSet"].append({"fileId": pic, "sortOrder": index, "screenId": screen_id, "thumbnail": pic, "fileMd5": ""})
-                result = self.api_sender.send_api(self.api_sender.album_picture_to_screen, body, "post").json()
+                result = self.api_sender.send_api(self.api_sender.album_picture_to_screen, body, "post", print_curl=True).json()
                 if result and result["code"] == 20:
                     logger.info(f"文件传输成功")
+                    logger.info(f"提交图片{pic_list}到屏幕: {screen_id}")
                 else:
                     logger.error(f"文件传输失败: {result["data"]}")
                     sys.exit(1)
@@ -255,7 +260,6 @@ class TransferFileToScreen:
                 sys.exit(1)
 
     def main(self, pic_list: list, screen_id: str, group_id: str):
-        logger.info(f"提交图片{pic_list}到屏幕: {screen_id}")
         self.transfer_file_to_screen(pic_list, screen_id, group_id)
         return pic_list, screen_id
 

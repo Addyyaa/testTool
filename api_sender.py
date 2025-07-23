@@ -1,7 +1,7 @@
 import json
 import logging
 import sys
-
+import curlify
 import requests
 from login import Login
 
@@ -68,7 +68,7 @@ class Api_sender:
         }
         self.__set_token()
 
-    def send_api(self, api, data, method="post"):
+    def send_api(self, api, data, method="post", print_curl=False):
         try:
             # data = json.dumps(data)
             if method.upper() == "POST":
@@ -78,6 +78,8 @@ class Api_sender:
             if response1.status_code == 401:
                 raise Exception("401")
             if response1.status_code == 200:
+                if print_curl:
+                    logger.info(f"CURL：\n{curlify.to_curl(response1.request)}")
                 return response1
             return response1  # 返回其他状态码的响应，让调用者处理
         except Exception as e:
@@ -96,6 +98,9 @@ class Api_sender:
     
     def get_token(self):
         return self.header['X-TOKEN']
+
+    def get_server_and_port(self):
+        return self.server, self.port
 
 
 
