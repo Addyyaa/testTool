@@ -84,7 +84,7 @@ class Api_sender:
                 return response1
             return response1  # 返回其他状态码的响应，让调用者处理
         except Exception as e:
-            if str(e) == "401":  # 修改这里，使用str(e)来比较
+            if str(e) == "401":  # 修改这里，使用str(e)来比较 
                 self.__set_token()
                 return self.send_api(api, data, method)
             else:
