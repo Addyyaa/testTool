@@ -132,7 +132,6 @@ class CheckScreenType:
     def check_screen_has_tf(self):
         screen_info = self.get_screen_type_info(self.screen_id, self.gourp_id)
         if int(screen_info["totalStorage"]) > 0:
-            logger.info(f"screen_tf_info====>: {screen_info}")
             return True
         else:
             return False

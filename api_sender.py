@@ -79,7 +79,8 @@ class Api_sender:
                 raise Exception("401")
             if response1.status_code == 200:
                 if print_curl:
-                    logger.info(f"CURL：\n{curlify.to_curl(response1.request)}")
+                    logger.info(f"{'=' * 50 + 'CURL' + '=' * 50}\n{curlify.to_curl(response1.request)}\n{'=' * 50 + 'END' + '=' * 50}")
+                    logger.info(f"{'=' * 50 + 'RESPONSE' + '=' * 50}\n{response1.headers}\nCONTENT:\t{response1.content}\n{'=' * 50 + 'END' + '=' * 50}")
                 return response1
             return response1  # 返回其他状态码的响应，让调用者处理
         except Exception as e:
