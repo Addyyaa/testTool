@@ -18,6 +18,8 @@ from telnet_connecter import Telnet_connector
 import logging
 
 logger = logging.getLogger(__name__)
+# TODO 临时全局变量，等pad修复错误上报存储状态后删除
+is_pad_has_tf = None
 
 class GetFileFromAlbum:
     def __init__(self, api_sender):
@@ -149,6 +151,11 @@ class CheckScreenType:
 
     
     def get_screen_type_info(self, screen_id: str, gourp_id: str):
+        # TODO 临时全局变量，等pad修复错误上报存储状态后删除  
+        global is_pad_has_tf
+        if is_pad_has_tf is not None:
+            return is_pad_has_tf
+        # ----------------------------
         logger.info(f"screen_id: {screen_id}, gourp_id: {gourp_id}")
         try:
             type_info = self.api_sender.send_api(self.api_sender.screen_type_info + gourp_id, {}, "get", print_curl=True).json()["data"]

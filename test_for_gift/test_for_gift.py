@@ -1,6 +1,5 @@
 import asyncio
 import os
-import subprocess
 import json
 import sys
 import time
@@ -9,10 +8,9 @@ import tkinter as tk
 import tkinter as tk
 from tkinter import filedialog
 import datetime
-import logging
+import logging  
 from typing import Iterable, Optional
 from PIL import Image
-from requests import api
 from ..api_sender import Api_sender
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
@@ -39,7 +37,7 @@ screen_id = None
 max_long_side = None
 max_short_side = None
 logger = logging.getLogger(__name__)
-reverse_account = True  # TODO 反转发送者和接收者账号
+reverse_account = False  # TODO 反转发送者和接收者账号
 if reverse_account:
     # 反转发送者和接收者账号
     tmp_account = gift_sender_account

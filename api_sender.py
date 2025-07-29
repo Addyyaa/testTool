@@ -1,9 +1,8 @@
-import json
+
 import logging
-import sys
 import curlify
 import requests
-from login import Login
+from .login import Login
 
 logger = logging.getLogger(__name__)
 
