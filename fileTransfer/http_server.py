@@ -157,6 +157,10 @@ class FileHTTPRequestHandler(BaseHTTPRequestHandler):
             file_size = os.path.getsize(file_path)
             content_type = self._get_content_type(requested_path)
             
+            # 检测是否为二进制文件
+            is_binary = self._is_binary_file(file_path)
+            file_type_indicator = "[二进制]" if is_binary else "[文本]"
+            
             # 发送响应头
             self._send_headers(200, content_type, file_size)
             
@@ -164,10 +168,39 @@ class FileHTTPRequestHandler(BaseHTTPRequestHandler):
             with open(file_path, 'rb') as f:
                 shutil.copyfileobj(f, self.wfile)
             
-            self.server_instance.logger.info(f"文件下载完成: {requested_path} ({file_size} bytes)")
+            self.server_instance.logger.info(f"文件下载完成: {requested_path} ({file_size} bytes) {file_type_indicator}")
+            
+            # 如果是需要可执行权限的二进制文件，记录需要添加可执行权限
+            if self._is_executable_binary_file(file_path):
+                self._schedule_chmod_executable(requested_path)
 
-            # 删除临时文件
-            self.server_instance.remove_file(file_path)
+            # 延迟删除临时文件，避免Windows文件占用问题
+            import threading
+            def delayed_remove():
+                import time
+                time.sleep(2)  # 增加等待时间到2秒
+                try:
+                    # 使用强力删除方法
+                    if os.path.exists(file_path):
+                        filename = os.path.basename(file_path)
+                        success = self.server_instance._force_delete_file(file_path, filename)
+                        
+                        if success:
+                            self.server_instance.logger.info(f"延迟删除文件成功: {filename}")
+                        else:
+                            self.server_instance.logger.warning(f"延迟删除文件失败但已处理: {filename}")
+                        
+                        # 从映射中移除
+                        for source_path, temp_path in list(self.server_instance.file_mapping.items()):
+                            if temp_path == file_path:
+                                del self.server_instance.file_mapping[source_path]
+                                break
+                    else:
+                        self.server_instance.logger.warning(f"延迟删除时文件已不存在: {file_path}")
+                except Exception as e:
+                    self.server_instance.logger.error(f"延迟删除文件失败: {os.path.basename(file_path)} - {e}")
+            
+            threading.Thread(target=delayed_remove, daemon=True).start()
             
         except Exception as e:
             self.server_instance.logger.error(f"发送文件失败: {str(e)}")
@@ -309,6 +342,144 @@ class FileHTTPRequestHandler(BaseHTTPRequestHandler):
         
         return content_type
     
+    def _is_binary_file(self, file_path):
+        """检测文件是否为二进制文件"""
+        try:
+            # 1. 通过扩展名检测常见的二进制文件
+            binary_extensions = {
+                '.exe', '.bin', '.so', '.dll', '.dylib', '.a', '.o', '.obj',
+                '.zip', '.rar', '.7z', '.tar', '.gz', '.bz2', '.xz',
+                '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico', '.tiff',
+                '.mp3', '.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv',
+                '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+                '.deb', '.rpm', '.apk', '.ipa', '.dmg', '.iso'
+            }
+            
+            file_ext = os.path.splitext(file_path)[1].lower()
+            if file_ext in binary_extensions:
+                return True
+            
+            # 2. 通过文件内容检测
+            with open(file_path, 'rb') as f:
+                # 读取前1024字节进行检测
+                chunk = f.read(1024)
+                if not chunk:
+                    return False
+                
+                # 检测空字节（二进制文件的典型特征）
+                if b'\x00' in chunk:
+                    return True
+                
+                # 检测非ASCII字符的比例
+                non_ascii_count = sum(1 for byte in chunk if byte > 127)
+                non_ascii_ratio = non_ascii_count / len(chunk)
+                
+                # 如果非ASCII字符超过30%，认为是二进制文件
+                if non_ascii_ratio > 0.3:
+                    return True
+                
+                # 检测控制字符（除了常见的换行、制表符等）
+                control_chars = sum(1 for byte in chunk if byte < 32 and byte not in (9, 10, 13))
+                control_ratio = control_chars / len(chunk)
+                
+                # 如果控制字符超过5%，认为是二进制文件
+                if control_ratio > 0.05:
+                    return True
+            
+            return False
+            
+        except Exception as e:
+            self.server_instance.logger.warning(f"检测文件类型失败: {e}")
+            # 出错时默认为文本文件
+            return False
+    
+    def _is_executable_binary_file(self, file_path):
+        """检测文件是否为需要可执行权限的二进制文件"""
+        try:
+            # 只有这些扩展名的文件才需要可执行权限
+            executable_extensions = {
+                '.exe', '.bin', '.so', '.dll', '.dylib', '.a', '.o', '.obj',
+                '.deb', '.rpm', '.apk', '.ipa'
+            }
+            
+            file_ext = os.path.splitext(file_path)[1].lower()
+            if file_ext in executable_extensions:
+                return True
+            
+            # 对于没有扩展名的文件，通过内容检测
+            if not file_ext:
+                # 检测是否为ELF文件（Linux可执行文件）
+                try:
+                    with open(file_path, 'rb') as f:
+                        header = f.read(4)
+                        if header == b'\x7fELF':  # ELF魔数
+                            return True
+                except Exception:
+                    pass
+            
+            return False
+            
+        except Exception as e:
+            self.server_instance.logger.warning(f"检测可执行文件类型失败: {e}")
+            return False
+    
+    def _schedule_chmod_executable(self, requested_path):
+        """安排为二进制文件添加可执行权限"""
+        try:
+            import threading
+            import time
+            import asyncio
+            
+            def delayed_chmod():
+                time.sleep(1)  # 短暂延迟确保文件传输完成
+                try:
+                    # 通过telnet连接执行chmod命令
+                    if hasattr(self.server_instance, 'telnet_client') and self.server_instance.telnet_client:
+                        chmod_cmd = f'chmod +x "{requested_path}"'
+                        self.server_instance.logger.info(f"为二进制文件添加可执行权限: {chmod_cmd}")
+                        
+                        # 在独立线程中创建新的事件循环执行异步命令
+                        def run_chmod_in_thread():
+                            # 创建新的事件循环
+                            loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(loop)
+                            
+                            try:
+                                # 执行chmod命令
+                                result = loop.run_until_complete(
+                                    self.server_instance.telnet_client.execute_command(chmod_cmd, timeout=10)
+                                )
+                                
+                                # 验证权限是否添加成功
+                                verify_cmd = f'ls -l "{requested_path}"'
+                                verify_result = loop.run_until_complete(
+                                    self.server_instance.telnet_client.execute_command(verify_cmd, timeout=5)
+                                )
+                                
+                                if 'x' in verify_result:
+                                    self.server_instance.logger.info(f"✅ 成功为二进制文件添加可执行权限: {requested_path}")
+                                else:
+                                    self.server_instance.logger.warning(f"⚠️ 可执行权限可能未成功添加: {requested_path}")
+                                    self.server_instance.logger.debug(f"权限验证结果: {verify_result.strip()}")
+                                    
+                            except Exception as e:
+                                self.server_instance.logger.error(f"❌ 添加可执行权限失败: {requested_path} - {e}")
+                            finally:
+                                loop.close()
+                        
+                        # 在独立线程中执行
+                        threading.Thread(target=run_chmod_in_thread, daemon=True).start()
+                    else:
+                        self.server_instance.logger.warning(f"⚠️ 无法获取telnet连接，跳过权限设置: {requested_path}")
+                        
+                except Exception as e:
+                    self.server_instance.logger.error(f"❌ 延迟chmod处理失败: {requested_path} - {e}")
+            
+            threading.Thread(target=delayed_chmod, daemon=True).start()
+            
+        except Exception as e:
+            self.server_instance.logger.error(f"安排chmod任务失败: {e}")
+    
     def log_message(self, format, *args):
         """重写日志输出方法，使用自定义logger"""
         if self.server_instance and self.server_instance.logger:
@@ -326,7 +497,7 @@ class FileHTTPServer:
     - 自动清理临时文件
     """
     
-    def __init__(self, port: int = 88, temp_dir: Optional[str] = None, parent_logger=None):
+    def __init__(self, port: int = 88, temp_dir: Optional[str] = None, parent_logger=None, telnet_client=None):
         """
         初始化HTTP文件服务器
         
@@ -334,6 +505,7 @@ class FileHTTPServer:
             port (int): 服务端口，默认88
             temp_dir (str, optional): 临时文件目录，默认自动创建
             parent_logger (logging.Logger, optional): 父logger
+            telnet_client (optional): telnet客户端，用于执行chmod命令
         """
         self.port = port
         self.temp_dir = temp_dir or self._create_temp_dir()
@@ -341,6 +513,7 @@ class FileHTTPServer:
         self.server_thread: Optional[threading.Thread] = None
         self.is_running = False
         self.file_mapping: Dict[str, str] = {}  # 原始文件路径到临时文件路径的映射
+        self.telnet_client = telnet_client  # 添加telnet客户端引用
         
         # 配置日志
         self.logger = (parent_logger or get_logger(self.__class__)
@@ -478,7 +651,7 @@ class FileHTTPServer:
     
     def remove_file(self, filename: str) -> bool:
         """
-        从HTTP服务器移除文件
+        从HTTP服务器移除文件 - 增强版Windows删除逻辑
         
         Args:
             filename (str): 文件名
@@ -489,7 +662,8 @@ class FileHTTPServer:
         try:
             file_path = os.path.join(self.temp_dir, filename)
             if os.path.exists(file_path):
-                os.remove(file_path)
+                # 增强的Windows文件删除逻辑
+                success = self._force_delete_file(file_path, filename)
                 
                 # 从映射中移除
                 for source_path, temp_path in list(self.file_mapping.items()):
@@ -497,7 +671,10 @@ class FileHTTPServer:
                         del self.file_mapping[source_path]
                         break
                 
-                self.logger.info(f"文件已从HTTP服务器移除: {filename}")
+                if success:
+                    self.logger.info(f"文件已从HTTP服务器移除: {filename}")
+                else:
+                    self.logger.info(f"文件已从HTTP服务器映射中移除，物理删除将稍后重试: {filename}")
                 return True
             else:
                 self.logger.warning(f"要移除的文件不存在: {filename}")
@@ -506,6 +683,142 @@ class FileHTTPServer:
         except Exception as e:
             self.logger.error(f"移除文件失败: {str(e)}")
             return False
+    
+    def _force_delete_file(self, file_path: str, filename: str) -> bool:
+        """
+        强制删除文件 - 使用多种方法尝试删除Windows文件
+        
+        Args:
+            file_path (str): 文件完整路径
+            filename (str): 文件名
+        
+        Returns:
+            bool: 是否成功删除
+        """
+        import time
+        import stat
+        import gc
+        
+        # 方法1: 标准删除
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                # 强制垃圾回收，释放可能的文件句柄
+                gc.collect()
+                
+                # 尝试修改文件权限
+                try:
+                    os.chmod(file_path, stat.S_IWRITE)
+                except:
+                    pass
+                
+                # 标准删除
+                os.remove(file_path)
+                self.logger.debug(f"✅ 标准删除成功: {filename}")
+                return True
+                
+            except PermissionError as pe:
+                if attempt < max_retries - 1:
+                    self.logger.debug(f"标准删除失败，重试 {attempt + 1}/{max_retries}: {filename}")
+                    time.sleep(0.5 + attempt * 0.3)
+                else:
+                    self.logger.debug(f"标准删除最终失败: {filename} - {pe}")
+                    
+            except Exception as e:
+                self.logger.debug(f"标准删除异常: {filename} - {e}")
+                break
+        
+        # 方法2: 使用send2trash（如果可用）
+        try:
+            import send2trash
+            send2trash.send2trash(file_path)
+            self.logger.debug(f"✅ 移至回收站成功: {filename}")
+            return True
+        except ImportError:
+            pass
+        except Exception as e:
+            self.logger.debug(f"移至回收站失败: {filename} - {e}")
+        
+                          # 方法3: Windows系统调用删除
+        if os.name == 'nt':  # Windows系统
+            try:
+                import subprocess
+                # 使用标准化路径，避免双反斜杠问题
+                windows_path = self._normalize_windows_path(file_path)
+                self.logger.info(f"尝试Windows命令删除: del /f /q \"{windows_path}\"")
+                
+                result = subprocess.run([
+                    'cmd', '/c', 'del', '/f', '/q', 
+                    windows_path  # 不需要额外引号，subprocess会处理
+                ], capture_output=True, text=True, timeout=10)
+                
+                if result.returncode == 0:
+                    self.logger.info(f"✅ Windows命令删除成功: {filename}")
+                    return True
+                else:
+                    self.logger.warning(f"Windows命令删除失败: {filename} - stdout: {result.stdout} stderr: {result.stderr}")
+                    
+            except Exception as e:
+                self.logger.warning(f"Windows命令删除异常: {filename} - {e}")
+        
+        # 方法4: 延迟删除 - 将文件重命名然后标记为延迟删除
+        try:
+            import uuid
+            temp_name = f"_DELETE_ME_{uuid.uuid4().hex[:8]}_{filename}"
+            temp_path = os.path.join(self.temp_dir, temp_name)
+            
+            # 重命名文件
+            os.rename(file_path, temp_path)
+            
+            # 启动延迟删除任务
+            self._schedule_delayed_deletion(temp_path, temp_name)
+            
+            self.logger.debug(f"✅ 文件已重命名并标记为延迟删除: {filename} -> {temp_name}")
+            return True
+            
+        except Exception as e:
+            self.logger.debug(f"延迟删除失败: {filename} - {e}")
+        
+        # 所有方法都失败
+        self.logger.warning(f"❌ 所有删除方法都失败，文件可能被占用: {filename} - {file_path}")
+        return False
+    
+    def _schedule_delayed_deletion(self, file_path: str, filename: str):
+        """
+        安排延迟删除任务
+        
+        Args:
+            file_path (str): 文件路径
+            filename (str): 文件名
+        """
+        import threading
+        import time
+        
+        def delayed_delete():
+            # 等待一段时间，让文件句柄释放
+            time.sleep(5)
+            
+            for attempt in range(10):  # 尝试10次
+                try:
+                    if os.path.exists(file_path):
+                        # 使用强力删除方法而不是简单的os.remove
+                        success = self._force_delete_file(file_path, filename)
+                        if success:
+                            self.logger.debug(f"✅ 延迟删除成功: {filename}")
+                        else:
+                            self.logger.debug(f"延迟删除失败但已处理: {filename}")
+                        return
+                    else:
+                        self.logger.debug(f"延迟删除时文件已不存在: {filename}")
+                        return
+                except Exception as e:
+                    if attempt < 9:
+                        time.sleep(2 + attempt * 0.5)  # 递增等待时间
+                    else:
+                        self.logger.debug(f"延迟删除最终失败: {filename} - {e}")
+        
+        # 在后台线程中执行延迟删除
+        threading.Thread(target=delayed_delete, daemon=True).start()
     
     def list_files(self) -> List[Dict]:
         """
@@ -558,13 +871,51 @@ class FileHTTPServer:
             return "127.0.0.1"
     
     def _cleanup_temp_files(self):
-        """清理临时文件"""
+        """清理临时文件 - 增强版Windows清理逻辑"""
         try:
-            if os.path.exists(self.temp_dir):
+            if not os.path.exists(self.temp_dir):
+                return
+            
+            # 首先尝试删除所有文件
+            for root, dirs, files in os.walk(self.temp_dir):
+                for filename in files:
+                    file_path = os.path.join(root, filename)
+                    try:
+                        self._force_delete_file(file_path, filename)
+                    except Exception as e:
+                        self.logger.debug(f"清理文件失败: {filename} - {e}")
+            
+            # 然后尝试删除目录
+            try:
                 shutil.rmtree(self.temp_dir)
-                self.logger.info(f"临时文件目录已清理: {self.temp_dir}")
+                self.logger.info(f"✅ 临时文件目录已清理: {self.temp_dir}")
+                return
+            except Exception as e:
+                self.logger.debug(f"标准目录删除失败: {e}")
+            
+            # Windows系统使用系统命令删除
+            if os.name == 'nt':
+                try:
+                    import subprocess
+                    # 使用Windows rmdir命令强制删除
+                    windows_temp_dir = self._normalize_windows_path(self.temp_dir)
+                    result = subprocess.run([
+                        'cmd', '/c', 'rmdir', '/s', '/q', 
+                        windows_temp_dir
+                    ], capture_output=True, text=True, timeout=30)
+                    
+                    if result.returncode == 0:
+                        self.logger.info(f"✅ Windows命令清理临时目录成功: {self.temp_dir}")
+                    else:
+                        self.logger.warning(f"⚠️ Windows命令清理失败，但程序继续运行: {result.stderr}")
+                        
+                except Exception as e:
+                    self.logger.warning(f"⚠️ 清理临时文件失败，但不影响程序运行: {str(e)}")
+            else:
+                self.logger.warning(f"⚠️ 清理临时文件失败，但不影响程序运行: {self.temp_dir}")
+                
         except Exception as e:
-            self.logger.error(f"清理临时文件失败: {str(e)}")
+            self.logger.warning(f"⚠️ 清理临时文件失败，但不影响程序运行: {str(e)}")
     
     def __del__(self):
         """析构函数，确保资源清理"""
@@ -581,6 +932,27 @@ class FileHTTPServer:
     def __exit__(self, exc_type, exc_val, exc_tb):
         """上下文管理器出口"""
         self.stop()
+
+    def _normalize_windows_path(self, file_path: str) -> str:
+        """
+        标准化Windows路径，避免双反斜杠问题
+        
+        Args:
+            file_path (str): 原始文件路径
+            
+        Returns:
+            str: 标准化的Windows路径
+        """
+        # 使用os.path.normpath来标准化路径
+        normalized = os.path.normpath(file_path)
+        
+        # 确保是Windows格式（但避免双重转义）
+        if os.name == 'nt':
+            # 只在必要时替换，避免重复转换
+            if '/' in normalized and '\\' not in normalized:
+                normalized = normalized.replace('/', '\\')
+        
+        return normalized
 
 
 # 使用示例和测试代码

@@ -1,3 +1,4 @@
+import os
 import sys
 from PySide6.QtWidgets import QApplication
 from ui.main_window import MainWindow
@@ -54,6 +55,8 @@ class MainController:
                 local_path = download_log(ip, log_type)
                 self.set_status("下载完成")
                 self.window.log_output.append(f"日志已保存到: {local_path}")
+                # 打开文件夹
+                os.startfile(os.path.dirname(local_path))
             except Exception as e:
                 import traceback
                 self.set_status("操作失败")

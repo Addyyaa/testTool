@@ -73,6 +73,17 @@ def get_logger(owner: Union[Type, ModuleType, str]) -> logging.Logger:
 
     统一入口，内部会自动处理 ``__main__`` 情况，
     保证返回的 logger.name 足够明确（至少包含 ``fileTransfer`` 包名）。
+    使用统一的日志配置。
     """
     name = _build_logger_name(owner)
-    return logging.getLogger(name) 
+    logger = logging.getLogger(name)
+    
+    # 使用统一的日志配置
+    try:
+        from .log_config import get_log_level
+        logger.setLevel(get_log_level(name))
+    except ImportError:
+        # 如果无法导入配置，使用默认等级
+        logger.setLevel(logging.INFO)
+    
+    return logger 

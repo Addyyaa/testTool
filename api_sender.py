@@ -1,24 +1,35 @@
-import json
+
 import logging
-import sys
-
+import curlify
 import requests
-from login import Login
+from .login import Login
 
-logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s %(filename)s:%(lineno)d')
+logger = logging.getLogger(__name__)
+
 class Api_sender:
-    def __init__(self, user, passwd, server="139.224.192.36", port="8082"):
+    def __init__(self, user, passwd, host, port, login_type=None):
         self.user = user
         self.passwd = passwd
-        self.server = server 
-        self.port = port     
-        base_url = f"http://{server}:{port}"
+        self.server = host
+        self.port = port
+        
+        self.login = Login(self.user, self.passwd, self.server, self.port)
+        self.login.login()  # 执行登录
+        self.header = self.login.header # 获取登录后的header
+
+        if not self.header.get("X-TOKEN"):
+            logger.error("获取token失败,请检查账号密码")
+            return
+
+        base_url = f"http://{self.server}:{self.port}"
         self.login_interface = f"{base_url}/api/v1/account/login"
         self.get_device = f"{base_url}/api/v1/host/screen/group/device/list"
         self.screen_list = f"{base_url}/api/v1/host/screen/group/list/relationWithVersion?screenGroupId="
         self.display = f"{base_url}/api/v1/host/screen/update/display"
         self.album_list = f"{base_url}/api/v1/photo/list"
         self.album_picture_list = f"{base_url}/api/v1/photo/album/list?albumId="
+        self.album_picture_list_with_page = f"{base_url}/api/v1/photo/album/list"
+        self.group_list = f"{base_url}/api/v1/host/screen/group/list?pageNum=1&pageSize=10000"
         self.qiniu_filesystem = "http://up-z2.qiniup.com"
         self.qiniu_token = f"{base_url}/api/v1/files/token?code=86"
         self.meta_api = f"{base_url}/api/v1/capacity/file/meta"
@@ -40,6 +51,12 @@ class Api_sender:
         self.get_pic_withNoTf = f"{base_url}/api/v1/host/screen?screenDeviceId="  #  获取没有TF卡的屏幕图片
         self.get_pic_withTF = f"{base_url}/api/v1/screenPicture/page/list?pageNum=1&pageSize=10000&screenId="  #  获取有TF卡的屏幕图片
         self.device_type = f"{base_url}/api/v1/host/screen/group/list/relationWithVersion?screenGroupId="  #  获取设备类型
+        self.screen_type_info = f"{base_url}/api/v1/host/screen/group/list/relationWithVersionStorage?screenGroupId="
+        self.add_gift = f"{base_url}/api/v1/gifts/add"
+        self.get_gift = f"{base_url}/api/v1/gifts/receive"
+        self.gift_del = f"{base_url}/api/v1/gifts/del"
+        self.gift_list = f"{base_url}/api/v1/gifts/list"
+        self.gift_list_receive = f"{base_url}/api/v1/gifts/receive/list"
         self.qiuniutoken = None
         self.header = {
             "Content-Type": "application/json",
@@ -50,7 +67,7 @@ class Api_sender:
         }
         self.__set_token()
 
-    def send_api(self, api, data, method="post"):
+    def send_api(self, api, data, method="post", print_curl=False):
         try:
             # data = json.dumps(data)
             if method.upper() == "POST":
@@ -60,14 +77,17 @@ class Api_sender:
             if response1.status_code == 401:
                 raise Exception("401")
             if response1.status_code == 200:
+                if print_curl:
+                    logger.info(f"{'=' * 50 + 'CURL' + '=' * 50}\n{curlify.to_curl(response1.request)}\n{'=' * 50 + 'END' + '=' * 50}")
+                    logger.info(f"{'=' * 50 + 'RESPONSE' + '=' * 50}\n{response1.headers}\nCONTENT:\t{response1.content}\n{'=' * 50 + 'END' + '=' * 50}")
                 return response1
             return response1  # 返回其他状态码的响应，让调用者处理
         except Exception as e:
-            if str(e) == "401":  # 修改这里，使用str(e)来比较
+            if str(e) == "401":  # 修改这里，使用str(e)来比较 
                 self.__set_token()
                 return self.send_api(api, data, method)
             else:
-                logging.error(f"请求发生错误：{e}")
+                logger.error(f"请求发生错误：{e}")
                 return None
     
             
@@ -75,6 +95,12 @@ class Api_sender:
     def __set_token(self):
         token = Login(self.user, self.passwd, self.server, self.port).login()
         self.header['X-TOKEN'] = token
+    
+    def get_token(self):
+        return self.header['X-TOKEN']
+
+    def get_server_and_port(self):
+        return self.server, self.port
 
 
 
