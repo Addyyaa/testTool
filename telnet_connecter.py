@@ -90,7 +90,7 @@ class Telnet_connector:
         print(f"username: {self.username}, password: {self.password}")
         print(f"Telnet_connector initialized for host: {self.host}")
 
-    async def connect(self, timeout=30):
+    async def connect(self, timeout=10):
         """建立到目標主機的 Telnet 連接。
 
         如果已存在連接，則此方法不執行任何操作。
@@ -101,9 +101,19 @@ class Telnet_connector:
             ConnectionError: 如果連接超時、被拒絕或發生其他連接錯誤。
             Exception: 其他底層異常。
         """
-        if self.writer:
-            print("Already connected.")
-            return
+        # 改进连接状态检查
+        if self.writer and not self.writer.is_closing():
+            # 检查连接是否真的有效
+            try:
+                if hasattr(self.writer, '_transport') and self.writer._transport is not None:
+                    # 连接看起来是健康的，跳过重连
+                    print("Connection is healthy, skipping reconnect.")
+                    return
+            except:
+                pass
+            # 如果检查失败，强制重连
+            print("Connection appears unhealthy, forcing reconnect...")
+            await self.disconnect()
         print(f"Connecting to {self.host}...")
         try:
             self.reader, self.writer = await asyncio.wait_for(
@@ -152,19 +162,86 @@ class Telnet_connector:
             raise ConnectionError(f"Failed to connect: {e}") from e
 
     async def _auto_login(self):
-        """自动检测登录提示并输入用户名和密码"""
+        """优化的自动登录机制"""
         if not self.username or not self.password:
             return  # 未设置用户名密码则跳过
-        # 读取初始输出，查找 login/username/password 提示
-        output = await self.read_until_timeout(2)
-        if any(x in output.lower() for x in ["login:", "username:"]):
-            self.writer.write(self.username + "\r\n")
-            await self.writer.drain()
-            output = await self.read_until_timeout(2)
-        if "password:" in output.lower():
-            self.writer.write(self.password + "\r\n")
-            await self.writer.drain()
-            await asyncio.sleep(1)  # 等待登录完成
+        
+        max_attempts = 3
+        for attempt in range(max_attempts):
+            try:
+                # 减少等待时间，提高响应速度
+                output = await self.read_until_timeout(1.5)  # 从2秒减少到1.5秒
+                
+                # 检查是否需要用户名
+                if any(x in output.lower() for x in ["login:", "username:"]):
+                    logging.info(f"检测到登录提示，发送用户名: {self.username}")
+                    self.writer.write(self.username + "\r\n")
+                    await self.writer.drain()
+                    output = await self.read_until_timeout(1.5)  # 减少等待时间
+                
+                # 检查是否需要密码
+                if "password:" in output.lower():
+                    logging.info("检测到密码提示，发送密码")
+                    self.writer.write(self.password + "\r\n")
+                    await self.writer.drain()
+                    await asyncio.sleep(0.5)  # 从1秒减少到0.5秒
+                    
+                    # 验证登录是否成功
+                    verification = await self.read_until_timeout(1)
+                    if any(x in verification for x in ["#", "$", ">"]):
+                        logging.info("登录成功")
+                        return
+                
+                # 如果已经看到提示符，说明已经登录
+                if any(x in output for x in ["#", "$", ">"]):
+                    logging.info("已经处于登录状态")
+                    return
+                    
+            except Exception as e:
+                logging.warning(f"登录尝试 {attempt+1} 失败: {e}")
+                if attempt < max_attempts - 1:
+                    await asyncio.sleep(0.5)  # 短暂等待后重试
+                else:
+                    logging.error("自动登录失败")
+                    raise
+
+    async def health_check(self, timeout=2.0):
+        """快速健康检查连接状态"""
+        try:
+            if not self.writer or self.writer.is_closing():
+                return False
+            
+            # 检查底层传输
+            if hasattr(self.writer, '_transport') and self.writer._transport is None:
+                return False
+            
+            # 发送简单的echo命令测试连接
+            result = await asyncio.wait_for(
+                self.send_command("echo ping", max_retries=1), 
+                timeout=timeout
+            )
+            return "ping" in result
+        except:
+            return False
+    
+    async def ensure_connection(self):
+        """确保连接有效，如果无效则重连"""
+        if not await self.health_check():
+            logging.info(f"连接到 {self.host} 无效，正在重连...")
+            await self.disconnect()
+            await self.connect()
+            return True
+        return False
+    
+    async def connect_and_warmup(self, timeout=10):
+        """连接并预热（发送一个测试命令确保连接稳定）"""
+        await self.connect(timeout)
+        try:
+            # 发送一个简单命令预热连接
+            await self.send_command("echo warmup", max_retries=1)
+            logging.info(f"连接到 {self.host} 预热完成")
+        except Exception as e:
+            logging.warning(f"连接预热失败: {e}")
 
     async def disconnect(self):
         """關閉當前的 Telnet 連接。
