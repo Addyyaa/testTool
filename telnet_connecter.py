@@ -452,11 +452,31 @@ class Telnet_connector:
                 if hasattr(self.writer, '_transport') and self.writer._transport is None:
                     logging.warning(f"[Attempt {attempt+1}/{max_retries+1}] Transport is None, attempting to reconnect...")
                     raise ConnectionError("Transport is None")
+                
+                # 额外检查：如果transport存在，检查其内部状态
+                if hasattr(self.writer, '_transport') and self.writer._transport:
+                    transport = self.writer._transport
+                    # 检查transport是否有_proactor属性，且_proactor不为None
+                    if hasattr(transport, '_loop') and hasattr(transport._loop, '_proactor'):
+                        if transport._loop._proactor is None:
+                            logging.warning(f"[Attempt {attempt+1}/{max_retries+1}] Proactor is None, attempting to reconnect...")
+                            raise ConnectionError("Proactor is None")
 
                 # --- 发送命令 (包含原有 str/bytes 尝试逻辑) ---
                 try:
                     logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] "
                                   f"Attempting to send command as string: {command_str!r}")
+                    
+                    # 发送前的最后一次检查，防止在检查和发送之间状态变化
+                    if not self.writer or self.writer.is_closing():
+                        raise ConnectionError("Writer became None or closing just before send")
+                    if hasattr(self.writer, '_transport') and self.writer._transport is None:
+                        raise ConnectionError("Transport became None just before send")
+                    if (hasattr(self.writer, '_transport') and self.writer._transport and 
+                        hasattr(self.writer._transport, '_loop') and hasattr(self.writer._transport._loop, '_proactor') and
+                        self.writer._transport._loop._proactor is None):
+                        raise ConnectionError("Proactor became None just before send")
+                    
                     self.writer.write(command_str)  # type: ignore
 
                 except TypeError as te:
@@ -486,6 +506,17 @@ class Telnet_connector:
                 # --- Drain and Read ---
                 logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Write ({write_attempted_type}) successful, "
                               f"draining buffer...")
+                
+                # 在drain前再次检查连接状态
+                if not self.writer or self.writer.is_closing():
+                    raise ConnectionError("Writer became None or closing before drain")
+                if hasattr(self.writer, '_transport') and self.writer._transport is None:
+                    raise ConnectionError("Transport became None before drain")
+                if (hasattr(self.writer, '_transport') and self.writer._transport and 
+                    hasattr(self.writer._transport, '_loop') and hasattr(self.writer._transport._loop, '_proactor') and
+                    self.writer._transport._loop._proactor is None):
+                    raise ConnectionError("Proactor became None before drain")
+                
                 await self.writer.drain()  # May raise ConnectionError
                 logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] Command sent, reading response...")
                 response = await self.read_until_timeout(read_timeout)  # May raise ConnectionError
