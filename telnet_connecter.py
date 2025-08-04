@@ -208,11 +208,14 @@ class Telnet_connector:
     async def health_check(self, timeout=2.0):
         """快速健康检查连接状态"""
         try:
+            # 基础状态检查
             if not self.writer or self.writer.is_closing():
+                logging.debug("健康检查失败: writer不存在或正在关闭")
                 return False
             
             # 检查底层传输
             if hasattr(self.writer, '_transport') and self.writer._transport is None:
+                logging.debug("健康检查失败: transport为空")
                 return False
             
             # 发送简单的echo命令测试连接
@@ -220,12 +223,23 @@ class Telnet_connector:
                 self.send_command("echo ping", max_retries=1), 
                 timeout=timeout
             )
-            return "ping" in result
-        except:
+            is_healthy = "ping" in result
+            logging.debug(f"健康检查结果: {is_healthy}, 响应: {result[:50]}")
+            return is_healthy
+        except Exception as e:
+            logging.debug(f"健康检查异常: {e}")
             return False
     
     async def ensure_connection(self):
         """确保连接有效，如果无效则重连"""
+        # 先进行快速检查
+        if self.writer and not self.writer.is_closing():
+            # 如果基础状态正常，再进行深度检查
+            if hasattr(self.writer, '_transport') and self.writer._transport is not None:
+                # 连接看起来正常，跳过健康检查以提高性能
+                return False
+        
+        # 如果基础检查失败，进行完整的健康检查
         if not await self.health_check():
             logging.info(f"连接到 {self.host} 无效，正在重连...")
             await self.disconnect()
