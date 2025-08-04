@@ -352,6 +352,16 @@ class Telnet_connector:
                 command_bytes = command_str.encode('utf-8', errors='ignore')
                 write_attempted_type = "string"  # 重置尝试类型
 
+                # --- 检查连接状态 ---
+                if not self.writer or self.writer.is_closing():
+                    logging.warning(f"[Attempt {attempt+1}/{max_retries+1}] Writer is None or closing, attempting to reconnect...")
+                    raise ConnectionError("Writer is None or closing")
+                
+                # 检查底层传输是否有效
+                if hasattr(self.writer, '_transport') and self.writer._transport is None:
+                    logging.warning(f"[Attempt {attempt+1}/{max_retries+1}] Transport is None, attempting to reconnect...")
+                    raise ConnectionError("Transport is None")
+
                 # --- 发送命令 (包含原有 str/bytes 尝试逻辑) ---
                 try:
                     logging.debug(f"[Attempt {attempt+1}/{max_retries+1}] "

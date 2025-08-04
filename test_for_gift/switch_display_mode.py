@@ -159,10 +159,34 @@ class ApplicationRestartObserver:
         for screen_id, config in screen_config1.items():
             config["cmd_list"] = [f"pidof {app}" for app in config["cmd_list"]]
 
+        async def safe_send_command(tn, cmd, screen_id, max_retries=3):
+            """安全发送命令，包含重连机制"""
+            for retry in range(max_retries):
+                try:
+                    return await tn.send_command(cmd)
+                except ConnectionError as e:
+                    logger.warning(f"连接错误 (尝试 {retry+1}/{max_retries}): {e}")
+                    if retry < max_retries - 1:
+                        logger.info(f"尝试重新连接到 {screen_id}...")
+                        try:
+                            # 重新连接
+                            await tn.connect()
+                            await asyncio.sleep(1)  # 等待连接稳定
+                        except Exception as reconnect_error:
+                            logger.error(f"重连失败: {reconnect_error}")
+                            await asyncio.sleep(2)  # 等待更长时间再重试
+                    else:
+                        logger.error(f"命令发送失败，已达最大重试次数: {e}")
+                        return None
+                except Exception as e:
+                    logger.error(f"发送命令时发生未知错误: {e}")
+                    return None
+            return None
+
         if not self.pid_map:
             for screen_id, config in screen_config1.items():
                 for cmd in config["cmd_list"]:
-                    pid = await config["tn"].send_command(cmd)  # 使用 await
+                    pid = await safe_send_command(config["tn"], cmd, screen_id)
                     logger.info("pid: %s", pid)
                     if pid:
                         self.pid_map[screen_id] = {
@@ -173,16 +197,16 @@ class ApplicationRestartObserver:
         else:
             for screen_id, config in screen_config1.items():
                 for cmd in config["cmd_list"]:
-                    pid = await config["tn"].send_command(cmd)  # 使用 await
+                    pid = await safe_send_command(config["tn"], cmd, screen_id)
                     logger.info("pid: %s", pid)
-                    if pid and pid == self.pid_map[screen_id][cmd]:
+                    if pid and self.pid_map.get(screen_id) and pid == self.pid_map[screen_id].get(cmd):
                         logger.info("应用 %s 未重启", cmd)
                         continue
                     else:
                         logger.error("%s-%s应用重启", screen_id, cmd)
-                        self.pid_map[screen_id] = {
-                            cmd: pid
-                        }
+                        if screen_id not in self.pid_map:
+                            self.pid_map[screen_id] = {}
+                        self.pid_map[screen_id][cmd] = pid
                         
 if __name__ == "__main__":
     logging.basicConfig(
