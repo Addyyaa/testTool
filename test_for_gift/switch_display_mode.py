@@ -157,7 +157,8 @@ class ApplicationRestartObserver:
         }
         """
         for screen_id, config in screen_config1.items():
-            config["cmd_list"] = [f"pidof {app}" for app in config["cmd_list"]]
+            if config["cmd_list"] and not config["cmd_list"][0].startswith("pidof"):
+                config["cmd_list"] = [f"pidof {app}" for app in config["cmd_list"]]
 
         async def safe_send_command(tn, cmd, screen_id, max_retries=3):
             """安全发送命令，包含重连机制"""
@@ -169,8 +170,10 @@ class ApplicationRestartObserver:
                     if retry < max_retries - 1:
                         logger.info(f"尝试重新连接到 {screen_id}...")
                         try:
-                            # 重新连接
-                            await tn.connect()
+                            # 强制断开并重新连接
+                            await tn.disconnect()  # 先断开
+                            await asyncio.sleep(0.5)  # 等待清理
+                            await tn.connect()  # 重新连接
                             await asyncio.sleep(1)  # 等待连接稳定
                         except Exception as reconnect_error:
                             logger.error(f"重连失败: {reconnect_error}")
