@@ -5,11 +5,13 @@ from io import BytesIO
 import time
 import asyncio
 import aiohttp  # 新增：异步HTTP客户端
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_dir)  # 获取上级目录（项目根目录）
+sys.path.insert(0, project_root)  # 将项目根目录添加到Python路径
 from api_sender import Api_sender
 # 修复：使用正确的模块导入方式
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '202_detect_tool'))
-from media_transfer_to_screen import GetFileFromAlbum
+from detect_tool_for_202.media_transfer_to_screen import GetFileFromAlbum
 import logging
 from typing import Literal
 from datetime import datetime

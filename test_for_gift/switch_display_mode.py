@@ -1,17 +1,29 @@
+# pylint: disable=invalid-name,wrong-import-position
 import sys
 import time
 import random
-from testTool.api_sender import Api_sender
 import logging
-from ..date_tool import convert_timestamp_to_time, format_time_duration
+from pathlib import Path
+from typing import Literal
+import asyncio
+
+from typing import TypedDict, List
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
+# 导入模块
+from detect_tool_for_202.media_transfer_to_screen import GetScreenIp
+from api_sender import Api_sender 
+from date_tool import format_time_duration
+from telnet_connecter import Telnet_connector
+
 
 logger = logging.getLogger(__name__)
 
 class SwitchDisplayMode:
-    def __init__(self, account: str, password: str, host: str, port: str):
-        self.api_sender = Api_sender(account, password, host, port)
-        self.account = account
-        self.password = password
+    """切换显示模式"""
+    def __init__(self, api_sender: Api_sender):
+        self.api_sender = api_sender
     def switch_display_mode(self, display_mode: str, screen_id: str):
         """
         1. 图片轮播
@@ -87,14 +99,102 @@ class SwitchDisplayMode:
     #         timestamp = timestamp % divisor[key]
     #     return result
 
+class RotateDispalyOrientation:
+    """
+    旋转屏幕显示方向
+    """
+    def __init__(self, api_sender: Api_sender):
+        self.api_sender = api_sender
+    def rotate_dispaly_orientation(self, screen_id: str, orientation: Literal[1, 2]):
+        """
+        @param screen_id: 屏幕ID
+        @param orientation: 显示方向 1: 竖屏 2: 横屏
+        """
+        direction = {
+            1: "竖屏",
+            2: "横屏"
+        }
+        data = {
+            "screenId": screen_id,
+            "direction": orientation
+        }
+        response = self.api_sender.send_api(self.api_sender.rotate_display_orientation, data=data, method="post")
+        if response is not None:
+            try:
+                resp_json = response.json()
+                if resp_json.get("code") == 20:
+                    logger.info("%s 屏幕已旋转为%s", screen_id, direction[orientation])
+            except Exception as e:
+                logger.error("解析响应失败: %s\t%s", e, getattr(response, 'text', ''))
 
+class ScreenConfig(TypedDict):
+    """
+    屏幕配置
+    @param tn: Telnet连接器
+    @param "cmd_list": [
+                    "mymqtt",
+                    "pintura",
+                    "video_player"
+                ]
+    """
+    tn: Telnet_connector
+    cmd_list: List[str]
 
-             
+class ApplicationRestartObserver:
+    """
+    应用重启观察者
+    """
+    def __init__(self):
+        self.pid_map = {}
+    
+    async def application_restart_observer(self, screen_config1: dict[str, ScreenConfig]):
+        """
+        检查应用是否重启
+        
+        @param screen_config: 屏幕配置字典
+        {
+            "screen_id": ScreenConfig
+        }
+        """
+        for screen_id, config in screen_config1.items():
+            config["cmd_list"] = [f"pidof {app}" for app in config["cmd_list"]]
 
-
+        if not self.pid_map:
+            for screen_id, config in screen_config1.items():
+                for cmd in config["cmd_list"]:
+                    pid = await config["tn"].send_command(cmd)  # 使用 await
+                    logger.info("pid: %s", pid)
+                    if pid:
+                        self.pid_map[screen_id] = {
+                            cmd: pid
+                        }
+                    else:
+                        self.pid_map[screen_id] = None
+        else:
+            for screen_id, config in screen_config1.items():
+                for cmd in config["cmd_list"]:
+                    pid = await config["tn"].send_command(cmd)  # 使用 await
+                    logger.info("pid: %s", pid)
+                    if pid and pid == self.pid_map[screen_id][cmd]:
+                        logger.info("应用 %s 未重启", cmd)
+                        continue
+                    else:
+                        logger.error("%s-%s应用重启", screen_id, cmd)
+                        self.pid_map[screen_id] = {
+                            cmd: pid
+                        }
+                        
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d ===> %(message)s')
-    switch_display_mode = SwitchDisplayMode(account="test2@tester.com", password="sf123123", host="139.224.192.36", port="8082")
+    logging.basicConfig(
+        level=logging.INFO, 
+        format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d ===> %(message)s')
+    api_client = Api_sender(
+        user="test2@tester.com",
+        passwd="sf123123",
+        host="139.224.192.36",
+        port="8082")
+    switch_display_mode = SwitchDisplayMode(api_client)
+    rotate_dispaly_orientation = RotateDispalyOrientation(api_client)
 
     display_mode = {
         "1": "图片轮播",
@@ -112,11 +212,18 @@ if __name__ == "__main__":
     }
     screen_list = [
         # "PinturaV2test00001",
-        "PinturaTest173459",
+        # "PinturaTest173459",
         "PinturaV2test09529",
         "PSd4117cL000289",
         "PinturaTest174280"
     ]
+
+    # 初始化屏幕配置
+    # 获取屏幕IP
+    screen_ip_map = { screen_id: GetScreenIp().get_screen_ip(screen_id) for screen_id in screen_list }
+    screen_config = { screen_id: ScreenConfig(tn=Telnet_connector(host=screen_ip_map[screen_id]), cmd_list=["mymqtt", "pintura", "video_player"]) for screen_id in screen_list }
+    print(screen_config)
+    application_restart_observer = ApplicationRestartObserver()
     
     # 初始化上一次选择的模式
     last_mode = None
@@ -124,22 +231,29 @@ if __name__ == "__main__":
     switch_times = 0
     try:
         while True:
+            # 检查应用是否重启
+            asyncio.run(application_restart_observer.application_restart_observer(screen_config))
+            print(f"======>{screen_config}")
+
             # 获取所有可用的显示模式索引
             available_modes = list(display_mode.keys())
             
             # 如果上一次有选择过模式，则从可选列表中移除
             if last_mode is not None and last_mode in available_modes:
                 available_modes.remove(last_mode)
+
+            # 随机旋转屏幕
+            if random.random() < 0.5:
+                rotate_dispaly_orientation.rotate_dispaly_orientation(screen_id=random.choice(screen_list), orientation=random.choice([1, 2]))
             
             # 随机选择一个显示模式
             selected_mode = random.choice(available_modes)
             selected_mode_name = display_mode[selected_mode]
-            
+
             print(f"随机切换到{selected_mode_name}模式")
             
             # 对所有屏幕执行切换
             for screen_id in screen_list:
-                switch_display_mode = SwitchDisplayMode(account="test2@tester.com", password="sf123123", host="139.224.192.36", port="8082")
                 switch_display_mode.switch_display_mode(display_mode=selected_mode, screen_id=screen_id)
                 time.sleep(2)
             
@@ -153,6 +267,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         time_stamp = time.time() - start_time
         result = format_time_duration(int(time_stamp), max_unit="D", min_unit="S")
-        logger.info(f"程序运行时间: {result}")
-        logger.info(f"切换次数: {switch_times}")
+        logger.info("程序运行时间: %s", result)
+        logger.info("切换次数: %s", switch_times)
         sys.exit(0)

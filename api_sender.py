@@ -2,7 +2,7 @@
 import logging
 import curlify
 import requests
-from .login import Login
+from login import Login
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +52,7 @@ class Api_sender:
         self.get_pic_withTF = f"{base_url}/api/v1/screenPicture/page/list?pageNum=1&pageSize=10000&screenId="  #  获取有TF卡的屏幕图片
         self.device_type = f"{base_url}/api/v1/host/screen/group/list/relationWithVersion?screenGroupId="  #  获取设备类型
         self.screen_type_info = f"{base_url}/api/v1/host/screen/group/list/relationWithVersionStorage?screenGroupId="
+        self.rotate_display_orientation = f"{base_url}/api/v1/host/screen/update/direction"
         self.add_gift = f"{base_url}/api/v1/gifts/add"
         self.get_gift = f"{base_url}/api/v1/gifts/receive"
         self.gift_del = f"{base_url}/api/v1/gifts/del"

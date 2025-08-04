@@ -389,6 +389,7 @@ class GetScreenIp:
         }
         url = self.manager.get_screen_ip + screen_id
         response = requests.get(url, headers=header)
+        # logger.info(f"{screen_id}-response: {response.json()["data"]["records"][0]["ip"]}")
         return response.json()["data"]["records"][0]["ip"]
 
 
