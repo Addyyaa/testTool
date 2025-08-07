@@ -187,26 +187,31 @@ class ApplicationRestartObserver:
             return None
 
         if not self.pid_map:
+            logger.info("初始化PID映射...")
             for screen_id, config in screen_config1.items():
+                if screen_id not in self.pid_map:
+                    self.pid_map[screen_id] = {}
                 for cmd in config["cmd_list"]:
                     pid = await safe_send_command(config["tn"], cmd, screen_id)
                     logger.info("pid: %s", pid)
                     if pid:
-                        self.pid_map[screen_id] = {
-                            cmd: pid
-                        }
+                        self.pid_map[screen_id][cmd] = pid.strip()
                     else:
-                        self.pid_map[screen_id] = None
+                        self.pid_map[screen_id][cmd] = None
         else:
             for screen_id, config in screen_config1.items():
                 for cmd in config["cmd_list"]:
                     pid = await safe_send_command(config["tn"], cmd, screen_id)
                     logger.info("pid: %s", pid)
+                    if pid:
+                        pid = pid.strip()
+                        
                     if pid and self.pid_map.get(screen_id) and pid == self.pid_map[screen_id].get(cmd):
                         logger.info("应用 %s 未重启", cmd)
                         continue
                     else:
-                        logger.error("%s-%s应用重启\t重启前pid: %s\t重启后pid: %s", screen_id, cmd, self.pid_map.get(screen_id).get(cmd), pid)
+                        old_pid = self.pid_map.get(screen_id, {}).get(cmd)
+                        logger.error("%s-%s应用重启\t重启前pid: %s\t重启后pid: %s", screen_id, cmd, old_pid, pid)
                         if screen_id not in self.pid_map:
                             self.pid_map[screen_id] = {}
                         self.pid_map[screen_id][cmd] = pid
