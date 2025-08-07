@@ -206,15 +206,49 @@ class ApplicationRestartObserver:
                         logger.info("应用 %s 未重启", cmd)
                         continue
                     else:
-                        logger.error("%s-%s应用重启", screen_id, cmd)
+                        logger.error("%s-%s应用重启\t重启前pid: %s\t重启后pid: %s", screen_id, cmd, self.pid_map.get(screen_id).get(cmd), pid)
                         if screen_id not in self.pid_map:
                             self.pid_map[screen_id] = {}
                         self.pid_map[screen_id][cmd] = pid
                         
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO, 
-        format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d ===> %(message)s')
+
+    import os
+    
+    # 确保日志目录存在
+    log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+    os.makedirs(log_dir, exist_ok=True)
+    
+    # 使用绝对路径创建日志文件
+    log_file = os.path.join(log_dir, "switch_display_mode.log")
+    try:
+        # 创建日志处理器
+        file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
+        console_handler = logging.StreamHandler(sys.stdout)
+        
+        # 设置日志格式
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d ===> %(message)s')
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
+        
+        # 配置根日志记录器
+        logging.basicConfig(
+            level=logging.INFO,
+            handlers=[file_handler, console_handler],
+            force=True  # 强制重新配置
+        )
+        
+        print(f"日志文件路径: {log_file}")
+        
+    except Exception as e:
+        print(f"日志配置失败: {e}")
+        # 使用简单的控制台日志作为备选
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
+    
+
     api_client = Api_sender(
         user="test2@tester.com",
         passwd="sf123123",

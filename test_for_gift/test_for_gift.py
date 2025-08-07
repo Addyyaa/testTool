@@ -5,31 +5,36 @@ import sys
 import time
 import random
 import tkinter as tk
-import tkinter as tk
 from tkinter import filedialog
 import datetime
 import logging  
 from typing import Iterable, Optional
 from PIL import Image
-from ..api_sender import Api_sender
-from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
-import aiohttp
-from .config import Config
 import tzlocal
-from .text_generator import create_text_generator
-from .switch_display_mode import SwitchDisplayMode
+import aiohttp
+from pathlib import Path
+from text_generator import create_text_generator
+from switch_display_mode import SwitchDisplayMode
+from config import Config
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from api_sender import Api_sender
+
+
+
 
 # 全局变量
 protocol = "http"
 # 国内测试环境
-host = "139.224.192.36"
-port = "8082"
+# host = "139.224.192.36"
+host = "cloud-service.austinelec.com"
+# port = "8082"
+port = "8080"
 # 海外测试环境
 # host = "18.215.241.226"
 # port = "8080"
 
-gift_sender_account = "test2@tester.com"
+gift_sender_account = "2698567570@qq.com"
 gift_sender_passwd = "sf123123"
 gift_receiver_account = "15250996938"
 gift_receiver_passwd = "sf123123"
@@ -37,7 +42,7 @@ screen_id = None
 max_long_side = None
 max_short_side = None
 logger = logging.getLogger(__name__)
-reverse_account = False  # TODO 反转发送者和接收者账号
+reverse_account = True  # TODO 反转发送者和接收者账号
 if reverse_account:
     # 反转发送者和接收者账号
     tmp_account = gift_sender_account
@@ -374,7 +379,6 @@ class file_uploader_to_fileServer:
     
     def read_local_file(self):
         """读取本地文件"""
-        """读取本地文件"""
         try:
             # 创建临时顶层窗口作为文件对话框的父窗口
             root = tk.Tk()
@@ -487,7 +491,6 @@ class file_uploader_to_fileServer:
             return True  # 出错时默认需要转换
 
     def judge_file_type(self, file_path):
-        """判断文件类型"""
         """判断文件类型"""
         if not file_path or not isinstance(file_path, str):
             logger.warning("提供的文件路径无效。")
@@ -728,13 +731,15 @@ class file_uploader_to_fileServer:
         
         # 创建新的上传记录
         new_record = {
-            "timestamp": datetime.datetime.now().isoformat(),
-            "images": uploaded_images_list,
-            "videos": uploaded_videos_list,
-            "total_count": len(uploaded_images_list) + len(uploaded_videos_list),
-            "image_count": len(uploaded_images_list),
-            "video_count": len(uploaded_videos_list),
-            "screen_info": screen_info
+            host: {
+                "timestamp": datetime.datetime.now().isoformat(),
+                "images": uploaded_images_list,
+                "videos": uploaded_videos_list,
+                "total_count": len(uploaded_images_list) + len(uploaded_videos_list),
+                "image_count": len(uploaded_images_list),
+                "video_count": len(uploaded_videos_list),
+                "screen_info": screen_info
+            }
         }
         
         # 读取现有记录
@@ -919,10 +924,11 @@ class bind_media_to_gift_code:
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 for _ in data['records']:
-                    if list(_['screen_info'].keys())[0] in all_screens:
-                        video_list.extend(_['videos'])
-                        image_list.extend(_['images'])
-                        screen_info.extend(_['screen_info'])
+                    doimian_record = _.get(host)
+                    if list(doimian_record['screen_info'].keys())[0] in all_screens:
+                        video_list.extend(doimian_record['videos'])
+                        image_list.extend(doimian_record['images'])
+                        screen_info.extend(doimian_record['screen_info'])
                 logger.info(f"video_list: {video_list}")
                 logger.info(f"image_list: {image_list}")
                 logger.info(f"screen_info: {screen_info}")
@@ -1019,8 +1025,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d ===> %(message)s')
     # batch_upload_file = Batch_upload_file()  # 先上传文件到云端，上传后可以不需要执行该方法，除非有新的文件需要上传
     # sys.exit(0)
-    # batch_prepare_giftCode = Batch_prepare_giftCode()
-    switch_display_mode = Display_mode_switcher(gift_receiver_account, gift_receiver_passwd, host, port)
+    # # batch_prepare_giftCode = Batch_prepare_giftCode()
     logger.debug(f"screen_id: {screen_id}")
     while True:
         batch_prepare_giftCode = Batch_prepare_giftCode()

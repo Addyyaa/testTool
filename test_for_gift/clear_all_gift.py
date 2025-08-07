@@ -1,7 +1,10 @@
 import sys
-from ..api_sender import Api_sender
 import logging
 import requests
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from api_sender import Api_sender
+
 
 logger = logging.getLogger(__name__)
 
@@ -45,5 +48,5 @@ class Clear_all_gift:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d ===> %(message)s')
-    clear_all_gift = Clear_all_gift("15250996938", "sf123123", "139.224.192.36", "8082")
+    clear_all_gift = Clear_all_gift("2698567570@qq.com", "sf123123", "cloud-service.austinelec.com", "8080")
     clear_all_gift.clear_all_gift()

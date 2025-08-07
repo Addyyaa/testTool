@@ -24,8 +24,8 @@ class ScreenConfig(TypedDict):
     cmd_list: List[str]
 
 class SwitchDisplayMode:
-    def __init__(self, api_sender: Api_sender):
-        self.api_sender = api_sender
+    def __init__(self,):
+        self.api_sender = Api_sender()
 
     def switch_display_mode(self, display_mode: Literal[1, 2, 3, 4, 5, 6, 7, 8], screen_id: str):
         """
@@ -33,50 +33,42 @@ class SwitchDisplayMode:
         @param display_mode: 显示模式
         @param screen_id: 屏幕ID
         """
-        data = {
-            "displayMode": str(display_mode),
-            "screenId": screen_id
-        }
-        result = self.api_sender.send_api(self.api_sender.display, data=data, method="post")
-        
-        if result is not None:
-            try:
-                resp_json = result.json()
-                if resp_json.get("code") == 20:
-                    logger.info(f"{screen_id} switch_display_mode success")
-                else:
-                    logger.error(f"switch_display_mode failed\t{result.text}\nbody:{data}")
-            except Exception as e:
-                logger.error(f"解析响应失败: {e}\t{getattr(result, 'text', '')}")
-        else:
-            logger.error(f"switch_display_mode failed, no response")
-
-class RotateDispalyOrientation:
-    def __init__(self, api_sender: Api_sender):
-        self.api_sender = api_sender
-
-    def rotate_dispaly_orientation(self, screen_id: str, orientation: Literal[1, 2]):
-        """
-        旋转屏幕方向
-        @param screen_id: 屏幕ID
-        @param orientation: 屏幕方向 1: 竖屏, 2: 横屏
-        """
-        direction = {
-            1: "竖屏",
-            2: "横屏"
-        }
+        url = f"http://192.168.1.1:8080/pintura/config/changeDisplayMode"
         data = {
             "screenId": screen_id,
-            "direction": orientation
+            "displayMode": display_mode
         }
-        response = self.api_sender.send_api(self.api_sender.rotate_display_orientation, data=data, method="post")
-        if response is not None:
-            try:
-                resp_json = response.json()
-                if resp_json.get("code") == 20:
-                    logger.info("%s 屏幕已旋转为%s", screen_id, direction[orientation])
-            except Exception as e:
-                logger.error("解析响应失败: %s\t%s", e, getattr(response, 'text', ''))
+        result = self.api_sender.post(url, data=data)
+        
+        if result and result.get("code") == 200:
+            logger.info("%s switch_display_mode success", screen_id)
+        else:
+            logger.error("%s switch_display_mode failed: %s", screen_id, result)
+
+class RotateDispalyOrientation:
+    def __init__(self):
+        self.api_sender = Api_sender()
+
+    def rotate_dispaly_orientation(self, orientation: Literal[1, 2], screen_id: str):
+        """
+        旋转屏幕方向
+        @param orientation: 屏幕方向 1: 横屏, 2: 竖屏
+        @param screen_id: 屏幕ID
+        """
+        url = f"http://192.168.1.1:8080/pintura/config/rotateDispalyOrientation"
+        data = {
+            "screenId": screen_id,
+            "orientation": orientation
+        }
+        result = self.api_sender.post(url, data=data)
+        
+        if result and result.get("code") == 200:
+            if orientation == 2:
+                logger.info("%s 屏幕已旋转为竖屏", screen_id)
+            else:
+                logger.info("%s 屏幕已旋转为横屏", screen_id)
+        else:
+            logger.error("%s 旋转屏幕方向失败: %s", screen_id, result)
 
 class ApplicationRestartObserver:
     """
@@ -163,13 +155,6 @@ if __name__ == "__main__":
         level=logging.INFO, 
         format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d ===> %(message)s')
     
-    # 初始化API客户端
-    api_client = Api_sender(
-        user="test2@tester.com",
-        passwd="sf123123",
-        host="139.224.192.36",
-        port="8082")
-    
     # 显示模式映射
     display_mode = {
         1: "纯图片播放",
@@ -182,8 +167,8 @@ if __name__ == "__main__":
         8: "重启主界面"
     }
 
-    switch_display_mode = SwitchDisplayMode(api_client)
-    rotate_dispaly_orientation = RotateDispalyOrientation(api_client)
+    switch_display_mode = SwitchDisplayMode()
+    rotate_dispaly_orientation = RotateDispalyOrientation()
 
     # 屏幕列表
     screen_list = [
