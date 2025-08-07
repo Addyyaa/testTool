@@ -1,0 +1,60 @@
+# 字体服务器测试示例
+
+## 工作原理
+1. 客户端发送: "hello world! 你好，世界！"
+2. 服务器从字体文件中提取这些字符，生成新的TTF文件
+3. 返回只包含这些字符的小字体文件
+
+## 测试步骤
+
+### 1. 启动服务器
+```
+python start_font_server.py
+```
+
+### 2. 添加字体文件（如果还没有）
+```
+copy "C:\Windows\Fonts\arial.ttf" "fonts\english\arial.ttf"
+```
+
+### 3. 测试API调用
+
+#### 使用Python测试脚本
+```
+python 简单测试.py
+```
+
+#### 使用curl命令
+```bash
+curl -X POST http://localhost:8889/api/font/subset/english/arial.ttf \
+  -H "Content-Type: application/json" \
+  -d "{\"text\":\"hello world! 你好，世界！\",\"format\":\"ttf\"}" \
+  --output 子集字体.ttf
+```
+
+#### 使用PowerShell
+```powershell
+$body = @{
+    text = "hello world! 你好，世界！"
+    format = "ttf"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "http://localhost:8889/api/font/subset/english/arial.ttf" `
+                  -Method Post `
+                  -Body $body `
+                  -ContentType "application/json" `
+                  -OutFile "子集字体.ttf"
+```
+
+## 预期结果
+- 原始字体文件: 可能几MB大小
+- 子集字体文件: 只有几KB大小
+- 子集字体只包含指定文字的字符，可以正常使用
+
+## 验证方法
+生成的 "子集字体.ttf" 文件可以：
+1. 在字体查看器中打开
+2. 安装到系统中使用
+3. 在应用程序中加载使用
+
+只包含请求的字符，大幅减少文件大小。 

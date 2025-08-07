@@ -5,13 +5,14 @@ a = Analysis(
     ['log_getter.py'],
     pathex=[],
     binaries=[],
-    datas=[],
-    hiddenimports=[],
+    datas=[('../telnet_connecter.py', '.')],
+    hiddenimports=['telnet_connecter', 'telnetlib3'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
     noarchive=False,
+    optimize=0,
 )
 pyz = PYZ(a.pure)
 
@@ -34,5 +35,4 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['../resource/logo/log.ico'],
 )

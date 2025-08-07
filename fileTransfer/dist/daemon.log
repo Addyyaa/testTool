@@ -1,0 +1,204 @@
+log_dump.sh 1970-0101T08:00:40 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        51084        29872           16           68
+-/+ buffers:              51016        29940
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:00 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54392        26564           24           80
+-/+ buffers:              54312        26644
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:01 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54464        26492           24           80
+-/+ buffers:              54384        26572
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:02 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54488        26468           24           80
+-/+ buffers:              54408        26548
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:04 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54588        26368           24           80
+-/+ buffers:              54508        26448
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:05 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54484        26472           24           80
+-/+ buffers:              54404        26552
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:07 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54472        26484           24           80
+-/+ buffers:              54392        26564
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:08 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54488        26468           24           80
+-/+ buffers:              54408        26548
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:10 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54544        26412           24           80
+-/+ buffers:              54464        26492
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:11 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54528        26428           24           80
+-/+ buffers:              54448        26508
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:13 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54452        26504           24           80
+-/+ buffers:              54372        26584
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:14 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54276        26680           24           80
+-/+ buffers:              54196        26760
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:15 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54392        26564           24           80
+-/+ buffers:              54312        26644
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:17 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54428        26528           24           80
+-/+ buffers:              54348        26608
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:18 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54368        26588           24           80
+-/+ buffers:              54288        26668
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:20 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54392        26564           24           80
+-/+ buffers:              54312        26644
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:21 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54392        26564           24           80
+-/+ buffers:              54312        26644
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:23 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54468        26488           24           80
+-/+ buffers:              54388        26568
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:24 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54388        26568           24           80
+-/+ buffers:              54308        26648
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:26 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54368        26588           24           80
+-/+ buffers:              54288        26668
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:27 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54412        26544           24           80
+-/+ buffers:              54332        26624
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:28 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54392        26564           24           80
+-/+ buffers:              54312        26644
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:30 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54348        26608           24           80
+-/+ buffers:              54268        26688
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:31 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54408        26548           24           80
+-/+ buffers:              54328        26628
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:33 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54396        26560           24           80
+-/+ buffers:              54316        26640
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:34 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54320        26636           24           80
+-/+ buffers:              54240        26716
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:36 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54332        26624           24           80
+-/+ buffers:              54252        26704
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:37 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54396        26560           24           80
+-/+ buffers:              54316        26640
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:39 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54372        26584           24           80
+-/+ buffers:              54292        26664
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:40 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54384        26572           24           80
+-/+ buffers:              54304        26652
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:41 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54360        26596           24           80
+-/+ buffers:              54280        26676
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:43 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54348        26608           24           80
+-/+ buffers:              54268        26688
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:43:44 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54388        26568           24           80
+-/+ buffers:              54308        26648
+Swap:            0            0            0
+log_dump.sh 2025-0626T16:55:50 daemon.sh: mqtt reboot 
+
+             total         used         free       shared      buffers
+Mem:         80956        54620        26336           28           80
+-/+ buffers:              54540        26416
+Swap:            0            0            0

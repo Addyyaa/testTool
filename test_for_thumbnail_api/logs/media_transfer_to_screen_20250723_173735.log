@@ -1,0 +1,592 @@
+2025-07-23 17:37:45,182 - __main__ - INFO - 成功获取缩略图，文件大小: 5925 字节 getThumbnail.py:85
+2025-07-23 17:37:45,191 - __main__ - INFO - 成功获取缩略图，文件大小: 1640 字节 getThumbnail.py:85
+2025-07-23 17:37:45,192 - __main__ - INFO - 成功获取缩略图，文件大小: 1980 字节 getThumbnail.py:85
+2025-07-23 17:37:45,195 - __main__ - INFO - 成功获取缩略图，文件大小: 3014 字节 getThumbnail.py:85
+2025-07-23 17:37:45,203 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,204 - __main__ - INFO - 50/147 XMdeNkaiqSYTRCL.jpg 获取缩略图耗时: 1.61s getThumbnail.py:141
+2025-07-23 17:37:45,204 - __main__ - INFO - 50/147 XMdeNkaiqSYTRCL.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,204 - __main__ - INFO - 成功获取缩略图，文件大小: 2719 字节 getThumbnail.py:85
+2025-07-23 17:37:45,204 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,205 - __main__ - INFO - 69/147 kZsHdpJLKXbMyww.jpg 获取缩略图耗时: 1.61s getThumbnail.py:141
+2025-07-23 17:37:45,205 - __main__ - INFO - 69/147 kZsHdpJLKXbMyww.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,205 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,205 - __main__ - INFO - 99/147 XZfWijxfQvbOGIZ.jpg 获取缩略图耗时: 1.61s getThumbnail.py:141
+2025-07-23 17:37:45,205 - __main__ - INFO - 99/147 XZfWijxfQvbOGIZ.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,205 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,205 - __main__ - INFO - 96/147 ydJqDwWbkDYhwWr.jpg 获取缩略图耗时: 1.61s getThumbnail.py:141
+2025-07-23 17:37:45,205 - __main__ - INFO - 96/147 ydJqDwWbkDYhwWr.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,206 - __main__ - INFO - 图片尺寸: 67x108 getThumbnail.py:95
+2025-07-23 17:37:45,206 - __main__ - INFO - 60/147 aCWGotfwsXgxONE.jpg 获取缩略图耗时: 1.61s getThumbnail.py:141
+2025-07-23 17:37:45,206 - __main__ - INFO - 60/147 aCWGotfwsXgxONE.jpg 分辨率: (67, 108) getThumbnail.py:142
+2025-07-23 17:37:45,206 - __main__ - INFO - 成功获取缩略图，文件大小: 5939 字节 getThumbnail.py:85
+2025-07-23 17:37:45,207 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,207 - __main__ - INFO - 36/147 wXwcDTcJDylLcpm.jpg 获取缩略图耗时: 1.62s getThumbnail.py:141
+2025-07-23 17:37:45,207 - __main__ - INFO - 36/147 wXwcDTcJDylLcpm.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,210 - __main__ - INFO - 成功获取缩略图，文件大小: 3014 字节 getThumbnail.py:85
+2025-07-23 17:37:45,214 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,215 - __main__ - INFO - 93/147 ilJyTmZvIDnsWFY.jpg 获取缩略图耗时: 1.62s getThumbnail.py:141
+2025-07-23 17:37:45,215 - __main__ - INFO - 93/147 ilJyTmZvIDnsWFY.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,216 - __main__ - INFO - 成功获取缩略图，文件大小: 2258 字节 getThumbnail.py:85
+2025-07-23 17:37:45,218 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,218 - __main__ - INFO - 89/147 QlaWvczqFrBUZtY.jpg 获取缩略图耗时: 1.62s getThumbnail.py:141
+2025-07-23 17:37:45,218 - __main__ - INFO - 89/147 QlaWvczqFrBUZtY.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,229 - __main__ - INFO - 成功获取缩略图，文件大小: 6102 字节 getThumbnail.py:85
+2025-07-23 17:37:45,230 - __main__ - INFO - 成功获取缩略图，文件大小: 3014 字节 getThumbnail.py:85
+2025-07-23 17:37:45,231 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,231 - __main__ - INFO - 95/147 UDSXVmrVxaqrgWS.jpg 获取缩略图耗时: 1.63s getThumbnail.py:141
+2025-07-23 17:37:45,231 - __main__ - INFO - 95/147 UDSXVmrVxaqrgWS.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,231 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,231 - __main__ - INFO - 41/147 MnNSzWksDDHEPJM.jpg 获取缩略图耗时: 1.64s getThumbnail.py:141
+2025-07-23 17:37:45,232 - __main__ - INFO - 41/147 MnNSzWksDDHEPJM.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,232 - __main__ - INFO - 成功获取缩略图，文件大小: 2156 字节 getThumbnail.py:85
+2025-07-23 17:37:45,233 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,233 - __main__ - INFO - 48/147 bDKxNMgKuHWbgNP.jpg 获取缩略图耗时: 1.64s getThumbnail.py:141
+2025-07-23 17:37:45,233 - __main__ - INFO - 48/147 bDKxNMgKuHWbgNP.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,234 - __main__ - INFO - 成功获取缩略图，文件大小: 5925 字节 getThumbnail.py:85
+2025-07-23 17:37:45,235 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,235 - __main__ - INFO - 19/147 yZTwVewfkWHRYIf.jpg 获取缩略图耗时: 1.65s getThumbnail.py:141
+2025-07-23 17:37:45,235 - __main__ - INFO - 19/147 yZTwVewfkWHRYIf.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,236 - __main__ - INFO - 成功获取缩略图，文件大小: 5701 字节 getThumbnail.py:85
+2025-07-23 17:37:45,236 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,236 - __main__ - INFO - 14/147 zhQCCxOKJHlRqRr.jpg 获取缩略图耗时: 1.65s getThumbnail.py:141
+2025-07-23 17:37:45,236 - __main__ - INFO - 14/147 zhQCCxOKJHlRqRr.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,243 - __main__ - INFO - 成功获取缩略图，文件大小: 5701 字节 getThumbnail.py:85
+2025-07-23 17:37:45,246 - __main__ - INFO - 成功获取缩略图，文件大小: 5925 字节 getThumbnail.py:85
+2025-07-23 17:37:45,247 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,247 - __main__ - INFO - 8/147 hCyyHbNSRuZUoAS.jpg 获取缩略图耗时: 1.66s getThumbnail.py:141
+2025-07-23 17:37:45,247 - __main__ - INFO - 8/147 hCyyHbNSRuZUoAS.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,247 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,248 - __main__ - INFO - 39/147 pflMzndeaJdEBXs.jpg 获取缩略图耗时: 1.66s getThumbnail.py:141
+2025-07-23 17:37:45,248 - __main__ - INFO - 39/147 pflMzndeaJdEBXs.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,248 - __main__ - INFO - 成功获取缩略图，文件大小: 7734 字节 getThumbnail.py:85
+2025-07-23 17:37:45,249 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,249 - __main__ - INFO - 27/147 dCVxzlcCLVZgCAn.jpg 获取缩略图耗时: 1.66s getThumbnail.py:141
+2025-07-23 17:37:45,249 - __main__ - INFO - 27/147 dCVxzlcCLVZgCAn.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,250 - __main__ - INFO - 成功获取缩略图，文件大小: 2156 字节 getThumbnail.py:85
+2025-07-23 17:37:45,251 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,251 - __main__ - INFO - 68/147 hkCEWPgsysYSZsT.jpg 获取缩略图耗时: 1.66s getThumbnail.py:141
+2025-07-23 17:37:45,251 - __main__ - INFO - 68/147 hkCEWPgsysYSZsT.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,254 - __main__ - INFO - 成功获取缩略图，文件大小: 5780 字节 getThumbnail.py:85
+2025-07-23 17:37:45,257 - __main__ - INFO - 成功获取缩略图，文件大小: 5939 字节 getThumbnail.py:85
+2025-07-23 17:37:45,258 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,259 - __main__ - INFO - 28/147 aAZrJrQSSEoCsLK.jpg 获取缩略图耗时: 1.67s getThumbnail.py:141
+2025-07-23 17:37:45,259 - __main__ - INFO - 28/147 aAZrJrQSSEoCsLK.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,259 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,259 - __main__ - INFO - 64/147 jKsJwNGgYxedDab.jpg 获取缩略图耗时: 1.66s getThumbnail.py:141
+2025-07-23 17:37:45,260 - __main__ - INFO - 64/147 jKsJwNGgYxedDab.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,260 - __main__ - INFO - 成功获取缩略图，文件大小: 5925 字节 getThumbnail.py:85
+2025-07-23 17:37:45,264 - __main__ - INFO - 成功获取缩略图，文件大小: 1640 字节 getThumbnail.py:85
+2025-07-23 17:37:45,265 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,265 - __main__ - INFO - 70/147 xxtxsPtOzlPwcnN.jpg 获取缩略图耗时: 1.67s getThumbnail.py:141
+2025-07-23 17:37:45,265 - __main__ - INFO - 70/147 xxtxsPtOzlPwcnN.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,266 - __main__ - INFO - 成功获取缩略图，文件大小: 1976 字节 getThumbnail.py:85
+2025-07-23 17:37:45,266 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,266 - __main__ - INFO - 47/147 xVNpIVcyHCqmuvw.jpg 获取缩略图耗时: 1.67s getThumbnail.py:141
+2025-07-23 17:37:45,266 - __main__ - INFO - 47/147 xVNpIVcyHCqmuvw.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,267 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,268 - __main__ - INFO - 45/147 fOcShuisiSyXccz.jpg 获取缩略图耗时: 1.68s getThumbnail.py:141
+2025-07-23 17:37:45,268 - __main__ - INFO - 45/147 fOcShuisiSyXccz.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,269 - __main__ - INFO - 成功获取缩略图，文件大小: 6102 字节 getThumbnail.py:85
+2025-07-23 17:37:45,270 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,270 - __main__ - INFO - 43/147 NhlxgTUGTBmjtWs.jpg 获取缩略图耗时: 1.68s getThumbnail.py:141
+2025-07-23 17:37:45,270 - __main__ - INFO - 43/147 NhlxgTUGTBmjtWs.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,272 - __main__ - INFO - 成功获取缩略图，文件大小: 5692 字节 getThumbnail.py:85
+2025-07-23 17:37:45,272 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,272 - __main__ - INFO - 86/147 MtFeyEhiwqWWBMJ.jpg 获取缩略图耗时: 1.67s getThumbnail.py:141
+2025-07-23 17:37:45,273 - __main__ - INFO - 86/147 MtFeyEhiwqWWBMJ.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,274 - __main__ - INFO - 成功获取缩略图，文件大小: 5692 字节 getThumbnail.py:85
+2025-07-23 17:37:45,275 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,275 - __main__ - INFO - 85/147 fzMgIubkJkgrRiE.jpg 获取缩略图耗时: 1.68s getThumbnail.py:141
+2025-07-23 17:37:45,275 - __main__ - INFO - 85/147 fzMgIubkJkgrRiE.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,278 - __main__ - INFO - 成功获取缩略图，文件大小: 2433 字节 getThumbnail.py:85
+2025-07-23 17:37:45,279 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,279 - __main__ - INFO - 54/147 jFzJcIzAVovjMwD.jpg 获取缩略图耗时: 1.69s getThumbnail.py:141
+2025-07-23 17:37:45,279 - __main__ - INFO - 54/147 jFzJcIzAVovjMwD.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,280 - __main__ - INFO - 成功获取缩略图，文件大小: 1980 字节 getThumbnail.py:85
+2025-07-23 17:37:45,281 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,282 - __main__ - INFO - 72/147 ozjCGZYSvkucpiY.jpg 获取缩略图耗时: 1.69s getThumbnail.py:141
+2025-07-23 17:37:45,282 - __main__ - INFO - 72/147 ozjCGZYSvkucpiY.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,284 - __main__ - INFO - 成功获取缩略图，文件大小: 2791 字节 getThumbnail.py:85
+2025-07-23 17:37:45,284 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,284 - __main__ - INFO - 58/147 VYkXWMfpNFuFQAo.jpg 获取缩略图耗时: 1.69s getThumbnail.py:141
+2025-07-23 17:37:45,284 - __main__ - INFO - 58/147 VYkXWMfpNFuFQAo.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,288 - __main__ - INFO - 成功获取缩略图，文件大小: 2433 字节 getThumbnail.py:85
+2025-07-23 17:37:45,291 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,291 - __main__ - INFO - 74/147 liwrLSlDmQYHMuO.jpg 获取缩略图耗时: 1.7s getThumbnail.py:141
+2025-07-23 17:37:45,291 - __main__ - INFO - 74/147 liwrLSlDmQYHMuO.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,293 - __main__ - INFO - 成功获取缩略图，文件大小: 5939 字节 getThumbnail.py:85
+2025-07-23 17:37:45,295 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,296 - __main__ - INFO - 88/147 puuYuzVpjXUaTyk.jpg 获取缩略图耗时: 1.7s getThumbnail.py:141
+2025-07-23 17:37:45,296 - __main__ - INFO - 88/147 puuYuzVpjXUaTyk.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,296 - __main__ - INFO - 成功获取缩略图，文件大小: 1542 字节 getThumbnail.py:85
+2025-07-23 17:37:45,297 - __main__ - INFO - 成功获取缩略图，文件大小: 6696 字节 getThumbnail.py:85
+2025-07-23 17:37:45,297 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,297 - __main__ - INFO - 66/147 bjrAtcoAZJCoYFY.jpg 获取缩略图耗时: 1.7s getThumbnail.py:141
+2025-07-23 17:37:45,297 - __main__ - INFO - 66/147 bjrAtcoAZJCoYFY.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,298 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,298 - __main__ - INFO - 21/147 GhjBHfMPCuKrbis.jpg 获取缩略图耗时: 1.71s getThumbnail.py:141
+2025-07-23 17:37:45,298 - __main__ - INFO - 21/147 GhjBHfMPCuKrbis.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,299 - __main__ - INFO - 成功获取缩略图，文件大小: 1980 字节 getThumbnail.py:85
+2025-07-23 17:37:45,299 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,299 - __main__ - INFO - 44/147 sMEGjVrTshUeocG.jpg 获取缩略图耗时: 1.71s getThumbnail.py:141
+2025-07-23 17:37:45,299 - __main__ - INFO - 44/147 sMEGjVrTshUeocG.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,301 - __main__ - INFO - 成功获取缩略图，文件大小: 2258 字节 getThumbnail.py:85
+2025-07-23 17:37:45,301 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,301 - __main__ - INFO - 65/147 RpogTIdvmFoLbif.jpg 获取缩略图耗时: 1.71s getThumbnail.py:141
+2025-07-23 17:37:45,303 - __main__ - INFO - 65/147 RpogTIdvmFoLbif.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,305 - __main__ - INFO - 成功获取缩略图，文件大小: 4781 字节 getThumbnail.py:85
+2025-07-23 17:37:45,306 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,306 - __main__ - INFO - 25/147 RDGZOrTusoxybTl.jpg 获取缩略图耗时: 1.72s getThumbnail.py:141
+2025-07-23 17:37:45,306 - __main__ - INFO - 25/147 RDGZOrTusoxybTl.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,347 - __main__ - INFO - 成功获取缩略图，文件大小: 2719 字节 getThumbnail.py:85
+2025-07-23 17:37:45,356 - __main__ - INFO - 成功获取缩略图，文件大小: 5692 字节 getThumbnail.py:85
+2025-07-23 17:37:45,356 - __main__ - INFO - 成功获取缩略图，文件大小: 5925 字节 getThumbnail.py:85
+2025-07-23 17:37:45,357 - __main__ - INFO - 成功获取缩略图，文件大小: 5701 字节 getThumbnail.py:85
+2025-07-23 17:37:45,362 - __main__ - INFO - 图片尺寸: 67x108 getThumbnail.py:95
+2025-07-23 17:37:45,362 - __main__ - INFO - 80/147 zeGzTokSmAxeKTO.jpg 获取缩略图耗时: 1.76s getThumbnail.py:141
+2025-07-23 17:37:45,363 - __main__ - INFO - 80/147 zeGzTokSmAxeKTO.jpg 分辨率: (67, 108) getThumbnail.py:142
+2025-07-23 17:37:45,364 - __main__ - INFO - 成功获取缩略图，文件大小: 5757 字节 getThumbnail.py:85
+2025-07-23 17:37:45,364 - __main__ - INFO - 成功获取缩略图，文件大小: 5701 字节 getThumbnail.py:85
+2025-07-23 17:37:45,365 - __main__ - INFO - 成功获取缩略图，文件大小: 1576 字节 getThumbnail.py:85
+2025-07-23 17:37:45,365 - __main__ - INFO - 成功获取缩略图，文件大小: 1528 字节 getThumbnail.py:85
+2025-07-23 17:37:45,365 - __main__ - INFO - 成功获取缩略图，文件大小: 5692 字节 getThumbnail.py:85
+2025-07-23 17:37:45,366 - __main__ - INFO - 成功获取缩略图，文件大小: 2156 字节 getThumbnail.py:85
+2025-07-23 17:37:45,366 - __main__ - INFO - 成功获取缩略图，文件大小: 6102 字节 getThumbnail.py:85
+2025-07-23 17:37:45,367 - __main__ - INFO - 成功获取缩略图，文件大小: 2433 字节 getThumbnail.py:85
+2025-07-23 17:37:45,367 - __main__ - INFO - 成功获取缩略图，文件大小: 5071 字节 getThumbnail.py:85
+2025-07-23 17:37:45,367 - __main__ - INFO - 成功获取缩略图，文件大小: 2258 字节 getThumbnail.py:85
+2025-07-23 17:37:45,367 - __main__ - INFO - 成功获取缩略图，文件大小: 5701 字节 getThumbnail.py:85
+2025-07-23 17:37:45,368 - __main__ - INFO - 成功获取缩略图，文件大小: 5925 字节 getThumbnail.py:85
+2025-07-23 17:37:45,368 - __main__ - INFO - 成功获取缩略图，文件大小: 2156 字节 getThumbnail.py:85
+2025-07-23 17:37:45,369 - __main__ - INFO - 成功获取缩略图，文件大小: 1976 字节 getThumbnail.py:85
+2025-07-23 17:37:45,369 - __main__ - INFO - 成功获取缩略图，文件大小: 1976 字节 getThumbnail.py:85
+2025-07-23 17:37:45,370 - __main__ - INFO - 成功获取缩略图，文件大小: 3014 字节 getThumbnail.py:85
+2025-07-23 17:37:45,370 - __main__ - INFO - 成功获取缩略图，文件大小: 1980 字节 getThumbnail.py:85
+2025-07-23 17:37:45,370 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,371 - __main__ - INFO - 15/147 LqotusyzCraHXwP.jpg 获取缩略图耗时: 1.78s getThumbnail.py:141
+2025-07-23 17:37:45,371 - __main__ - INFO - 15/147 LqotusyzCraHXwP.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,371 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,371 - __main__ - INFO - 67/147 YvKbtufbyaueNrU.jpg 获取缩略图耗时: 1.78s getThumbnail.py:141
+2025-07-23 17:37:45,371 - __main__ - INFO - 67/147 YvKbtufbyaueNrU.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,371 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,371 - __main__ - INFO - 32/147 FNCPQGEhZgypPIK.jpg 获取缩略图耗时: 1.78s getThumbnail.py:141
+2025-07-23 17:37:45,371 - __main__ - INFO - 32/147 FNCPQGEhZgypPIK.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,373 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,374 - __main__ - INFO - 30/147 BanxRPxNJDHBVyH.jpg 获取缩略图耗时: 1.78s getThumbnail.py:141
+2025-07-23 17:37:45,374 - __main__ - INFO - 30/147 BanxRPxNJDHBVyH.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,374 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,374 - __main__ - INFO - 84/147 MfsQgrtbDJflZuj.jpg 获取缩略图耗时: 1.78s getThumbnail.py:141
+2025-07-23 17:37:45,375 - __main__ - INFO - 84/147 MfsQgrtbDJflZuj.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,375 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,375 - __main__ - INFO - 82/147 DDChZoNWVCvMtSH.jpg 获取缩略图耗时: 1.78s getThumbnail.py:141
+2025-07-23 17:37:45,375 - __main__ - INFO - 82/147 DDChZoNWVCvMtSH.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,375 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,376 - __main__ - INFO - 87/147 efsycwHsBlKrqkc.jpg 获取缩略图耗时: 1.78s getThumbnail.py:141
+2025-07-23 17:37:45,376 - __main__ - INFO - 87/147 efsycwHsBlKrqkc.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,376 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,376 - __main__ - INFO - 16/147 myrdWqwnzewBCVy.jpg 获取缩略图耗时: 1.79s getThumbnail.py:141
+2025-07-23 17:37:45,376 - __main__ - INFO - 16/147 myrdWqwnzewBCVy.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,376 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,376 - __main__ - INFO - 92/147 DDMTurAXPEIKbuL.jpg 获取缩略图耗时: 1.78s getThumbnail.py:141
+2025-07-23 17:37:45,376 - __main__ - INFO - 92/147 DDMTurAXPEIKbuL.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,377 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,377 - __main__ - INFO - 51/147 HmYXfBZzfvxxUnP.jpg 获取缩略图耗时: 1.78s getThumbnail.py:141
+2025-07-23 17:37:45,377 - __main__ - INFO - 51/147 HmYXfBZzfvxxUnP.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,377 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,377 - __main__ - INFO - 46/147 WBPQMLCAsYqtqiC.jpg 获取缩略图耗时: 1.79s getThumbnail.py:141
+2025-07-23 17:37:45,377 - __main__ - INFO - 46/147 WBPQMLCAsYqtqiC.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,377 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,377 - __main__ - INFO - 26/147 qipBgguNAlzMHbd.jpg 获取缩略图耗时: 1.79s getThumbnail.py:141
+2025-07-23 17:37:45,377 - __main__ - INFO - 26/147 qipBgguNAlzMHbd.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,377 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,377 - __main__ - INFO - 37/147 ivFTVpLqXGIHShM.jpg 获取缩略图耗时: 1.79s getThumbnail.py:141
+2025-07-23 17:37:45,378 - __main__ - INFO - 37/147 ivFTVpLqXGIHShM.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,378 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,378 - __main__ - INFO - 11/147 QARJdrgJMNyrXXA.jpg 获取缩略图耗时: 1.79s getThumbnail.py:141
+2025-07-23 17:37:45,378 - __main__ - INFO - 11/147 QARJdrgJMNyrXXA.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,378 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,378 - __main__ - INFO - 42/147 FKLjSqnXHTJJuVh.jpg 获取缩略图耗时: 1.79s getThumbnail.py:141
+2025-07-23 17:37:45,378 - __main__ - INFO - 42/147 FKLjSqnXHTJJuVh.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,378 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,379 - __main__ - INFO - 40/147 GskVrJBpuwPkLto.jpg 获取缩略图耗时: 1.79s getThumbnail.py:141
+2025-07-23 17:37:45,379 - __main__ - INFO - 40/147 GskVrJBpuwPkLto.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,379 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,379 - __main__ - INFO - 97/147 YVnULiEAlRglOLx.jpg 获取缩略图耗时: 1.78s getThumbnail.py:141
+2025-07-23 17:37:45,379 - __main__ - INFO - 97/147 YVnULiEAlRglOLx.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,379 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,379 - __main__ - INFO - 53/147 wIHCaaIXwmmjExc.jpg 获取缩略图耗时: 1.79s getThumbnail.py:141
+2025-07-23 17:37:45,379 - __main__ - INFO - 53/147 wIHCaaIXwmmjExc.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,379 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,379 - __main__ - INFO - 5/147 GUfWGxotARasWCw.jpg 获取缩略图耗时: 1.79s getThumbnail.py:141
+2025-07-23 17:37:45,379 - __main__ - INFO - 5/147 GUfWGxotARasWCw.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,380 - __main__ - INFO - 成功获取缩略图，文件大小: 6900 字节 getThumbnail.py:85
+2025-07-23 17:37:45,380 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,380 - __main__ - INFO - 52/147 JoWngLOQZjQDAWb.jpg 获取缩略图耗时: 1.79s getThumbnail.py:141
+2025-07-23 17:37:45,380 - __main__ - INFO - 52/147 JoWngLOQZjQDAWb.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,381 - __main__ - INFO - 成功获取缩略图，文件大小: 4720 字节 getThumbnail.py:85
+2025-07-23 17:37:45,381 - __main__ - INFO - 成功获取缩略图，文件大小: 5692 字节 getThumbnail.py:85
+2025-07-23 17:37:45,381 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,382 - __main__ - INFO - 31/147 hbDZhCLjeIKBXzh.jpg 获取缩略图耗时: 1.79s getThumbnail.py:141
+2025-07-23 17:37:45,382 - __main__ - INFO - 31/147 hbDZhCLjeIKBXzh.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,382 - __main__ - INFO - 图片尺寸: 141x108 getThumbnail.py:95
+2025-07-23 17:37:45,382 - __main__ - INFO - 24/147 BRirEzwbxerTsYL.jpg 获取缩略图耗时: 1.79s getThumbnail.py:141
+2025-07-23 17:37:45,382 - __main__ - INFO - 24/147 BRirEzwbxerTsYL.jpg 分辨率: (141, 108) getThumbnail.py:142
+2025-07-23 17:37:45,382 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,382 - __main__ - INFO - 2/147 OweTcldwOxbzdOs.jpg 获取缩略图耗时: 1.8s getThumbnail.py:141
+2025-07-23 17:37:45,382 - __main__ - INFO - 2/147 OweTcldwOxbzdOs.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,385 - __main__ - INFO - 成功获取缩略图，文件大小: 4388 字节 getThumbnail.py:85
+2025-07-23 17:37:45,385 - __main__ - INFO - 图片尺寸: 107x108 getThumbnail.py:95
+2025-07-23 17:37:45,385 - __main__ - INFO - 61/147 yjlHhxCyVDVnzpi.jpg 获取缩略图耗时: 1.79s getThumbnail.py:141
+2025-07-23 17:37:45,386 - __main__ - INFO - 61/147 yjlHhxCyVDVnzpi.jpg 分辨率: (107, 108) getThumbnail.py:142
+2025-07-23 17:37:45,386 - __main__ - INFO - 成功获取缩略图，文件大小: 6696 字节 getThumbnail.py:85
+2025-07-23 17:37:45,387 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,387 - __main__ - INFO - 57/147 NylxfPxLfRxtTHn.jpg 获取缩略图耗时: 1.79s getThumbnail.py:141
+2025-07-23 17:37:45,388 - __main__ - INFO - 57/147 NylxfPxLfRxtTHn.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,395 - __main__ - INFO - 成功获取缩略图，文件大小: 3575 字节 getThumbnail.py:85
+2025-07-23 17:37:45,395 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,395 - __main__ - INFO - 29/147 UCsqrtpuAHxLjct.jpg 获取缩略图耗时: 1.81s getThumbnail.py:141
+2025-07-23 17:37:45,395 - __main__ - INFO - 29/147 UCsqrtpuAHxLjct.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,404 - __main__ - INFO - 成功获取缩略图，文件大小: 5925 字节 getThumbnail.py:85
+2025-07-23 17:37:45,405 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,405 - __main__ - INFO - 91/147 COfwqIXRXnIJyja.jpg 获取缩略图耗时: 1.81s getThumbnail.py:141
+2025-07-23 17:37:45,405 - __main__ - INFO - 91/147 COfwqIXRXnIJyja.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,421 - __main__ - INFO - 成功获取缩略图，文件大小: 5692 字节 getThumbnail.py:85
+2025-07-23 17:37:45,421 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,422 - __main__ - INFO - 33/147 phqDEZjCwAoYSIr.jpg 获取缩略图耗时: 1.83s getThumbnail.py:141
+2025-07-23 17:37:45,422 - __main__ - INFO - 33/147 phqDEZjCwAoYSIr.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,423 - __main__ - INFO - 成功获取缩略图，文件大小: 2791 字节 getThumbnail.py:85
+2025-07-23 17:37:45,425 - __main__ - INFO - 成功获取缩略图，文件大小: 6102 字节 getThumbnail.py:85
+2025-07-23 17:37:45,425 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,427 - __main__ - INFO - 22/147 vFRsgKDHCscWQhN.jpg 获取缩略图耗时: 1.84s getThumbnail.py:141
+2025-07-23 17:37:45,427 - __main__ - INFO - 22/147 vFRsgKDHCscWQhN.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,428 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,428 - __main__ - INFO - 7/147 dzHgWcDRmmeRpfL.jpg 获取缩略图耗时: 1.84s getThumbnail.py:141
+2025-07-23 17:37:45,428 - __main__ - INFO - 7/147 dzHgWcDRmmeRpfL.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,435 - __main__ - INFO - 成功获取缩略图，文件大小: 4511 字节 getThumbnail.py:85
+2025-07-23 17:37:45,436 - __main__ - INFO - 成功获取缩略图，文件大小: 1640 字节 getThumbnail.py:85
+2025-07-23 17:37:45,436 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,436 - __main__ - INFO - 79/147 YLRiMffuTgcYlFv.jpg 获取缩略图耗时: 1.84s getThumbnail.py:141
+2025-07-23 17:37:45,437 - __main__ - INFO - 79/147 YLRiMffuTgcYlFv.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,437 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,437 - __main__ - INFO - 55/147 CTkRJfuUVJJokrz.jpg 获取缩略图耗时: 1.84s getThumbnail.py:141
+2025-07-23 17:37:45,437 - __main__ - INFO - 55/147 CTkRJfuUVJJokrz.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,442 - __main__ - INFO - 成功获取缩略图，文件大小: 2514 字节 getThumbnail.py:85
+2025-07-23 17:37:45,444 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,444 - __main__ - INFO - 100/147 iqeRuzQjvZhsquj.jpg 获取缩略图耗时: 1.84s getThumbnail.py:141
+2025-07-23 17:37:45,445 - __main__ - INFO - 100/147 iqeRuzQjvZhsquj.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,445 - __main__ - INFO - 成功获取缩略图，文件大小: 1576 字节 getThumbnail.py:85
+2025-07-23 17:37:45,446 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,446 - __main__ - INFO - 62/147 gIoIdIZlzdYvLfo.jpg 获取缩略图耗时: 1.85s getThumbnail.py:141
+2025-07-23 17:37:45,446 - __main__ - INFO - 62/147 gIoIdIZlzdYvLfo.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,446 - __main__ - INFO - 成功获取缩略图，文件大小: 2156 字节 getThumbnail.py:85
+2025-07-23 17:37:45,446 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,446 - __main__ - INFO - 4/147 IgezpHWlAGjJSQm.jpg 获取缩略图耗时: 1.86s getThumbnail.py:141
+2025-07-23 17:37:45,446 - __main__ - INFO - 4/147 IgezpHWlAGjJSQm.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,457 - __main__ - INFO - 成功获取缩略图，文件大小: 5692 字节 getThumbnail.py:85
+2025-07-23 17:37:45,457 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,457 - __main__ - INFO - 10/147 vGFzcyYeIzzduLk.jpg 获取缩略图耗时: 1.87s getThumbnail.py:141
+2025-07-23 17:37:45,457 - __main__ - INFO - 10/147 vGFzcyYeIzzduLk.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,458 - __main__ - INFO - 成功获取缩略图，文件大小: 3014 字节 getThumbnail.py:85
+2025-07-23 17:37:45,458 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,458 - __main__ - INFO - 49/147 ZJUGBTPaTrsJPCU.jpg 获取缩略图耗时: 1.87s getThumbnail.py:141
+2025-07-23 17:37:45,458 - __main__ - INFO - 49/147 ZJUGBTPaTrsJPCU.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,473 - __main__ - INFO - 成功获取缩略图，文件大小: 5701 字节 getThumbnail.py:85
+2025-07-23 17:37:45,473 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,473 - __main__ - INFO - 1/147 aibLTdzagdaekEL.jpg 获取缩略图耗时: 1.89s getThumbnail.py:141
+2025-07-23 17:37:45,474 - __main__ - INFO - 1/147 aibLTdzagdaekEL.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,484 - __main__ - INFO - 成功获取缩略图，文件大小: 4388 字节 getThumbnail.py:85
+2025-07-23 17:37:45,485 - __main__ - INFO - 图片尺寸: 107x108 getThumbnail.py:95
+2025-07-23 17:37:45,485 - __main__ - INFO - 81/147 dqKligkigsfMsVz.jpg 获取缩略图耗时: 1.89s getThumbnail.py:141
+2025-07-23 17:37:45,486 - __main__ - INFO - 81/147 dqKligkigsfMsVz.jpg 分辨率: (107, 108) getThumbnail.py:142
+2025-07-23 17:37:45,522 - __main__ - INFO - 成功获取缩略图，文件大小: 3014 字节 getThumbnail.py:85
+2025-07-23 17:37:45,523 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,523 - __main__ - INFO - 18/147 IKHfHTkLsCpXmYL.jpg 获取缩略图耗时: 1.94s getThumbnail.py:141
+2025-07-23 17:37:45,523 - __main__ - INFO - 18/147 IKHfHTkLsCpXmYL.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,548 - __main__ - INFO - 成功获取缩略图，文件大小: 2514 字节 getThumbnail.py:85
+2025-07-23 17:37:45,548 - __main__ - INFO - 成功获取缩略图，文件大小: 4511 字节 getThumbnail.py:85
+2025-07-23 17:37:45,549 - __main__ - INFO - 成功获取缩略图，文件大小: 1640 字节 getThumbnail.py:85
+2025-07-23 17:37:45,549 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,550 - __main__ - INFO - 76/147 zdMFiMYBheQdzvX.jpg 获取缩略图耗时: 1.95s getThumbnail.py:141
+2025-07-23 17:37:45,550 - __main__ - INFO - 76/147 zdMFiMYBheQdzvX.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,550 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,550 - __main__ - INFO - 23/147 gkHtSOAMrpsOdYo.jpg 获取缩略图耗时: 1.96s getThumbnail.py:141
+2025-07-23 17:37:45,550 - __main__ - INFO - 23/147 gkHtSOAMrpsOdYo.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,550 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,550 - __main__ - INFO - 75/147 hCchjjnXybRrDux.jpg 获取缩略图耗时: 1.95s getThumbnail.py:141
+2025-07-23 17:37:45,551 - __main__ - INFO - 75/147 hCchjjnXybRrDux.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,552 - __main__ - INFO - 成功获取缩略图，文件大小: 5692 字节 getThumbnail.py:85
+2025-07-23 17:37:45,553 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,553 - __main__ - INFO - 3/147 qMMKcyeGwuBZzRt.jpg 获取缩略图耗时: 1.97s getThumbnail.py:141
+2025-07-23 17:37:45,553 - __main__ - INFO - 3/147 qMMKcyeGwuBZzRt.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,553 - __main__ - INFO - 成功获取缩略图，文件大小: 6102 字节 getThumbnail.py:85
+2025-07-23 17:37:45,554 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,554 - __main__ - INFO - 20/147 pSzbtTGNCtNwdaI.jpg 获取缩略图耗时: 1.97s getThumbnail.py:141
+2025-07-23 17:37:45,554 - __main__ - INFO - 20/147 pSzbtTGNCtNwdaI.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,554 - __main__ - INFO - 成功获取缩略图，文件大小: 5692 字节 getThumbnail.py:85
+2025-07-23 17:37:45,555 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,555 - __main__ - INFO - 12/147 ONKxTDRxPYmlFZG.jpg 获取缩略图耗时: 1.97s getThumbnail.py:141
+2025-07-23 17:37:45,556 - __main__ - INFO - 12/147 ONKxTDRxPYmlFZG.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,564 - __main__ - INFO - 成功获取缩略图，文件大小: 2156 字节 getThumbnail.py:85
+2025-07-23 17:37:45,565 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,566 - __main__ - INFO - 17/147 aAwJsfkhZcWHNnD.jpg 获取缩略图耗时: 1.98s getThumbnail.py:141
+2025-07-23 17:37:45,566 - __main__ - INFO - 17/147 aAwJsfkhZcWHNnD.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,567 - __main__ - INFO - 成功获取缩略图，文件大小: 4511 字节 getThumbnail.py:85
+2025-07-23 17:37:45,568 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,569 - __main__ - INFO - 59/147 bcwDhfjCLynXYRr.jpg 获取缩略图耗时: 1.98s getThumbnail.py:141
+2025-07-23 17:37:45,569 - __main__ - INFO - 59/147 bcwDhfjCLynXYRr.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,570 - __main__ - INFO - 成功获取缩略图，文件大小: 1976 字节 getThumbnail.py:85
+2025-07-23 17:37:45,571 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,571 - __main__ - INFO - 73/147 RTsBZxGaAXeWkLU.jpg 获取缩略图耗时: 1.98s getThumbnail.py:141
+2025-07-23 17:37:45,571 - __main__ - INFO - 73/147 RTsBZxGaAXeWkLU.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,572 - __main__ - INFO - 成功获取缩略图，文件大小: 2291 字节 getThumbnail.py:85
+2025-07-23 17:37:45,574 - __main__ - INFO - 图片尺寸: 233x108 getThumbnail.py:95
+2025-07-23 17:37:45,574 - __main__ - INFO - 83/147 vexdLVtYVFLPTuW.jpg 获取缩略图耗时: 1.98s getThumbnail.py:141
+2025-07-23 17:37:45,574 - __main__ - INFO - 83/147 vexdLVtYVFLPTuW.jpg 分辨率: (233, 108) getThumbnail.py:142
+2025-07-23 17:37:45,575 - __main__ - INFO - 成功获取缩略图，文件大小: 5925 字节 getThumbnail.py:85
+2025-07-23 17:37:45,575 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,576 - __main__ - INFO - 94/147 qDFaRQHydVjWOEl.jpg 获取缩略图耗时: 1.98s getThumbnail.py:141
+2025-07-23 17:37:45,576 - __main__ - INFO - 94/147 qDFaRQHydVjWOEl.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,595 - __main__ - INFO - 成功获取缩略图，文件大小: 6102 字节 getThumbnail.py:85
+2025-07-23 17:37:45,596 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,597 - __main__ - INFO - 71/147 IQGNODQxipSXxkr.jpg 获取缩略图耗时: 2.0s getThumbnail.py:141
+2025-07-23 17:37:45,597 - __main__ - INFO - 71/147 IQGNODQxipSXxkr.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,600 - __main__ - INFO - 成功获取缩略图，文件大小: 5692 字节 getThumbnail.py:85
+2025-07-23 17:37:45,600 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,601 - __main__ - INFO - 13/147 FyxdVMsVSbtuOMj.jpg 获取缩略图耗时: 2.01s getThumbnail.py:141
+2025-07-23 17:37:45,601 - __main__ - INFO - 13/147 FyxdVMsVSbtuOMj.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,616 - __main__ - INFO - 成功获取缩略图，文件大小: 5692 字节 getThumbnail.py:85
+2025-07-23 17:37:45,616 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,617 - __main__ - INFO - 9/147 ZRVCQzMxEYcGBgI.jpg 获取缩略图耗时: 2.03s getThumbnail.py:141
+2025-07-23 17:37:45,617 - __main__ - INFO - 9/147 ZRVCQzMxEYcGBgI.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,639 - __main__ - INFO - 成功获取缩略图，文件大小: 1528 字节 getThumbnail.py:85
+2025-07-23 17:37:45,640 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,640 - __main__ - INFO - 35/147 ozjmWiGRmkjbdGT.jpg 获取缩略图耗时: 2.05s getThumbnail.py:141
+2025-07-23 17:37:45,641 - __main__ - INFO - 35/147 ozjmWiGRmkjbdGT.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,727 - __main__ - INFO - 成功获取缩略图，文件大小: 1542 字节 getThumbnail.py:85
+2025-07-23 17:37:45,727 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,728 - __main__ - INFO - 90/147 MuSEJTGvzQueAPK.jpg 获取缩略图耗时: 2.13s getThumbnail.py:141
+2025-07-23 17:37:45,728 - __main__ - INFO - 90/147 MuSEJTGvzQueAPK.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,734 - __main__ - INFO - 成功获取缩略图，文件大小: 5692 字节 getThumbnail.py:85
+2025-07-23 17:37:45,735 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,735 - __main__ - INFO - 34/147 qXNZyUHeTyLJNSx.jpg 获取缩略图耗时: 2.15s getThumbnail.py:141
+2025-07-23 17:37:45,736 - __main__ - INFO - 34/147 qXNZyUHeTyLJNSx.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,760 - __main__ - INFO - 成功获取缩略图，文件大小: 2791 字节 getThumbnail.py:85
+2025-07-23 17:37:45,761 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,761 - __main__ - INFO - 78/147 JHERrmCjADtmWaC.jpg 获取缩略图耗时: 2.16s getThumbnail.py:141
+2025-07-23 17:37:45,761 - __main__ - INFO - 78/147 JHERrmCjADtmWaC.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,802 - __main__ - INFO - 成功获取缩略图，文件大小: 1542 字节 getThumbnail.py:85
+2025-07-23 17:37:45,803 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,803 - __main__ - INFO - 38/147 rSHJerfodMJgREu.jpg 获取缩略图耗时: 2.21s getThumbnail.py:141
+2025-07-23 17:37:45,803 - __main__ - INFO - 38/147 rSHJerfodMJgREu.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,819 - __main__ - INFO - 成功获取缩略图，文件大小: 2433 字节 getThumbnail.py:85
+2025-07-23 17:37:45,820 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,820 - __main__ - INFO - 98/147 CbwIoVlfKEuyTPk.jpg 获取缩略图耗时: 2.22s getThumbnail.py:141
+2025-07-23 17:37:45,820 - __main__ - INFO - 98/147 CbwIoVlfKEuyTPk.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,882 - __main__ - INFO - 成功获取缩略图，文件大小: 5701 字节 getThumbnail.py:85
+2025-07-23 17:37:45,883 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,883 - __main__ - INFO - 104/147 LcjHSIeLWSnvwhs.jpg 获取缩略图耗时: 2.28s getThumbnail.py:141
+2025-07-23 17:37:45,883 - __main__ - INFO - 104/147 LcjHSIeLWSnvwhs.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,891 - __main__ - INFO - 成功获取缩略图，文件大小: 2791 字节 getThumbnail.py:85
+2025-07-23 17:37:45,892 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,892 - __main__ - INFO - 102/147 bUVYJgoSHCAmQdD.jpg 获取缩略图耗时: 2.29s getThumbnail.py:141
+2025-07-23 17:37:45,892 - __main__ - INFO - 102/147 bUVYJgoSHCAmQdD.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,896 - __main__ - INFO - 成功获取缩略图，文件大小: 5692 字节 getThumbnail.py:85
+2025-07-23 17:37:45,897 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,897 - __main__ - INFO - 105/147 VYaIVnrPNegtlLu.jpg 获取缩略图耗时: 2.3s getThumbnail.py:141
+2025-07-23 17:37:45,897 - __main__ - INFO - 105/147 VYaIVnrPNegtlLu.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,898 - __main__ - INFO - 成功获取缩略图，文件大小: 6696 字节 getThumbnail.py:85
+2025-07-23 17:37:45,899 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,899 - __main__ - INFO - 77/147 xnUITzxGiOBHUAv.jpg 获取缩略图耗时: 2.3s getThumbnail.py:141
+2025-07-23 17:37:45,899 - __main__ - INFO - 77/147 xnUITzxGiOBHUAv.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,899 - __main__ - INFO - 成功获取缩略图，文件大小: 6696 字节 getThumbnail.py:85
+2025-07-23 17:37:45,899 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,900 - __main__ - INFO - 101/147 hELtnVXtegEovbL.jpg 获取缩略图耗时: 2.3s getThumbnail.py:141
+2025-07-23 17:37:45,900 - __main__ - INFO - 101/147 hELtnVXtegEovbL.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,917 - __main__ - INFO - 成功获取缩略图，文件大小: 5939 字节 getThumbnail.py:85
+2025-07-23 17:37:45,918 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,918 - __main__ - INFO - 108/147 XOtMKMDRmumLKna.jpg 获取缩略图耗时: 2.32s getThumbnail.py:141
+2025-07-23 17:37:45,919 - __main__ - INFO - 108/147 XOtMKMDRmumLKna.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,919 - __main__ - INFO - 成功获取缩略图，文件大小: 1528 字节 getThumbnail.py:85
+2025-07-23 17:37:45,919 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,920 - __main__ - INFO - 107/147 WdfStQRzeCqoqDS.jpg 获取缩略图耗时: 2.32s getThumbnail.py:141
+2025-07-23 17:37:45,920 - __main__ - INFO - 107/147 WdfStQRzeCqoqDS.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,932 - __main__ - INFO - 成功获取缩略图，文件大小: 5925 字节 getThumbnail.py:85
+2025-07-23 17:37:45,932 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,933 - __main__ - INFO - 111/147 qKDuUvUYLVXPBKQ.jpg 获取缩略图耗时: 2.33s getThumbnail.py:141
+2025-07-23 17:37:45,933 - __main__ - INFO - 111/147 qKDuUvUYLVXPBKQ.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,936 - __main__ - INFO - 成功获取缩略图，文件大小: 2156 字节 getThumbnail.py:85
+2025-07-23 17:37:45,937 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,937 - __main__ - INFO - 112/147 sPJUFEOppoNAmOM.jpg 获取缩略图耗时: 2.34s getThumbnail.py:141
+2025-07-23 17:37:45,937 - __main__ - INFO - 112/147 sPJUFEOppoNAmOM.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,937 - __main__ - INFO - 成功获取缩略图，文件大小: 2791 字节 getThumbnail.py:85
+2025-07-23 17:37:45,938 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,938 - __main__ - INFO - 122/147 kSkekfvulJYRSqx.jpg 获取缩略图耗时: 2.34s getThumbnail.py:141
+2025-07-23 17:37:45,938 - __main__ - INFO - 122/147 kSkekfvulJYRSqx.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,939 - __main__ - INFO - 成功获取缩略图，文件大小: 2258 字节 getThumbnail.py:85
+2025-07-23 17:37:45,939 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,939 - __main__ - INFO - 109/147 VXJyjnGYvUeCxfm.jpg 获取缩略图耗时: 2.34s getThumbnail.py:141
+2025-07-23 17:37:45,939 - __main__ - INFO - 109/147 VXJyjnGYvUeCxfm.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,944 - __main__ - INFO - 成功获取缩略图，文件大小: 5925 字节 getThumbnail.py:85
+2025-07-23 17:37:45,945 - __main__ - INFO - 成功获取缩略图，文件大小: 1542 字节 getThumbnail.py:85
+2025-07-23 17:37:45,946 - __main__ - INFO - 成功获取缩略图，文件大小: 3014 字节 getThumbnail.py:85
+2025-07-23 17:37:45,946 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,947 - __main__ - INFO - 114/147 VZiEmPxLVFCEyhp.jpg 获取缩略图耗时: 2.35s getThumbnail.py:141
+2025-07-23 17:37:45,947 - __main__ - INFO - 114/147 VZiEmPxLVFCEyhp.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,947 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,947 - __main__ - INFO - 110/147 iNbodiLvVZubNXN.jpg 获取缩略图耗时: 2.35s getThumbnail.py:141
+2025-07-23 17:37:45,947 - __main__ - INFO - 110/147 iNbodiLvVZubNXN.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,947 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,947 - __main__ - INFO - 113/147 caJeEqWZMKFDFyG.jpg 获取缩略图耗时: 2.35s getThumbnail.py:141
+2025-07-23 17:37:45,948 - __main__ - INFO - 113/147 caJeEqWZMKFDFyG.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,955 - __main__ - INFO - 成功获取缩略图，文件大小: 1640 字节 getThumbnail.py:85
+2025-07-23 17:37:45,957 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,958 - __main__ - INFO - 119/147 OgKXqjjDCVSGsXY.jpg 获取缩略图耗时: 2.36s getThumbnail.py:141
+2025-07-23 17:37:45,958 - __main__ - INFO - 119/147 OgKXqjjDCVSGsXY.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,960 - __main__ - INFO - 成功获取缩略图，文件大小: 1976 字节 getThumbnail.py:85
+2025-07-23 17:37:45,961 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,961 - __main__ - INFO - 117/147 kcbaNGgCEUerlEW.jpg 获取缩略图耗时: 2.36s getThumbnail.py:141
+2025-07-23 17:37:45,961 - __main__ - INFO - 117/147 kcbaNGgCEUerlEW.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,962 - __main__ - INFO - 成功获取缩略图，文件大小: 1980 字节 getThumbnail.py:85
+2025-07-23 17:37:45,962 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,962 - __main__ - INFO - 116/147 CUZhVYgNOrAsGXj.jpg 获取缩略图耗时: 2.36s getThumbnail.py:141
+2025-07-23 17:37:45,962 - __main__ - INFO - 116/147 CUZhVYgNOrAsGXj.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,966 - __main__ - INFO - 成功获取缩略图，文件大小: 5692 字节 getThumbnail.py:85
+2025-07-23 17:37:45,966 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,966 - __main__ - INFO - 106/147 JVsBShTliVaRYJt.jpg 获取缩略图耗时: 2.37s getThumbnail.py:141
+2025-07-23 17:37:45,966 - __main__ - INFO - 106/147 JVsBShTliVaRYJt.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,967 - __main__ - INFO - 成功获取缩略图，文件大小: 2433 字节 getThumbnail.py:85
+2025-07-23 17:37:45,967 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,967 - __main__ - INFO - 118/147 XVXftpgowPfjuRJ.jpg 获取缩略图耗时: 2.37s getThumbnail.py:141
+2025-07-23 17:37:45,967 - __main__ - INFO - 118/147 XVXftpgowPfjuRJ.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,978 - __main__ - INFO - 成功获取缩略图，文件大小: 4511 字节 getThumbnail.py:85
+2025-07-23 17:37:45,978 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,978 - __main__ - INFO - 123/147 BIKmrbpgROJtTjw.jpg 获取缩略图耗时: 2.38s getThumbnail.py:141
+2025-07-23 17:37:45,978 - __main__ - INFO - 123/147 BIKmrbpgROJtTjw.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,979 - __main__ - INFO - 成功获取缩略图，文件大小: 2291 字节 getThumbnail.py:85
+2025-07-23 17:37:45,979 - __main__ - INFO - 图片尺寸: 233x108 getThumbnail.py:95
+2025-07-23 17:37:45,979 - __main__ - INFO - 127/147 KzDvEKEhwNrNwgB.jpg 获取缩略图耗时: 2.38s getThumbnail.py:141
+2025-07-23 17:37:45,979 - __main__ - INFO - 127/147 KzDvEKEhwNrNwgB.jpg 分辨率: (233, 108) getThumbnail.py:142
+2025-07-23 17:37:45,979 - __main__ - INFO - 成功获取缩略图，文件大小: 6696 字节 getThumbnail.py:85
+2025-07-23 17:37:45,980 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,980 - __main__ - INFO - 121/147 tBbcRrAUJSDBFGA.jpg 获取缩略图耗时: 2.38s getThumbnail.py:141
+2025-07-23 17:37:45,980 - __main__ - INFO - 121/147 tBbcRrAUJSDBFGA.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,980 - __main__ - INFO - 成功获取缩略图，文件大小: 1576 字节 getThumbnail.py:85
+2025-07-23 17:37:45,980 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:45,981 - __main__ - INFO - 126/147 bPvWVrHcFaRsEac.jpg 获取缩略图耗时: 2.38s getThumbnail.py:141
+2025-07-23 17:37:45,981 - __main__ - INFO - 126/147 bPvWVrHcFaRsEac.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:45,981 - __main__ - INFO - 成功获取缩略图，文件大小: 4388 字节 getThumbnail.py:85
+2025-07-23 17:37:45,981 - __main__ - INFO - 图片尺寸: 107x108 getThumbnail.py:95
+2025-07-23 17:37:45,982 - __main__ - INFO - 125/147 znxfKmxGldipHgi.jpg 获取缩略图耗时: 2.38s getThumbnail.py:141
+2025-07-23 17:37:45,982 - __main__ - INFO - 125/147 znxfKmxGldipHgi.jpg 分辨率: (107, 108) getThumbnail.py:142
+2025-07-23 17:37:45,983 - __main__ - INFO - 成功获取缩略图，文件大小: 6102 字节 getThumbnail.py:85
+2025-07-23 17:37:45,984 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:45,984 - __main__ - INFO - 115/147 ARVfvECfiOIikjZ.jpg 获取缩略图耗时: 2.38s getThumbnail.py:141
+2025-07-23 17:37:45,984 - __main__ - INFO - 115/147 ARVfvECfiOIikjZ.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:45,985 - __main__ - INFO - 成功获取缩略图，文件大小: 5701 字节 getThumbnail.py:85
+2025-07-23 17:37:45,986 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,986 - __main__ - INFO - 128/147 zthXBjDmlNHYSBg.jpg 获取缩略图耗时: 2.38s getThumbnail.py:141
+2025-07-23 17:37:45,987 - __main__ - INFO - 128/147 zthXBjDmlNHYSBg.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:45,997 - __main__ - INFO - 成功获取缩略图，文件大小: 5692 字节 getThumbnail.py:85
+2025-07-23 17:37:45,999 - __main__ - INFO - 成功获取缩略图，文件大小: 2514 字节 getThumbnail.py:85
+2025-07-23 17:37:45,999 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:45,999 - __main__ - INFO - 129/147 AQbKXhQTQDddCUb.jpg 获取缩略图耗时: 2.4s getThumbnail.py:141
+2025-07-23 17:37:46,000 - __main__ - INFO - 129/147 AQbKXhQTQDddCUb.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:46,000 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:46,000 - __main__ - INFO - 120/147 XKwdwpeXYsHPRrj.jpg 获取缩略图耗时: 2.4s getThumbnail.py:141
+2025-07-23 17:37:46,000 - __main__ - INFO - 120/147 XKwdwpeXYsHPRrj.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:46,011 - __main__ - INFO - 成功获取缩略图，文件大小: 5939 字节 getThumbnail.py:85
+2025-07-23 17:37:46,012 - __main__ - INFO - 成功获取缩略图，文件大小: 2719 字节 getThumbnail.py:85
+2025-07-23 17:37:46,013 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:46,013 - __main__ - INFO - 132/147 DkSZCBhCSWLdJMu.jpg 获取缩略图耗时: 2.41s getThumbnail.py:141
+2025-07-23 17:37:46,013 - __main__ - INFO - 132/147 DkSZCBhCSWLdJMu.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:46,013 - __main__ - INFO - 图片尺寸: 67x108 getThumbnail.py:95
+2025-07-23 17:37:46,013 - __main__ - INFO - 124/147 aGMKJJWqwkiLtON.jpg 获取缩略图耗时: 2.41s getThumbnail.py:141
+2025-07-23 17:37:46,013 - __main__ - INFO - 124/147 aGMKJJWqwkiLtON.jpg 分辨率: (67, 108) getThumbnail.py:142
+2025-07-23 17:37:46,021 - __main__ - INFO - 成功获取缩略图，文件大小: 5692 字节 getThumbnail.py:85
+2025-07-23 17:37:46,025 - __main__ - INFO - 成功获取缩略图，文件大小: 2258 字节 getThumbnail.py:85
+2025-07-23 17:37:46,025 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:46,025 - __main__ - INFO - 130/147 tYlieRKgyHVkHkl.jpg 获取缩略图耗时: 2.42s getThumbnail.py:141
+2025-07-23 17:37:46,026 - __main__ - INFO - 130/147 tYlieRKgyHVkHkl.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:46,026 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:46,026 - __main__ - INFO - 133/147 zRxLxegFzcLvCqz.jpg 获取缩略图耗时: 2.42s getThumbnail.py:141
+2025-07-23 17:37:46,026 - __main__ - INFO - 133/147 zRxLxegFzcLvCqz.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:46,029 - __main__ - INFO - 成功获取缩略图，文件大小: 1528 字节 getThumbnail.py:85
+2025-07-23 17:37:46,030 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:46,031 - __main__ - INFO - 131/147 dTWdLvynsekREuO.jpg 获取缩略图耗时: 2.43s getThumbnail.py:141
+2025-07-23 17:37:46,031 - __main__ - INFO - 131/147 dTWdLvynsekREuO.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:46,046 - __main__ - INFO - 成功获取缩略图，文件大小: 4511 字节 getThumbnail.py:85
+2025-07-23 17:37:46,046 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:46,046 - __main__ - INFO - 103/147 COCjiqswyingvfV.jpg 获取缩略图耗时: 2.45s getThumbnail.py:141
+2025-07-23 17:37:46,046 - __main__ - INFO - 103/147 COCjiqswyingvfV.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:46,065 - __main__ - INFO - 成功获取缩略图，文件大小: 2791 字节 getThumbnail.py:85
+2025-07-23 17:37:46,066 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:46,066 - __main__ - INFO - 146/147 sRnYwDCPeWuDZPC.jpg 获取缩略图耗时: 2.46s getThumbnail.py:141
+2025-07-23 17:37:46,066 - __main__ - INFO - 146/147 sRnYwDCPeWuDZPC.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:46,071 - __main__ - INFO - 成功获取缩略图，文件大小: 1640 字节 getThumbnail.py:85
+2025-07-23 17:37:46,071 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:46,071 - __main__ - INFO - 143/147 LnJkouqVnCnGmZt.jpg 获取缩略图耗时: 2.47s getThumbnail.py:141
+2025-07-23 17:37:46,072 - __main__ - INFO - 143/147 LnJkouqVnCnGmZt.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:46,074 - __main__ - INFO - 成功获取缩略图，文件大小: 5925 字节 getThumbnail.py:85
+2025-07-23 17:37:46,074 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:46,076 - __main__ - INFO - 138/147 BkcJafTeSvspJsm.jpg 获取缩略图耗时: 2.47s getThumbnail.py:141
+2025-07-23 17:37:46,077 - __main__ - INFO - 138/147 BkcJafTeSvspJsm.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:46,078 - __main__ - INFO - 成功获取缩略图，文件大小: 1542 字节 getThumbnail.py:85
+2025-07-23 17:37:46,078 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:46,079 - __main__ - INFO - 134/147 GanuoNTJvWxdoAa.jpg 获取缩略图耗时: 2.48s getThumbnail.py:141
+2025-07-23 17:37:46,079 - __main__ - INFO - 134/147 GanuoNTJvWxdoAa.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:46,082 - __main__ - INFO - 成功获取缩略图，文件大小: 1976 字节 getThumbnail.py:85
+2025-07-23 17:37:46,083 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:46,083 - __main__ - INFO - 141/147 TUjfaCNTDGFIORc.jpg 获取缩略图耗时: 2.48s getThumbnail.py:141
+2025-07-23 17:37:46,083 - __main__ - INFO - 141/147 TUjfaCNTDGFIORc.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:46,084 - __main__ - INFO - 成功获取缩略图，文件大小: 2514 字节 getThumbnail.py:85
+2025-07-23 17:37:46,084 - __main__ - INFO - 成功获取缩略图，文件大小: 4511 字节 getThumbnail.py:85
+2025-07-23 17:37:46,084 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:46,084 - __main__ - INFO - 56/147 NRnPLEXbdreYJMt.jpg 获取缩略图耗时: 2.49s getThumbnail.py:141
+2025-07-23 17:37:46,084 - __main__ - INFO - 56/147 NRnPLEXbdreYJMt.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:46,085 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:46,085 - __main__ - INFO - 147/147 xCudnsCdnAupULx.jpg 获取缩略图耗时: 2.48s getThumbnail.py:141
+2025-07-23 17:37:46,085 - __main__ - INFO - 147/147 xCudnsCdnAupULx.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:46,096 - __main__ - INFO - 成功获取缩略图，文件大小: 2433 字节 getThumbnail.py:85
+2025-07-23 17:37:46,097 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:46,097 - __main__ - INFO - 142/147 fmmoImOwdxohNOm.jpg 获取缩略图耗时: 2.49s getThumbnail.py:141
+2025-07-23 17:37:46,097 - __main__ - INFO - 142/147 fmmoImOwdxohNOm.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:46,104 - __main__ - INFO - 成功获取缩略图，文件大小: 2156 字节 getThumbnail.py:85
+2025-07-23 17:37:46,105 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:46,106 - __main__ - INFO - 136/147 cWUsDkdKfqMBmBG.jpg 获取缩略图耗时: 2.5s getThumbnail.py:141
+2025-07-23 17:37:46,106 - __main__ - INFO - 136/147 cWUsDkdKfqMBmBG.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:46,112 - __main__ - INFO - 成功获取缩略图，文件大小: 1980 字节 getThumbnail.py:85
+2025-07-23 17:37:46,112 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:46,113 - __main__ - INFO - 140/147 FgRjTENxNyHQSuI.jpg 获取缩略图耗时: 2.51s getThumbnail.py:141
+2025-07-23 17:37:46,113 - __main__ - INFO - 140/147 FgRjTENxNyHQSuI.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:46,118 - __main__ - INFO - 成功获取缩略图，文件大小: 3014 字节 getThumbnail.py:85
+2025-07-23 17:37:46,119 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:46,119 - __main__ - INFO - 137/147 rZdSmDiXTVuKQEy.jpg 获取缩略图耗时: 2.52s getThumbnail.py:141
+2025-07-23 17:37:46,119 - __main__ - INFO - 137/147 rZdSmDiXTVuKQEy.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:46,125 - __main__ - INFO - 成功获取缩略图，文件大小: 6102 字节 getThumbnail.py:85
+2025-07-23 17:37:46,125 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:46,125 - __main__ - INFO - 139/147 gEUTGQGqjwuCPSX.jpg 获取缩略图耗时: 2.52s getThumbnail.py:141
+2025-07-23 17:37:46,125 - __main__ - INFO - 139/147 gEUTGQGqjwuCPSX.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:46,191 - __main__ - INFO - 成功获取缩略图，文件大小: 2291 字节 getThumbnail.py:85
+2025-07-23 17:37:46,191 - __main__ - INFO - 图片尺寸: 233x108 getThumbnail.py:95
+2025-07-23 17:37:46,192 - __main__ - INFO - 63/147 nrYduwbLFrUIUWZ.jpg 获取缩略图耗时: 2.6s getThumbnail.py:141
+2025-07-23 17:37:46,192 - __main__ - INFO - 63/147 nrYduwbLFrUIUWZ.jpg 分辨率: (233, 108) getThumbnail.py:142
+2025-07-23 17:37:46,276 - __main__ - INFO - 成功获取缩略图，文件大小: 6696 字节 getThumbnail.py:85
+2025-07-23 17:37:46,277 - __main__ - INFO - 图片尺寸: 172x108 getThumbnail.py:95
+2025-07-23 17:37:46,277 - __main__ - INFO - 145/147 lesmdfrDVqEIKQM.jpg 获取缩略图耗时: 2.67s getThumbnail.py:141
+2025-07-23 17:37:46,277 - __main__ - INFO - 145/147 lesmdfrDVqEIKQM.jpg 分辨率: (172, 108) getThumbnail.py:142
+2025-07-23 17:37:46,299 - __main__ - INFO - 成功获取缩略图，文件大小: 2514 字节 getThumbnail.py:85
+2025-07-23 17:37:46,300 - __main__ - INFO - 图片尺寸: 49x108 getThumbnail.py:95
+2025-07-23 17:37:46,300 - __main__ - INFO - 144/147 JPBIdQNwVPXqhqp.jpg 获取缩略图耗时: 2.7s getThumbnail.py:141
+2025-07-23 17:37:46,300 - __main__ - INFO - 144/147 JPBIdQNwVPXqhqp.jpg 分辨率: (49, 108) getThumbnail.py:142
+2025-07-23 17:37:46,312 - __main__ - INFO - 成功获取缩略图，文件大小: 5925 字节 getThumbnail.py:85
+2025-07-23 17:37:46,312 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:46,313 - __main__ - INFO - 135/147 QnBReitPrYRAacr.jpg 获取缩略图耗时: 2.71s getThumbnail.py:141
+2025-07-23 17:37:46,313 - __main__ - INFO - 135/147 QnBReitPrYRAacr.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:46,540 - __main__ - INFO - 成功获取缩略图，文件大小: 5925 字节 getThumbnail.py:85
+2025-07-23 17:37:46,541 - __main__ - INFO - 图片尺寸: 184x108 getThumbnail.py:95
+2025-07-23 17:37:46,541 - __main__ - INFO - 6/147 adJtLmhqBvAEmkl.jpg 获取缩略图耗时: 2.96s getThumbnail.py:141
+2025-07-23 17:37:46,542 - __main__ - INFO - 6/147 adJtLmhqBvAEmkl.jpg 分辨率: (184, 108) getThumbnail.py:142
+2025-07-23 17:37:46,542 - __main__ - INFO - 并发处理完成！总耗时: 2.96s getThumbnail.py:184
+2025-07-23 17:37:46,543 - __main__ - INFO - 成功处理: 147/147 张图片 getThumbnail.py:185
+2025-07-23 17:37:46,543 - __main__ - INFO - 平均单张耗时: 2.02s getThumbnail.py:186
+2025-07-23 17:37:46,543 - __main__ - INFO - 并发效率提升: 1.0% getThumbnail.py:187

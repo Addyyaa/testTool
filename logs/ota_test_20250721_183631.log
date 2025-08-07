@@ -1,0 +1,2 @@
+2025-07-21 18:36:31,713 - [INFO] - ota_test:ota_test.py:30 - <module>() - OTA测试程序启动
+2025-07-21 18:36:34,246 - [ERROR] - ota_test:ota_test.py:383 - <module>() - 选择的设备数量与主机host数量不匹配

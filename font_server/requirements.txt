@@ -1,0 +1,5 @@
+Flask>=2.0.0
+fonttools>=4.25.0
+brotli>=1.0.9
+zopfli>=0.2.1
+pathlib2>=2.3.6 

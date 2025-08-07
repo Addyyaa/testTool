@@ -1,0 +1,1 @@
+2025-07-23 17:19:34,898 - __main__ - ERROR - 程序执行出错: GetFileFromAlbum.get_file_from_album() missing 1 required positional argument: 'self' getThumbnail.py:118

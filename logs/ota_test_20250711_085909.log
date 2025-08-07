@@ -1,0 +1,5 @@
+2025-07-11 08:59:09,304 - [INFO] - ota_test:ota_test.py:30 - <module>() - OTA测试程序启动
+2025-07-11 08:59:09,359 - [INFO] - login:login.py:48 - login() - body_data: {'account': 'test2@tester.com', 'password': 'sf123123', 'loginType': '3'}
+2025-07-11 08:59:09,359 - [INFO] - login:login.py:49 - login() - 登录成功！
+2025-07-11 08:59:09,418 - [INFO] - login:login.py:48 - login() - body_data: {'account': 'test2@tester.com', 'password': 'sf123123', 'loginType': '3'}
+2025-07-11 08:59:09,419 - [INFO] - login:login.py:49 - login() - 登录成功！

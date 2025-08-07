@@ -1,0 +1,12 @@
+# 文件传输工具依赖包
+# 核心依赖
+tkinterdnd2>=0.3.0      # 拖拽功能支持
+telnetlib3>=2.0.0       # 异步telnet客户端
+requests>=2.25.0        # HTTP请求处理
+Pillow>=8.0.0          # 图片处理和预览
+
+# Windows增强文件删除支持
+send2trash>=1.8.0      # 安全删除文件到回收站
+
+# 可选依赖（用于开发和调试）
+# pywin32>=227          # Windows系统API支持（仅Windows需要） 

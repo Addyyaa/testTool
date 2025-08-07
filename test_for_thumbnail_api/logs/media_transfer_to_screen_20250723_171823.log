@@ -1,0 +1,1 @@
+2025-07-23 17:18:23,609 - __main__ - ERROR - 程序执行出错: type object 'GetFileFromAlbum' has no attribute 'get_pic_list' getThumbnail.py:116

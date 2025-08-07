@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 a = Analysis(
-    ['get_logger.py'],
+    ['log_getter.py'],
     pathex=['F:\\pythonProject\\testTool\\log_tool', 'F:\\pythonProject\\testTool'],  # 包含项目根目录
     binaries=[],
     datas=[
@@ -24,7 +24,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='get_logger',
+    name='log_getter',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
