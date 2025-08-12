@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 import json
 import sys
 import time
@@ -26,15 +27,15 @@ from api_sender import Api_sender
 # 全局变量
 protocol = "http"
 # 国内测试环境
-# host = "139.224.192.36"
-host = "cloud-service.austinelec.com"
-# port = "8082"
-port = "8080"
+host = "139.224.192.36"
+# host = "cloud-service.austinelec.com"
+port = "8082"
+# port = "8080"
 # 海外测试环境
 # host = "18.215.241.226"
 # port = "8080"
 
-gift_sender_account = "2698567570@qq.com"
+gift_sender_account = "test2@tester.com"
 gift_sender_passwd = "sf123123"
 gift_receiver_account = "15250996938"
 gift_receiver_passwd = "sf123123"
@@ -913,7 +914,7 @@ class bind_media_to_gift_code:
             all_screens = []
             for group in group_device_relation:
                 for screen in group['screenList']:
-                    all_screens.append(screen['screenId'])
+                    all_screens.append({"screenId": screen['screenId'], "resolution": screen['format']})
             return all_screens
         all_screens = return_all_screen_info()
         video_list = []
@@ -925,13 +926,23 @@ class bind_media_to_gift_code:
                 data = json.load(f)
                 for _ in data['records']:
                     doimian_record = _.get(host)
-                    if list(doimian_record['screen_info'].keys())[0] in all_screens:
-                        video_list.extend(doimian_record['videos'])
-                        image_list.extend(doimian_record['images'])
-                        screen_info.extend(doimian_record['screen_info'])
-                logger.info(f"video_list: {video_list}")
-                logger.info(f"image_list: {image_list}")
-                logger.info(f"screen_info: {screen_info}")
+                    if not doimian_record:
+                        continue
+                    file_resolution = list(doimian_record['screen_info'].values())[0]
+                    file_resolution_width_height = re.findall(r'\d+', file_resolution)
+                    short_side = min(file_resolution_width_height)
+                    long_side = max(file_resolution_width_height)
+                    for screen in all_screens:
+                        screen_resolution = re.findall(r'\d+', screen['resolution'])
+                        screen_short_side = min(screen_resolution)
+                        screen_long_side = max(screen_resolution)
+                        if short_side == screen_short_side and long_side == screen_long_side:
+                            video_list.extend(doimian_record['videos'])
+                            image_list.extend(doimian_record['images'])
+                            screen_info.append(screen['screenId'])
+                logger.info("video_list: %s", video_list)
+                logger.info("image_list: %s", image_list)
+                logger.info("screen_info: %s", screen_info)
                 return video_list, image_list, screen_info
         return None
     
@@ -981,7 +992,7 @@ class Batch_prepare_giftCode:
 
         # 只取giftCode字符串
         real_gift_code = gift_code["giftCode"] if isinstance(gift_code, dict) else str(gift_code)
-        global screen_id
+        global screen_id 
         screen_id = screen_id_inner if screen_id_inner else None
         if real_gift_code and screen_id:
             receiver = Gift_receiver(real_gift_code, screen_id)
