@@ -88,6 +88,9 @@ class Telnet_connector:
         self.username = username if username else "root"
         self.password = password if password else "ya!2dkwy7-934^"
         self._loop: asyncio.AbstractEventLoop | None = None  # 綁定創建連接時的事件循環
+        # 串行化同一設備上的關鍵操作，避免並發重入導致 writer/reader 置空
+        self._conn_lock = asyncio.Lock()
+        self._io_lock = asyncio.Lock()
         print(f"username: {self.username}, password: {self.password}")
         print(f"Telnet_connector initialized for host: {self.host}")
 
@@ -102,77 +105,69 @@ class Telnet_connector:
             ConnectionError: 如果連接超時、被拒絕或發生其他連接錯誤。
             Exception: 其他底層異常。
         """
-        # 改进连接状态检查
-        if self.writer and not self.writer.is_closing():
-            # 检查连接是否真的有效
+        async with self._conn_lock:
+            # 二次檢查，避免已在其他協程建立好連接
+            if self.writer and not self.writer.is_closing():
+                try:
+                    if (
+                        hasattr(self.writer, "_transport")
+                        and self.writer._transport is not None
+                    ):
+                        print("Connection is healthy, skipping reconnect.")
+                        return
+                except Exception:
+                    pass
+                print("Connection appears unhealthy, forcing reconnect...")
+                await self.disconnect()
+
+            print(f"Connecting to {self.host}...")
             try:
-                if (
-                    hasattr(self.writer, "_transport")
-                    and self.writer._transport is not None
-                ):
-                    # 连接看起来是健康的，跳过重连
-                    print("Connection is healthy, skipping reconnect.")
-                    return
-            except:
-                pass
-            # 如果检查失败，强制重连
-            print("Connection appears unhealthy, forcing reconnect...")
-            await self.disconnect()
-        print(f"Connecting to {self.host}...")
-        try:
-            self.reader, self.writer = await asyncio.wait_for(
-                telnetlib3.open_connection(self.host, self.port, shell=self.shell),
-                timeout=timeout,
-            )
-            # 綁定當前事件循環
-            try:
-                self._loop = asyncio.get_running_loop()
-            except RuntimeError:
-                self._loop = None
-            print(f"Successfully connected to {self.host}.")
-            # 檢查 writer 類型以確定是否為 Unicode 模式
-            # 首先確保 TelnetWriterUnicode 已成功導入且 self.writer 不是 None
-            if TelnetWriterUnicode is not None and self.writer is not None:
-                if isinstance(self.writer, TelnetWriterUnicode):  # type: ignore[arg-type]
-                    logging.debug("Connection is using Unicode mode.")
-                    self.is_unicode_mode = True
-                else:
-                    # writer 存在但不是 TelnetWriterUnicode，假定為 Bytes 模式
+                self.reader, self.writer = await asyncio.wait_for(
+                    telnetlib3.open_connection(self.host, self.port, shell=self.shell),
+                    timeout=timeout,
+                )
+                # 綁定當前事件循環
+                try:
+                    self._loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    self._loop = None
+                print(f"Successfully connected to {self.host}.")
+                # 檢查 writer 類型
+                if TelnetWriterUnicode is not None and self.writer is not None:
+                    if isinstance(self.writer, TelnetWriterUnicode):  # type: ignore[arg-type]
+                        logging.debug("Connection is using Unicode mode.")
+                        self.is_unicode_mode = True
+                    else:
+                        logging.debug(
+                            "Connection is using Bytes mode (standard writer detected)."
+                        )
+                        self.is_unicode_mode = False
+                elif self.writer is not None:
                     logging.debug(
-                        "Connection is using Bytes mode (standard writer detected)."
+                        "Connection is using Bytes mode (TelnetWriterUnicode import failed)."
                     )
                     self.is_unicode_mode = False
-            elif self.writer is not None:
-                # TelnetWriterUnicode 導入失敗，但 writer 存在，假定為 Bytes 模式
-                logging.debug(
-                    "Connection is using Bytes mode (TelnetWriterUnicode import failed)."
-                )
-                self.is_unicode_mode = False
-            else:
-                # writer 為 None，連接失敗
-                logging.debug("Writer is None, connection likely failed earlier.")
-                self.is_unicode_mode = False  # 設置為 False 以防萬一
+                else:
+                    logging.debug("Writer is None, connection likely failed earlier.")
+                    self.is_unicode_mode = False
 
-            # 自动登录
-            await self._auto_login()
-            # 可選：如果需要，讀取初始橫幅/提示
-            # initial_output = await self.read_until_timeout()
-            # print(f"Initial output:\n{initial_output}")
-        except asyncio.TimeoutError:
-            logging.debug(f"Connection to {self.host} timed out.")
-            self.reader = None
-            self.writer = None
-            raise ConnectionError(f"Connection timed out to {self.host}")
-        except ConnectionRefusedError:
-            logging.debug(f"Connection to {self.host} refused.")
-            self.reader = None
-            self.writer = None
-            raise ConnectionError(f"Connection refused by {self.host}")
-        except Exception as e:
-            logging.debug(f"Failed to connect to {self.host}: {e}")
-            self.reader = None
-            self.writer = None
-            raise ConnectionError(f"Failed to connect: {e}") from e
+                # 自动登录
+                await self._auto_login()
+            except asyncio.TimeoutError as exc:
+                logging.debug("Connection to %s timed out.", self.host)
+                self.reader = None
+                self.writer = None
+                raise ConnectionError(f"Connection timed out to {self.host}") from exc
+            except ConnectionRefusedError as exc:
+                logging.debug("Connection to %s refused.", self.host)
+                self.reader = None
+                self.writer = None
+                raise ConnectionError(f"Connection refused by {self.host}") from exc
+            except Exception as e:
+                logging.debug("Failed to connect to %s: %s", self.host, e)
+                self.reader = None
+                self.writer = None
+                raise ConnectionError(f"Failed to connect: {e}") from e
 
     async def _auto_login(self):
         """优化的自动登录机制"""
@@ -233,7 +228,7 @@ class Telnet_connector:
 
             # 发送简单的echo命令测试连接
             result = await asyncio.wait_for(
-                self.send_command("echo ping", max_retries=1), timeout=timeout
+                self.send_command("echo ping"), timeout=timeout
             )
             is_healthy = "ping" in result
             logging.debug(f"健康检查结果: {is_healthy}, 响应: {result[:50]}")
@@ -267,7 +262,7 @@ class Telnet_connector:
         await self.connect(timeout)
         try:
             # 发送一个简单命令预热连接
-            await self.send_command("echo warmup", max_retries=1)
+            await self.send_command("echo warmup")
             logging.info(f"连接到 {self.host} 预热完成")
         except Exception as e:
             logging.warning(f"连接预热失败: {e}")
@@ -278,7 +273,12 @@ class Telnet_connector:
         如果沒有活動連接，則此方法不執行任何操作。
         會嘗試優雅地關閉寫入器並等待其關閉。
         """
-        if self.writer:
+        async with self._conn_lock:
+            if not self.writer:
+                print("Already disconnected.")
+                return
+        # 單獨關閉需要避免長時間持有 conn_lock
+        if self.writer:  # recheck
             print(f"Disconnecting from {self.host}...")
             try:
                 # 動態檢查 writer 類型 (確保 writer 和 TelnetWriterUnicode 都非 None)
@@ -397,154 +397,85 @@ class Telnet_connector:
     async def send_command(self, command: str, read_timeout: float = 1.0) -> str:
         """向 Telnet 服務器發送命令並讀取響應。
 
-        會自動在命令末尾添加 '\r\n'。
-        增加了重連機制，在發生特定類型的 ConnectionError 時最多重試 2 次。
-        該方法會嘗試智能地處理 telnetlib3 的 Unicode 模式和 Bytes 模式：
-        1. 首先嘗試以字符串形式發送命令。
-        2. 如果失敗並收到 "bytes-like object is required" 錯誤，則回退到
-           以 UTF-8 編碼的字節串形式發送。
-        發送成功後，調用 `read_until_timeout` 讀取服務器響應。
-
-        Args:
-            command: 要發送的命令字符串（不含結尾的換行符）。
-            read_timeout: 發送命令後，等待響應數據的超時時間（秒），
-                          傳遞給 `read_until_timeout`。
-
-        Returns:
-            服務器對命令的響應字符串。
-
-        Raises:
-            ConnectionError: 如果連接未建立、已關閉，或在發送/讀取過程中發生連接錯誤（包括重試失敗後）。
-            TypeError: 如果底層 writer 的行為異常，無法處理字符串或字節串。
+        會自動在命令末尾添加 '\r\n'，並在連接異常時重試。
         """
         max_retries = 2
-        last_exception: Exception | None = None  # 保存最后一次异常
-        base_retry_delay = 1.0  # 基础重试延迟（秒）
-        retry_delay_multiplier = 2.0  # 指数退避倍数
+        last_exception: Exception | None = None
+        base_retry_delay = 1.0
+        retry_delay_multiplier = 2.0
 
-        for attempt in range(max_retries + 1):
-            try:
-                # --- 每次尝试前检查连接状态 ---
-                # 事件循環一致性檢查：避免在不同 loop 中復用上一個 loop 創建的 transport
+        async with self._io_lock:
+            for attempt in range(max_retries + 1):
                 try:
-                    current_loop = asyncio.get_running_loop()
-                except RuntimeError:
-                    current_loop = None
-                if (
-                    self._loop is not None
-                    and current_loop is not None
-                    and current_loop is not self._loop
-                ):
-                    logging.warning(
-                        "Event loop has changed since connection was created; reconnecting..."
-                    )
-                    if self.writer and not self.writer.is_closing():
-                        await self.disconnect()
-                    await self.connect()
-                if not self.writer or not self.reader or self.writer.is_closing():
-                    # 如果没有 writer 或 reader，或者 writer 正在关闭，尝试连接（或重连）
-                    logging.warning(
-                        f"[Attempt {attempt+1}/{max_retries+1}] Connection not established or closing. "
-                        f"Attempting to connect... (writer: {bool(self.writer)}, reader: {bool(self.reader)}, "
-                        f"closing: {self.writer.is_closing() if self.writer else 'N/A'})"
-                    )
-                    # 只有在 writer 存在且未关闭时才尝试优雅断开
-                    if self.writer and not self.writer.is_closing():
-                        await self.disconnect()  # 清理现有连接
-                    await self.connect()  # connect() raises ConnectionError on failure
-                    # 再次检查，如果 connect 成功但 writer/reader 仍是 None (理论上不应发生)
-                    if not self.writer or not self.reader:
-                        raise ConnectionError(
-                            "Failed to establish connection components after connect()."
+                    # 事件循環變更檢查
+                    try:
+                        current_loop = asyncio.get_running_loop()
+                    except RuntimeError:
+                        current_loop = None
+                    if (
+                        self._loop is not None
+                        and current_loop is not None
+                        and current_loop is not self._loop
+                    ):
+                        logging.warning(
+                            "Event loop has changed since connection was created; reconnecting..."
                         )
-                    # 连接成功后，尝试读取初始数据以验证连接有效性
-                    logging.debug(
-                        f"[Attempt {attempt+1}/{max_retries+1}] Connection established, validating with initial read..."
-                    )
-                    initial_response = await self.read_until_timeout(read_timeout=0.5)
-                    logging.debug(
-                        f"[Attempt {attempt+1}/{max_retries+1}] Initial read result (length={len(initial_response)}): {initial_response[:50]!r}..."
-                    )
+                        if self.writer and not self.writer.is_closing():
+                            await self.disconnect()
+                        await self.connect()
 
-                    # 检查是否需要登录
-                    if initial_response and (
-                        "login:" in initial_response.lower()
-                        or "username:" in initial_response.lower()
-                    ):
-                        if self.username:
-                            logging.info(f"检测到登录提示，发送用户名: {self.username}")
-                            login_response = await self._send_raw_command(self.username)
-                            # 等待密码提示
-                            await asyncio.sleep(0.5)
-                        else:
-                            error_msg = "检测到登录提示，但未设置用户名，无法继续"
-                            logging.error(error_msg)
-                            raise ConnectionError(error_msg)
-
-                    # 检查是否需要输入密码
-                    if initial_response and "password:" in initial_response.lower():
-                        if self.password:
-                            logging.info("检测到密码提示，发送密码")
-                            pwd_response = await self._send_raw_command(self.password)
-                            # 等待登录完成
-                            await asyncio.sleep(1)
-                        else:
-                            error_msg = "检测到密码提示，但未设置密码，无法继续"
-                            logging.error(error_msg)
-                            raise ConnectionError(error_msg)
-
-                # --- 准备命令 ---
-                command_str = command + "\r\n"
-                command_bytes = command_str.encode("utf-8", errors="ignore")
-                write_attempted_type = "string"  # 重置尝试类型
-
-                # --- 检查连接状态 ---
-                if not self.writer or self.writer.is_closing():
-                    logging.warning(
-                        f"[Attempt {attempt+1}/{max_retries+1}] Writer is None or closing, attempting to reconnect..."
-                    )
-                    raise ConnectionError("Writer is None or closing")
-
-                # 检查底层传输是否有效
-                if (
-                    hasattr(self.writer, "_transport")
-                    and self.writer._transport is None
-                ):
-                    logging.warning(
-                        f"[Attempt {attempt+1}/{max_retries+1}] Transport is None, attempting to reconnect..."
-                    )
-                    raise ConnectionError("Transport is None")
-
-                # 额外检查：如果transport存在，检查其内部状态
-                if hasattr(self.writer, "_transport") and self.writer._transport:
-                    transport = self.writer._transport
-                    # 检查transport是否有_proactor属性，且_proactor不为None
-                    if hasattr(transport, "_loop") and hasattr(
-                        transport._loop, "_proactor"
-                    ):
-                        if transport._loop._proactor is None:
-                            logging.warning(
-                                f"[Attempt {attempt+1}/{max_retries+1}] Proactor is None, attempting to reconnect..."
+                    # 基礎連接狀態檢查
+                    if not self.writer or not self.reader or self.writer.is_closing():
+                        logging.warning(
+                            f"[Attempt {attempt+1}/{max_retries+1}] Connection not established or closing. "
+                            f"Attempting to connect... (writer: {bool(self.writer)}, reader: {bool(self.reader)}, "
+                            f"closing: {self.writer.is_closing() if self.writer else 'N/A'})"
+                        )
+                        if self.writer and not self.writer.is_closing():
+                            await self.disconnect()
+                        await self.connect()
+                        if not self.writer or not self.reader:
+                            raise ConnectionError(
+                                "Failed to establish connection components after connect()."
                             )
-                            raise ConnectionError("Proactor is None")
 
-                # --- 发送命令 (包含原有 str/bytes 尝试逻辑) ---
-                try:
-                    logging.debug(
-                        f"[Attempt {attempt+1}/{max_retries+1}] "
-                        f"Attempting to send command as string: {command_str!r}"
-                    )
-
-                    # 发送前的最后一次检查，防止在检查和发送之间状态变化
-                    if not self.writer or self.writer.is_closing():
-                        raise ConnectionError(
-                            "Writer became None or closing just before send"
+                        # 初始讀取，處理可能的登錄提示
+                        initial_response = await self.read_until_timeout(
+                            read_timeout=0.5
                         )
+                        if initial_response and (
+                            "login:" in initial_response.lower()
+                            or "username:" in initial_response.lower()
+                        ):
+                            if not self.username:
+                                raise ConnectionError(
+                                    "检测到登录提示，但未设置用户名，无法继续"
+                                )
+                            logging.info(f"检测到登录提示，发送用户名: {self.username}")
+                            await self._send_raw_command(self.username)
+                            await asyncio.sleep(0.5)
+                        if initial_response and "password:" in initial_response.lower():
+                            if not self.password:
+                                raise ConnectionError(
+                                    "检测到密码提示，但未设置密码，无法继续"
+                                )
+                            logging.info("检测到密码提示，发送密码")
+                            await self._send_raw_command(self.password)
+                            await asyncio.sleep(1)
+
+                    # 構造命令
+                    command_str = command + "\r\n"
+                    command_bytes = command_str.encode("utf-8", errors="ignore")
+                    write_attempted_type = "string"
+
+                    # 發送前連接健康檢查
+                    if not self.writer or self.writer.is_closing():
+                        raise ConnectionError("Writer is None or closing")
                     if (
                         hasattr(self.writer, "_transport")
                         and self.writer._transport is None
                     ):
-                        raise ConnectionError("Transport became None just before send")
+                        raise ConnectionError("Transport is None")
                     if (
                         hasattr(self.writer, "_transport")
                         and self.writer._transport
@@ -552,222 +483,138 @@ class Telnet_connector:
                         and hasattr(self.writer._transport._loop, "_proactor")
                         and self.writer._transport._loop._proactor is None
                     ):
-                        raise ConnectionError("Proactor became None just before send")
+                        raise ConnectionError("Proactor is None")
 
-                    self.writer.write(command_str)  # type: ignore
-
-                except TypeError as te:
-                    error_msg = str(te).lower()
-                    logging.debug(
-                        f"[Attempt {attempt+1}/{max_retries+1}] TypeError sending string: {te}"
-                    )
-                    if "bytes-like object is required" in error_msg:
-                        logging.debug(
-                            f"[Attempt {attempt+1}/{max_retries+1}]"
-                            f" String write failed, retrying with bytes: {command_bytes!r}"
-                        )
-                        try:
+                    # 發送命令（優先 string，回退 bytes）
+                    try:
+                        self.writer.write(command_str)  # type: ignore
+                    except TypeError as te:
+                        msg = str(te).lower()
+                        if "bytes-like object is required" in msg:
                             write_attempted_type = "bytes (retry)"
                             self.writer.write(command_bytes)
-                        except Exception as retry_e:
-                            logging.debug(
-                                f"[Attempt {attempt+1}/{max_retries+1}]"
-                                f" Error during byte retry write: {retry_e}"
-                            )
-                            last_exception = ConnectionError(
-                                f"Failed to send command on byte retry: {retry_e}"
-                            )
-                            raise last_exception  # 触发外层 ConnectionError 处理
-                    # Keep other TypeError handling as before, re-raising them
-                    elif "encoding without a string argument" in error_msg:
-                        logging.debug(
-                            f"[Attempt {attempt+1}/{max_retries+1}] Unexpected 'encoding' error when "
-                            f"sending string."
-                        )
-                        # Raise the original TypeError, do not retry connection for this
+                        elif "encoding without a string argument" in msg:
+                            raise ConnectionError(
+                                f"Unexpected encoding error sending string: {te}"
+                            ) from te
+                        else:
+                            raise ConnectionError(
+                                f"Unknown TypeError sending command: {te}"
+                            ) from te
+
+                    await self.writer.drain()
+                    response = await self.read_until_timeout(read_timeout)
+
+                    if not response and (
+                        not self.reader or not self.writer or self.writer.is_closing()
+                    ):
                         raise ConnectionError(
-                            f"Unexpected encoding error sending string: {te}"
-                        ) from te
-                    else:
-                        logging.debug(
-                            f"[Attempt {attempt+1}/{max_retries+1}] Unknown TypeError during string write."
+                            "Empty response with broken connection detected."
                         )
-                        raise ConnectionError(
-                            f"Unknown TypeError sending command: {te}"
-                        ) from te
 
-                # --- Drain and Read ---
-                logging.debug(
-                    f"[Attempt {attempt+1}/{max_retries+1}] Write ({write_attempted_type}) successful, "
-                    f"draining buffer..."
-                )
-
-                # 在drain前再次检查连接状态
-                if not self.writer or self.writer.is_closing():
-                    raise ConnectionError("Writer became None or closing before drain")
-                if (
-                    hasattr(self.writer, "_transport")
-                    and self.writer._transport is None
-                ):
-                    raise ConnectionError("Transport became None before drain")
-                if (
-                    hasattr(self.writer, "_transport")
-                    and self.writer._transport
-                    and hasattr(self.writer._transport, "_loop")
-                    and hasattr(self.writer._transport._loop, "_proactor")
-                    and self.writer._transport._loop._proactor is None
-                ):
-                    raise ConnectionError("Proactor became None before drain")
-
-                await self.writer.drain()  # May raise ConnectionError
-                logging.debug(
-                    f"[Attempt {attempt+1}/{max_retries+1}] Command sent, reading response..."
-                )
-                response = await self.read_until_timeout(
-                    read_timeout
-                )  # May raise ConnectionError
-
-                # --- 检查响应是否为空且连接已断开 ---
-                if not response and (
-                    not self.reader or not self.writer or self.writer.is_closing()
-                ):
-                    logging.warning(
-                        f"[Attempt {attempt+1}/{max_retries+1}] Empty response received and connection appears broken. Treating as connection error."
-                    )
-                    raise ConnectionError(
-                        "Empty response with broken connection detected."
-                    )
-
-                # --- 检查响应中是否含有登录提示 ---
-                # 添加一个标志来限制登录检测次数，防止无限循环
-                login_retry_count = getattr(self, "_login_retry_count", 0)
-                max_login_retries = 2  # 最大登录重试次数
-
-                if (
-                    response
-                    and (
-                        "login:" in response.lower()
-                        or "username:" in response.lower()
-                        or "password:" in response.lower()
-                    )
-                    and login_retry_count < max_login_retries
-                ):
-                    # 递增登录重试计数
-                    self._login_retry_count = login_retry_count + 1
-                    logging.warning(
-                        f"[Attempt {attempt+1}/{max_retries+1}] Login prompt detected in response. Attempting to login."
-                    )
-                    # 尝试登录
-                    if "login:" in response.lower() or "username:" in response.lower():
-                        if self.username:
+                    # 響應中的登錄提示處理
+                    login_retry_count = getattr(self, "_login_retry_count", 0)
+                    max_login_retries = 2
+                    lower = (response or "").lower()
+                    if (
+                        response
+                        and (
+                            "login:" in lower
+                            or "username:" in lower
+                            or "password:" in lower
+                        )
+                        and login_retry_count < max_login_retries
+                    ):
+                        self._login_retry_count = login_retry_count + 1
+                        if "login:" in lower or "username:" in lower:
+                            if not self.username:
+                                raise ConnectionError(
+                                    "响应中检测到登录提示，但未设置用户名，无法继续"
+                                )
                             await self._send_raw_command(self.username)
                             await asyncio.sleep(0.5)
-                        else:
-                            error_msg = "响应中检测到登录提示，但未设置用户名，无法继续"
-                            logging.error(error_msg)
-                            raise ConnectionError(error_msg)
-                    if "password:" in response.lower():
-                        if self.password:
+                        if "password:" in lower:
+                            if not self.password:
+                                raise ConnectionError(
+                                    "响应中检测到密码提示，但未设置密码，无法继续"
+                                )
                             await self._send_raw_command(self.password)
                             await asyncio.sleep(1)
-                        else:
-                            error_msg = "响应中检测到密码提示，但未设置密码，无法继续"
-                            logging.error(error_msg)
-                            raise ConnectionError(error_msg)
-                    # 重新发送原命令
-                    logging.info(
-                        f"[Attempt {attempt+1}/{max_retries+1}] Re-sending command after login"
-                    )
-                    self.writer.write(command_str)
-                    await self.writer.drain()
-                    response = await self.read_until_timeout(read_timeout)
-                elif response and (
-                    "login:" in response.lower()
-                    or "username:" in response.lower()
-                    or "password:" in response.lower()
-                ):
-                    # 超过最大登录重试次数
-                    error_msg = (
-                        f"达到最大登录重试次数({max_login_retries})，但仍检测到登录提示"
-                    )
-                    logging.error(error_msg)
-                    raise ConnectionError(error_msg)
-                elif response and "notfount" in response.lower():
-                    # 重新发送指令
-                    logging.info(
-                        f"[Attempt {attempt+1}/{max_retries+1}] Re-sending command after notfount"
-                    )
-                    # 执行指令前先发送回车
-                    await self._send_raw_command("\n")
-                    self.writer.write(command_str)
-                    await self.writer.drain()
-                    response = await self.read_until_timeout(read_timeout)
-                else:
-                    # 重置登录重试计数
-                    self._login_retry_count = 0
-
-                # --- Success ---
-                logging.debug(
-                    f"[Attempt {attempt+1}/{max_retries+1}] Command executed successfully. Response length: {len(response)}"
-                )
-                return response  # 成功，退出循环并返回结果
-
-            except ConnectionError as ce:
-                last_exception = ce  # 保存当前异常
-                logging.warning(
-                    f"[Attempt {attempt+1}/{max_retries+1}] ConnectionError occurred: {ce}"
-                )
-                if attempt < max_retries:
-                    # 检查是否为可重试的错误类型
-                    error_str = str(ce).lower()
-                    is_retryable = any(
-                        keyword in error_str
-                        for keyword in [
-                            "timeout",
-                            "aborted",
-                            "broken",
-                            "closing",
-                            "not connected",
-                            "proactor",
-                            "transport is none",
-                            "writer is none",
-                        ]
-                    )
-                    if not is_retryable:
-                        logging.error(
-                            f"[Attempt {attempt+1}/{max_retries+1}] Non-retryable ConnectionError: {ce}. Aborting retries."
+                        # 重新發送原命令
+                        self.writer.write(command_str)
+                        await self.writer.drain()
+                        response = await self.read_until_timeout(read_timeout)
+                    elif response and (
+                        "login:" in lower
+                        or "username:" in lower
+                        or "password:" in lower
+                    ):
+                        raise ConnectionError(
+                            f"达到最大登录重试次数({max_login_retries})，但仍检测到登录提示"
                         )
-                        raise ce  # 非可重试错误，直接抛出
-                    logging.info(
-                        f"Retrying command send ({max_retries - attempt}/{max_retries} retries left)..."
-                    )
-                    # 指数退避延迟
-                    retry_delay = base_retry_delay * (retry_delay_multiplier**attempt)
-                    logging.info(f"Waiting {retry_delay:.1f} seconds before retry...")
-                    await asyncio.sleep(retry_delay)
-                    # connect() is called at the start of the next loop iteration
-                    continue  # 继续下一次循环尝试
-                else:
-                    logging.error(
-                        f"Command send failed after {max_retries} retries due to ConnectionError: {ce}"
-                    )
-                    raise last_exception  # 重试次数用尽，抛出最后一次的 ConnectionError
-            except Exception as e:
-                logging.error(
-                    f"[Attempt {attempt+1}/{max_retries+1}] "
-                    f"Unexpected error during send_command: {e}",
-                    exc_info=True,
-                )
-                # For unexpected errors, don't retry, just raise
-                raise ConnectionError(
-                    f"Unexpected error during command send: {e}"
-                ) from e
+                    elif response and "notfount" in lower:
+                        await self._send_raw_command("\n")
+                        self.writer.write(command_str)
+                        await self.writer.drain()
+                        response = await self.read_until_timeout(read_timeout)
+                    else:
+                        self._login_retry_count = 0
 
-        # 这部分理论上不应该执行到，因为要么成功返回，要么抛出异常
-        # 但为了代码完整性，如果循环结束还没有返回或抛出异常，则抛出错误
+                    logging.debug(
+                        f"[Attempt {attempt+1}/{max_retries+1}] Command executed successfully. Response length: {len(response)}"
+                    )
+                    return response
+
+                except ConnectionError as ce:
+                    last_exception = ce
+                    logging.warning(
+                        f"[Attempt {attempt+1}/{max_retries+1}] ConnectionError occurred: {ce}"
+                    )
+                    if attempt < max_retries:
+                        error_str = str(ce).lower()
+                        is_retryable = any(
+                            k in error_str
+                            for k in [
+                                "timeout",
+                                "aborted",
+                                "broken",
+                                "closing",
+                                "not connected",
+                                "proactor",
+                                "transport is none",
+                                "writer is none",
+                            ]
+                        )
+                        if not is_retryable:
+                            logging.error(
+                                f"[Attempt {attempt+1}/{max_retries+1}] Non-retryable ConnectionError: {ce}. Aborting retries."
+                            )
+                            raise ce
+                        retry_delay = base_retry_delay * (
+                            retry_delay_multiplier**attempt
+                        )
+                        logging.info(
+                            f"Waiting {retry_delay:.1f} seconds before retry..."
+                        )
+                        await asyncio.sleep(retry_delay)
+                        continue
+                    else:
+                        logging.error(
+                            f"Command send failed after {max_retries} retries due to ConnectionError: {ce}"
+                        )
+                        raise last_exception
+                except Exception as e:
+                    logging.error(
+                        f"[Attempt {attempt+1}/{max_retries+1}] Unexpected error during send_command: {e}",
+                        exc_info=True,
+                    )
+                    raise ConnectionError(
+                        f"Unexpected error during command send: {e}"
+                    ) from e
+
+        # 理論上不會到達這裡
         raise ConnectionError(
-            f"Command send failed unexpectedly after {max_retries + 1} attempts. Last known error: "
-            f"{last_exception}"
+            f"Command send failed unexpectedly after {max_retries + 1} attempts. Last known error: {last_exception}"
         )
 
     async def _send_raw_command(self, command: str) -> str:

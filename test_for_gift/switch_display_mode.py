@@ -77,6 +77,26 @@ class SwitchDisplayMode:
         else:
             logger.error(f"switch_display_mode failed, no response")
 
+    async def switch_display_mode_async(self, display_mode: str, screen_id: str):
+        """异步切换显示模式（在线程池中执行同步HTTP请求）"""
+        data = {"displayMode": display_mode, "screenId": screen_id}
+        result = await asyncio.to_thread(
+            self.api_sender.send_api, self.api_sender.display, data, "post"
+        )
+        if result is not None:
+            try:
+                resp_json = result.json()
+                if resp_json.get("code") == 20:
+                    logger.info(f"{screen_id} switch_display_mode success")
+                else:
+                    logger.error(
+                        f"switch_display_mode failed\t{result.text}\nbody:{data}"
+                    )
+            except Exception as e:
+                logger.error(f"解析响应失败: {e}\t{getattr(result, 'text', '')}")
+        else:
+            logger.error("switch_display_mode failed, no response")
+
     # def convert_timestamp_to_time(self, timestamp: int, max_unit: str = "Y", min_unit: str = "s"):
     #     max_unit = max_unit.upper()
     #     min_unit = min_unit.upper()
@@ -138,6 +158,26 @@ class RotateDispalyOrientation:
         data = {"screenId": screen_id, "direction": orientation}
         response = self.api_sender.send_api(
             self.api_sender.rotate_display_orientation, data=data, method="post"
+        )
+        if response is not None:
+            try:
+                resp_json = response.json()
+                if resp_json.get("code") == 20:
+                    logger.info("%s 屏幕已旋转为%s", screen_id, direction[orientation])
+            except Exception as e:
+                logger.error("解析响应失败: %s\t%s", e, getattr(response, "text", ""))
+
+    async def rotate_dispaly_orientation_async(
+        self, screen_id: str, orientation: Literal[1, 2]
+    ):
+        """异步旋转屏幕（在线程池中执行同步HTTP请求）"""
+        direction = {1: "竖屏", 2: "横屏"}
+        data = {"screenId": screen_id, "direction": orientation}
+        response = await asyncio.to_thread(
+            self.api_sender.send_api,
+            self.api_sender.rotate_display_orientation,
+            data,
+            "post",
         )
         if response is not None:
             try:
@@ -212,45 +252,54 @@ class ApplicationRestartObserver:
                     return None
             return None
 
+        # 并发获取所有屏幕/命令的 PID，提升速度
+        tasks = []
+        key_pairs = []  # 保存 (screen_id, cmd) 顺序以便回填
+        for screen_id, config in screen_config1.items():
+            for cmd in config["cmd_list"]:
+                tasks.append(safe_send_command(config["tn"], cmd, screen_id))
+                key_pairs.append((screen_id, cmd))
+
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # 组装新一轮 PID 映射
+        new_pid_map: dict[str, dict[str, str | None]] = {}
+        for (screen_id, cmd), pid in zip(key_pairs, results):
+            if isinstance(pid, Exception):
+                pid_value = None
+            else:
+                pid_value = pid.strip() if pid else None
+            if screen_id not in new_pid_map:
+                new_pid_map[screen_id] = {}
+            new_pid_map[screen_id][cmd] = pid_value
+
+        # 首次初始化
         if not self.pid_map:
             logger.info("初始化PID映射...")
-            for screen_id, config in screen_config1.items():
+            self.pid_map = new_pid_map
+            for screen_id, cmd_map in new_pid_map.items():
+                for cmd, pid in cmd_map.items():
+                    logger.info("pid: %s", pid)
+            return
+
+        # 比较新旧，输出变化/未变化日志并更新缓存
+        for screen_id, cmd_map in new_pid_map.items():
+            for cmd, pid in cmd_map.items():
+                logger.info("pid: %s", pid)
+                old_pid = self.pid_map.get(screen_id, {}).get(cmd)
+                if pid and old_pid and pid == old_pid:
+                    logger.info("应用 %s 未重启", cmd)
+                else:
+                    logger.error(
+                        "%s-%s应用重启\t重启前pid: %s\t重启后pid: %s",
+                        screen_id,
+                        cmd,
+                        old_pid,
+                        pid,
+                    )
                 if screen_id not in self.pid_map:
                     self.pid_map[screen_id] = {}
-                for cmd in config["cmd_list"]:
-                    pid = await safe_send_command(config["tn"], cmd, screen_id)
-                    logger.info("pid: %s", pid)
-                    if pid:
-                        self.pid_map[screen_id][cmd] = pid.strip()
-                    else:
-                        self.pid_map[screen_id][cmd] = None
-        else:
-            for screen_id, config in screen_config1.items():
-                for cmd in config["cmd_list"]:
-                    pid = await safe_send_command(config["tn"], cmd, screen_id)
-                    logger.info("pid: %s", pid)
-                    if pid:
-                        pid = pid.strip()
-
-                    if (
-                        pid
-                        and self.pid_map.get(screen_id)
-                        and pid == self.pid_map[screen_id].get(cmd)
-                    ):
-                        logger.info("应用 %s 未重启", cmd)
-                        continue
-                    else:
-                        old_pid = self.pid_map.get(screen_id, {}).get(cmd)
-                        logger.error(
-                            "%s-%s应用重启\t重启前pid: %s\t重启后pid: %s",
-                            screen_id,
-                            cmd,
-                            old_pid,
-                            pid,
-                        )
-                        if screen_id not in self.pid_map:
-                            self.pid_map[screen_id] = {}
-                        self.pid_map[screen_id][cmd] = pid
+                self.pid_map[screen_id][cmd] = pid
 
 
 if __name__ == "__main__":
@@ -342,8 +391,24 @@ if __name__ == "__main__":
     }
     try:
 
+        async def warmup_all_tn():
+            # 并发预热所有 tn 连接，确保后续命令稳定
+            await asyncio.gather(
+                *[
+                    config["tn"].connect_and_warmup()
+                    for config in screen_config.values()
+                ]
+            )
+
         async def main_loop():
             while True:
+                # 确保连接健康（如断线则重连）
+                await asyncio.gather(
+                    *[
+                        config["tn"].ensure_connection()
+                        for config in screen_config.values()
+                    ]
+                )
                 # 检查应用是否重启（保持在同一事件循环中）
                 await application_restart_observer.application_restart_observer(
                     screen_config
@@ -362,8 +427,9 @@ if __name__ == "__main__":
 
                 # 随机旋转屏幕
                 if random.random() < 0.5:
-                    rotate_dispaly_orientation.rotate_dispaly_orientation(
-                        screen_id=random.choice(screen_list),
+                    rid = random.choice(screen_list)
+                    await rotate_dispaly_orientation.rotate_dispaly_orientation_async(
+                        screen_id=rid,
                         orientation=random.choice([1, 2]),
                     )
 
@@ -373,12 +439,15 @@ if __name__ == "__main__":
 
                 print(f"随机切换到{selected_mode_name}模式")
 
-                # 对所有屏幕执行切换
-                for screen_id in screen_list:
-                    switch_display_mode.switch_display_mode(
-                        display_mode=selected_mode, screen_id=screen_id
-                    )
-                    await asyncio.sleep(2)
+                # 并发对所有屏幕执行切换
+                await asyncio.gather(
+                    *[
+                        switch_display_mode.switch_display_mode_async(
+                            display_mode=selected_mode, screen_id=screen_id
+                        )
+                        for screen_id in screen_list
+                    ]
+                )
 
                 # 更新上一次选择的模式
                 state["last_mode"] = selected_mode
@@ -388,7 +457,11 @@ if __name__ == "__main__":
                 print("等待5秒后进行下一次随机切换...")
                 await asyncio.sleep(5)
 
-        asyncio.run(main_loop())
+        async def orchestrator():
+            await warmup_all_tn()
+            await main_loop()
+
+        asyncio.run(orchestrator())
     except KeyboardInterrupt:
         time_stamp = time.time() - state["start_time"]
         result = format_time_duration(int(time_stamp), max_unit="D", min_unit="S")
