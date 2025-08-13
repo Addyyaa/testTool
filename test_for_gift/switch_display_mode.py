@@ -43,6 +43,20 @@ class SwitchDisplayMode:
         12. 视频随机播放
         13. 混播随机播放
         """
+        display_mode_map = {
+            "1": "图片轮播",
+            "2": "图片独播",
+            "3": "时钟",
+            "4": "万年历",
+            "5": "序号",
+            "6": "重启他界面返回",
+            "7": "视频轮播",
+            "8": "视频独播",
+            "9": "从其他显示模式回到视频模式",
+            "11": "图片随机播放",
+            "12": "视频随机播放",
+            "13": "混播随机播放",
+        }
         data = {"displayMode": display_mode, "screenId": screen_id}
         result = self.api_sender.send_api(
             self.api_sender.display, data=data, method="post"
@@ -51,7 +65,9 @@ class SwitchDisplayMode:
             try:
                 resp_json = result.json()
                 if resp_json.get("code") == 20:
-                    logger.info(f"{screen_id} switch_display_mode success")
+                    logger.info(
+                        f"{screen_id} switch_display_mode {display_mode_map[display_mode]} success"
+                    )
                 else:
                     logger.error(
                         f"switch_display_mode failed\t{result.text}\nbody:{data}"
