@@ -1,4 +1,5 @@
 from ast import pattern
+import hashlib
 import os
 from pdb import run
 import re
@@ -46,12 +47,49 @@ class DataInfo:
 
     env_info = "ts"
     package_name = "SStarOta.bin.gz"
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    id_lcd_type_mapping_table = {  # TODO 正式环境的ota记录表的自增id是从3开始的
+        "1": "3" if env_info == "cn" else "1",
+        "2": "4" if env_info == "cn" else "2",
+        "3": "5" if env_info == "cn" else "3",
+        "4": "6" if env_info == "cn" else "4",
+        "5": "7" if env_info == "cn" else "5",
+        "6": "8" if env_info == "cn" else "6",
+        "7": "9" if env_info == "cn" else "7",
+        "8": "10" if env_info == "cn" else "8",
+        "9": "11" if env_info == "cn" else "9",
+    }
     lcd_type_to_local_path = {
-        "1": f"{env_info}/10.1_1920_1200/10_1920_1200_vvx10f002a/{package_name}",
-        "2": f"{env_info}/13.3_1920_1080/13_1920_1080_nv156fhm/{package_name}",
-        "7": f"{env_info}/10.1_800_1280/10_800_1280_fp7721bx2_innolux/{package_name}",
-        "8": f"{env_info}/10.1_800_1280_BOE/10_800_1280_fp7721bx2_boe/{package_name}",
-        "9": f"{env_info}/16_1920_1200/16_1920_1200_vvx10f002a/{package_name}",
+        "1": f"{current_path}/package/{env_info}/10.1_1920_1200/10_1920_1200_vvx10f002a/{package_name}",
+        "2": f"{current_path}/package/{env_info}/13.3_1920_1080/13_1920_1080_nv156fhm/{package_name}",
+        "7": f"{current_path}/package/{env_info}/10.1_800_1280/10_800_1280_fp7721bx2_innolux/{package_name}",
+        "8": f"{current_path}/package/{env_info}/10.1_800_1280_BOE/10_800_1280_fp7721bx2_boe/{package_name}",
+        "9": f"{current_path}/package/{env_info}/16_1920_1200/16_1920_1200_vvx10f002a/{package_name}",
+    }
+    product_name = {
+        "1": "1920*1200 早期",
+        "2": "1920*1080 早期",
+        "3": "1920*1200 0.5G",
+        "4": "1920*1080 0.5G",
+        "5": "1920*1200 64G",
+        "6": "1920*1080 64G",
+        "7": "800*1280 群创",
+        "8": "800*1280 BOE",
+        "9": "1920*1200 16寸",
+    }
+    version_info = {
+        "1": None,
+        "2": None,
+        "7": None,
+        "8": None,
+        "9": None,
+    }
+    file_md5 = {
+        "1": None,
+        "2": None,
+        "7": None,
+        "8": None,
+        "9": None,
     }
     region_path = "public-files-en" if env_info == "en" else "public-files-cn"
     remote_package_middle_str = {
@@ -74,10 +112,15 @@ class DataInfo:
             "qiniuak": "/v2/query",
             "qiniu_upload": f"/buckets/{region_path}/objects/",
             "manager_login": "/api/v1/manage/system/auth/login",
+            "otaPackage_manage": "/api/v1/manage/OTAPackageManage/update",
         },
-        "remote_path": {
-            "10.1_800_1280": ""
-        },  # TODO 需要继续完成根据屏幕类型，将remote地址base64编码请求七牛获取上传id
+        "remote_path_base64": {
+            "1": None,
+            "2": None,
+            "7": None,
+            "8": None,
+            "9": None,
+        },
         "port": 8082 if env_info == "ts" else 8080,
     }
 
@@ -87,13 +130,14 @@ class Publisher(QObject):
         super().__init__()
         pass
 
-
+@singleton
 class GetfirewareInfo(QObject):
     def __init__(self):
         super().__init__()
         self.data_info = DataInfo()
 
-    def get_fireware_version(self, path: str):
+    def get_fireware_version(self, lcd_type: str):
+        path = self.data_info.lcd_type_to_local_path[lcd_type]
         mode = "r:gz" if path.endswith(".gz") else "r"
         try:
             with tarfile.open(path, mode) as tar:
@@ -107,6 +151,7 @@ class GetfirewareInfo(QObject):
                             content = file_obj.read().decode("utf-8")
                             pattern = r"=\s*(.*?)\n"
                             version = re.search(pattern, content).group(1)
+                            self.data_info.version_info[lcd_type] = version
                             return version
                 return None
 
@@ -114,14 +159,52 @@ class GetfirewareInfo(QObject):
             logger.error(f"获取固件版本失败: {e}")
             sys.exit(1)
 
+    def get_file_md5(self, lcd_type: str):
+        file_path = self.data_info.lcd_type_to_local_path[lcd_type]
+        try:
+            with open(file_path, "rb") as f:
+                md5_obj = hashlib.md5()
+                while True:
+                    data = f.read(8192)
+                    if not data:
+                        break
+                    md5_obj.update(data)
+            self.data_info.file_md5[lcd_type] = md5_obj.hexdigest()
+            return md5_obj.hexdigest()
+        except Exception as e:
+            logger.error(f"获取文件md5失败: {e}")
+            sys.exit(1)
 
 class Uploader(QObject):
+    upload_error = Signal(str)
+    upload_success = Signal(str)
+    upload_progress = Signal(str, int)
     def __init__(self):
         super().__init__()
         self.data_info = DataInfo()
+        self.fw_getter = GetfirewareInfo()
         self.manager_token = None
         self.qiniu_token = None
         self.qiniu_up_server = None
+        self.upload_queue = []
+        self.remote_upload_info = {}
+
+    @Slot(list)
+    def receive_file_list(self, file_list: list):
+        """接收用户输入的列表"""
+        try:
+            if not file_list:
+                self.upload_error.emit("请选择要更新固件的设备")
+                return
+            for _ in file_list:
+                if str(_) not in self.data_info.lcd_type_to_local_path.keys():
+                    logger.error(f"用户选择的设备类型{_}不支持:")
+                    sys.exit(1)
+                self.update_remote_path_base64(str(_))
+            self.upload_queue = file_list
+        except Exception as e:
+            logger.error(f"接收文件列表失败: {e}")
+            sys.exit(1)
 
     async def get_manager_token(self):
         try:
@@ -180,17 +263,213 @@ class Uploader(QObject):
 
     def remote_file_path_to_base64(self, remote_file_path: str):
         return base64.b64encode(remote_file_path.encode("utf-8")).decode("ascii")
+    
+    def update_remote_path_base64(self, lcd_type: str):
+        self.fw_getter.get_fireware_version(lcd_type)
+        try:
+            remote_file_path = self.data_info.remote_package_prefix + lcd_type + self.data_info.version_info[lcd_type] + "/" + self.data_info.package_name
+            self.data_info.server_info["remote_path_base64"][lcd_type] = self.remote_file_path_to_base64(remote_file_path)
+            return self.remote_file_path_to_base64(remote_file_path)
+        except Exception as e:
+            logger.error(f"更新远程文件路径base64失败: {e}")
+            sys.exit(1)
 
-    async def get_qiniu_uploadID(self):
 
-        url = f"https://{self.qiniu_up_server}{self.data_info.server_info['api']['qiniu_upload']}{self.data_info.server_info["remote_path"]}"
+    async def get_qiniu_uploadID(self, lcd_type: str):
+        url = f"https://{self.qiniu_up_server}{self.data_info.server_info['api']['qiniu_upload']}{self.data_info.server_info["remote_path_base64"][lcd_type]}/uploads"
+        logger.info(f"url: {url}")
+        header = {
+            "authorization": "UpToken " + self.qiniu_token
+        }
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, headers=header) as response:
+                    res = await response.json()
+                    self.remote_upload_info[lcd_type] = {"uploadId": res["uploadId"], "expireAt": res["expireAt"]}
+        except Exception as e:
+            logger.error(f"获取七牛上传ID失败: {e}")
+            sys.exit(1)
+        logger.info(f"remote_upload_info: {self.remote_upload_info}")
 
-    async def upload_file(self, data):
-        pass
+    async def upload_file(self, lcd_type: str):
+        """
+        七牛分块上传（Multipart Upload v2）
+        依赖：
+          - self.qiniu_up_server 已通过 get_qiniu_server() 获取
+          - self.qiniu_token 已通过 get_qiniu_token() 获取
+          - self.remote_upload_info[lcd_type]['uploadId'] 已通过 get_qiniu_uploadID(lcd_type) 获取
+          - self.data_info.server_info["remote_path_base64"][lcd_type] 已通过 update_remote_path_base64(lcd_type) 生成
+        """
+        try:
+            # 1) 校验前置条件
+            if not self.qiniu_up_server:
+                await self.get_qiniu_server()
+            if not self.qiniu_token:
+                await self.get_qiniu_token()
+            if lcd_type not in self.data_info.server_info["remote_path_base64"] or \
+               not self.data_info.server_info["remote_path_base64"][lcd_type]:
+                self.update_remote_path_base64(lcd_type)
+            if lcd_type not in self.remote_upload_info or "uploadId" not in self.remote_upload_info[lcd_type]:
+                await self.get_qiniu_uploadID(lcd_type)
 
-    def main(self):
-        res = asyncio.run(self.get_qiniu_server())
-        print(res)
+            file_path = self.data_info.lcd_type_to_local_path[lcd_type]
+            if not os.path.exists(file_path):
+                self.upload_error.emit(f"文件不存在: {file_path}")
+                return
+
+            filename = os.path.basename(file_path)
+            total_size = os.path.getsize(file_path)
+            part_size = 4 * 1024 * 1024  # 4MB
+            part_count = (total_size + part_size - 1) // part_size
+
+            base_url = (
+                f"https://{self.qiniu_up_server}"
+                f"{self.data_info.server_info['api']['qiniu_upload']}"
+                f"{self.data_info.server_info['remote_path_base64'][lcd_type]}"
+                f"/uploads/{self.remote_upload_info[lcd_type]['uploadId']}"
+            )
+            headers_common = {
+                "authorization": "UpToken " + self.qiniu_token,
+            }
+
+            parts = []
+            bytes_sent = 0
+
+            # 2) 顺序上传每个分块（如需并发可改成并发任务）
+            async with aiohttp.ClientSession(headers=headers_common) as session:
+                with open(file_path, "rb") as f:
+                    for i in range(part_count):
+                        part_number = i + 1
+                        start = i * part_size
+                        size = part_size if i < part_count - 1 else (total_size - start)
+
+                        f.seek(start)
+                        data = f.read(size)
+
+                        part_url = f"{base_url}/{part_number}"
+                        # 建议指定二进制类型；Content-Length aiohttp 会自动设置
+                        part_headers = {
+                            "Content-Type": "application/octet-stream",
+                        }
+
+                        etag_val = await self._upload_part_with_retry(session, part_url, data, part_headers, part_number)
+                        parts.append({"partNumber": part_number, "etag": etag_val})
+                        bytes_sent += size
+                        self.upload_progress.emit(filename, int(bytes_sent * 100 / max(total_size, 1)))
+
+            # 3) 完成合并
+            complete_url = base_url  # POST 到 .../uploads/{uploadId}
+            payload = {"parts": sorted(parts, key=lambda x: x["partNumber"])}
+
+            async with aiohttp.ClientSession(headers=headers_common) as session:
+                async with session.post(complete_url, json=payload) as resp:
+                    rs = await resp.json()
+                    logger.info(f"resp: {rs}")
+                    if resp.status // 100 != 2:
+                        text = await resp.text()
+                        self.upload_error.emit(f"合并分块失败，HTTP {resp.status}: {text}")
+                        return
+                    download_url = rs["key"]
+                    self.upload_progress.emit(filename, 100)
+                    self.upload_success.emit(f"{filename} 上传完成")
+
+            # 4) 提交到pintura服务器
+            ota_url = f"http://{self.data_info.server_info['api_server']['ts']}:{self.data_info.server_info['port']}{self.data_info.server_info['api']['otaPackage_manage']}"
+            data = {
+                "appVersion": self.data_info.version_info[lcd_type],
+                "downloadUrl": download_url,
+                "encryption": self.data_info.file_md5[lcd_type],
+                "id": self.data_info.id_lcd_type_mapping_table[lcd_type],
+                "remark": "test",  # TODO 中文发布日志， 需要从用户输入
+                "remarkEn": "test",  # TODO 英文发布日志， 需要从用户输入
+            }
+            async with aiohttp.ClientSession() as session:
+                async with session.post(ota_url, json=data) as resp:
+                    rs = await resp.json()
+                    logger.info(f"resp: {rs}")
+                    if resp.status // 100 != 2:
+                        text = await resp.text()
+                        self.upload_error.emit(f"提交到pintura服务器失败，HTTP {resp.status}: {text}")
+                        return
+                    self.upload_success.emit(f"{file_path} 提交到pintura服务器成功")
+        except Exception as e:
+            logger.exception("分块上传异常")
+            self.upload_error.emit(f"上传异常: {e}")
+
+    async def _upload_part_with_retry(self, session, url, data, headers, part_number, max_retries=3, base_delay=0.5):
+        """
+        对单个分块PUT上传添加重试（指数退避）
+        重试条件：429/5xx/超时/网络连接错误
+        返回：etag字符串
+        """
+        for attempt in range(1, max_retries + 1):
+            try:
+                async with session.put(url, data=data, headers=headers) as resp:
+                    rs = await resp.json()
+                    logger.debug(f"resp: {rs}")
+                    if 200 <= resp.status < 300:
+                        # 兼容两种返回，优先头部，再尝试JSON
+                        etag = resp.headers.get("ETag") or resp.headers.get("Etag")
+                        if not etag:
+                            ctype = resp.headers.get("Content-Type", "").lower()
+                            if "application/json" in ctype:
+                                body = await resp.json(content_type=None)
+                                etag = body.get("etag")
+                            else:
+                                _ = await resp.text()  # 读掉响应避免连接泄漏
+                        if not etag:
+                            raise RuntimeError(f"part {part_number} 上传成功但未返回etag")
+                        return etag
+
+                    # 非2xx，判断是否可重试
+                    if resp.status in (408, 425, 429) or 500 <= resp.status < 600:
+                        if attempt == max_retries:
+                            text = await resp.text()
+                            raise RuntimeError(f"part {part_number} 失败 HTTP {resp.status}: {text}")
+                    else:
+                        text = await resp.text()
+                        raise RuntimeError(f"part {part_number} 不可重试错误 HTTP {resp.status}: {text}")
+
+            except (aiohttp.ClientConnectionError, asyncio.TimeoutError) as e:
+                if attempt == max_retries:
+                    raise RuntimeError(f"part {part_number} 网络/超时失败: {e}") from e
+
+            # 指数退避
+            await asyncio.sleep(base_delay * (2 ** (attempt - 1)))
+
+
+    async def main(self):
+        await self.get_qiniu_server()
+        self.receive_file_list(["1"])
+        await self.get_qiniu_uploadID("1")
+        await self.upload_file("1")
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.uploader = Uploader()
+        self.init_ui()
+        self.connect_signal()
+    
+    def init_ui(self):
+        self.setWindowTitle("固件发布工具")
+        self.setWindowIcon(QIcon("version_publisher/assets/icon.png"))
+        self.setGeometry(100, 100, 800, 600)
+        self.show()
+    
+    def connect_signal(self):
+        self.uploader.upload_error.connect(self.on_upload_error)
+        self.uploader.upload_success.connect(self.on_upload_success)
+
+    def on_upload_error(self, error_message: str):
+        QMessageBox.warning(self, "错误", error_message)
+
+    def on_upload_success(self, success_message: str):
+        QMessageBox.information(self, "成功", success_message)
+    
+    
+    
+    
 
 
 if __name__ == "__main__":
@@ -201,8 +480,5 @@ if __name__ == "__main__":
     )
 
     up = Uploader()
-    up.main()
-    G = GetfirewareInfo()
-    G.get_fireware_version(
-        "F:/工作/照片墙/2代固件/优化版/2.01.39.4/2.01.39.4/cn/13_1920_1080_nv156fhm/SStarOta.bin.gz"
-    )
+    asyncio.run(up.main())
+

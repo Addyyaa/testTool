@@ -1,0 +1,373 @@
+{
+    "origin": "#story_start# #story_body# #story_end#",
+    "story_start": [
+        "#time_setting#, #location_setting#, #character_intro#.",
+        "#weather_setting# #location_setting#, #character_intro#.",
+        "#time_setting#, #character_intro# found themselves #location_setting#.",
+        "On a stormy night full of thunder and lightning",
+        "Upon a forgotten ruin",
+        "The story takes place on an island floating in the sky"
+    ],
+    "story_body": [
+        "#character_action# #event_detail# #character_feeling#. #plot_development# #challenge_description#.",
+        "#character_discovery# #event_detail# #surprise_element#. #character_reaction# #plot_twist#.",
+        "#daily_activity# #unexpected_event# #character_response#. #lesson_learned# #growth_moment#."
+    ],
+    "story_end": [
+        "#resolution# #final_thought# #future_hope#.",
+        "#conclusion# #wisdom_gained# #positive_ending#.",
+        "#achievement# #celebration# #new_beginning#."
+    ],
+    "time_setting": [
+        "On a bright sunny morning",
+        "During a peaceful evening",
+        "Under the starlit night",
+        "In the heart of spring",
+        "On a crisp autumn day",
+        "During a snowy winter afternoon"
+    ],
+    "location_setting": [
+        "in the bustling city center",
+        "in a quiet countryside village",
+        "by the beautiful seaside",
+        "in an ancient library",
+        "on a vibrant campus",
+        "deep in a mysterious forest",
+        "in a temple at the peak of a snowy mountain",
+        "in the deep-sea city of Atlantis",
+        "in a futuristic cyberpunk metropolis",
+        "within a historic, ancient castle"
+    ],
+    "character_intro": [
+        "a #character_trait# #character_role#",
+        "a #character_role# with #character_quality# qualities",
+        "a #character_role# filled with #character_emotion#",
+        "a #character_role# bearing #character_burden#"
+    ],
+    "character_trait": [
+        "brave",
+        "wise",
+        "kind",
+        "strong",
+        "optimistic",
+        "innovative",
+        "cautious",
+        "decisive",
+        "humorous",
+        "mysterious"
+    ],
+    "character_role": [
+        "student",
+        "teacher",
+        "artist",
+        "scientist",
+        "engineer",
+        "doctor",
+        "detective",
+        "adventurer",
+        "programmer",
+        "bard",
+        "interstellar navigator",
+        "time traveler"
+    ],
+    "character_quality": [
+        "honest",
+        "hardworking",
+        "patient",
+        "enthusiastic",
+        "focused",
+        "friendly",
+        "righteous",
+        "humble",
+        "compassionate",
+        "highly creative"
+    ],
+    "character_emotion": [
+        "hope",
+        "dreams",
+        "curiosity",
+        "determination",
+        "passion",
+        "warmth",
+        "ambition",
+        "nostalgia",
+        "a desire for exploration",
+        "a sense of justice"
+    ],
+    "character_burden": [
+        "a heavy secret",
+        "a family mission",
+        "an ancient prophecy",
+        "a sad past"
+    ],
+    "weather_setting": [
+        "Under the warm sunshine",
+        "After a refreshing rain",
+        "In the cool breeze",
+        "During the golden sunset",
+        "Under the silver moonlight",
+        "In the sparkling snow",
+        "On a morning shrouded in thick fog",
+        "In the midst of a fierce storm",
+        "Under a sky with a newly formed rainbow"
+    ],
+    "character_action": [
+        "They decided to embark on a new journey",
+        "She discovered an interesting project",
+        "They formed a team",
+        "She created a detailed plan",
+        "He began learning new skills",
+        "She decided to help others",
+        "He began to investigate a bizarre case",
+        "She tried to solve an ancient riddle",
+        "They set out on a quest for lost treasure",
+        "He created an unprecedented artificial intelligence"
+    ],
+    "event_detail": [
+        "through #effort_style# and #collaboration_style#",
+        "by relying on #personal_skill# and #tech_style#",
+        "by combining #theory_style# with #practice_style#",
+        "by using #thinking_style# to #verb_solve# #noun_problem#"
+    ],
+    "character_feeling": [
+        "feeling incredibly #adj_positive_feeling# and #noun_positive_state#",
+        "experiencing the joy of #noun_growth#",
+        "gaining #adj_valuable# #noun_gain#",
+        "feeling the warmth of #noun_emotion#",
+        "achieving inner #noun_positive_state#",
+        "discovering the #adj_beautiful# of #noun_abstract#"
+    ],
+    "plot_development": [
+        "During this process",
+        "As time went on",
+        "After careful consideration",
+        "Facing various challenges",
+        "With friends' support",
+        "Through persistent effort",
+        "However, things did not go smoothly",
+        "Just as they were about to succeed",
+        "An unexpected #noun_character# appeared",
+        "The clues pointed to a #adj_startling# #noun_truth#"
+    ],
+    "challenge_description": [
+        "they encountered #adj_technical# #noun_difficulty#, but #phrase_persistence#",
+        "they faced #noun_pressure#, yet became more #adj_focused#",
+        "they met with #noun_setback#, but learned a #adj_valuable# #noun_lesson# from it",
+        "a #adj_powerful# #noun_adversary# tried to #verb_obstruct# them",
+        "a #noun_crisis# of #noun_crisis_type# emerged within the team",
+        "they had to make a #adj_difficult# #noun_choice# at a #adj_critical# moment"
+    ],
+    "character_discovery": [
+        "during exploration, he discovered #noun_secret#",
+        "Through careful observation, she realized",
+        "In their research, they found",
+        "after cracking the #noun_code#, the #noun_truth# emerged",
+        "he accidentally overheard an #adj_startling# #noun_secret#"
+    ],
+    "surprise_element": [
+        "this discovery was more important than expected",
+        "the results exceeded everyone's imagination",
+        "this method was more effective than traditional approaches",
+        "this idea gained widespread recognition",
+        "the real #noun_treasure# was not #noun_material_wealth#",
+        "the #noun_character# he trusted most was the #noun_mastermind#",
+        "the root of the problem was a #adj_simple# #noun_small_thing#",
+        "this #noun_discovery# could change the #noun_world# forever"
+    ],
+    "character_reaction": [
+        "They excitedly shared this good news",
+        "She immediately began making new plans",
+        "He decided to teach this experience to others",
+        "She felt unprecedented achievement",
+        "He fell into deep thought",
+        "She was determined to see the investigation through to the end",
+        "Their perceptions of each other changed",
+        "The result left them both thrilled and terrified",
+        "The story never ends, it just turns a new page"
+    ],
+    "plot_twist": [
+        "This success opened new opportunities for them",
+        "This experience made them reconsider their goals",
+        "This discovery changed their life trajectory",
+        "This achievement inspired them to pursue bigger dreams",
+        "However, this was just the tip of a larger conspiracy",
+        "This experience forged an unbreakable bond between them",
+        "It turned out their adventure was designed from the start",
+        "The final enemy was, in fact, their own inner struggle"
+    ],
+    "daily_activity": [
+        "In their daily studies",
+        "In ordinary work",
+        "In conversations with friends",
+        "In the process of solving problems",
+        "During creative time",
+        "In moments of reflection",
+        "During a seemingly ordinary experiment",
+        "While sorting through old belongings",
+        "In a casual chat with a stranger"
+    ],
+    "unexpected_event": [
+        "they encountered unexpected opportunities",
+        "surprising changes occurred",
+        "new possibilities emerged",
+        "interesting challenges appeared",
+        "A mysterious package was delivered to the door",
+        "A long-buried secret was uncovered",
+        "The world suddenly became different from what they knew"
+    ],
+    "character_response": [
+        "they actively embraced this change",
+        "she bravely accepted the challenge",
+        "they used wisdom to solve the problem",
+        "she faced the unknown with an open mind",
+        "He decided to follow the clues and see where they led",
+        "They chose to unite and face it together",
+        "She chose a path no one had taken before"
+    ],
+    "lesson_learned": [
+        "This experience taught them",
+        "Through this experience, they learned",
+        "This process taught them",
+        "This experience made them understand",
+        "This journey made them realize",
+        "This challenge made them recognize"
+    ],
+    "growth_moment": [
+        "the importance of persistence",
+        "the value of teamwork",
+        "the power of innovative thinking",
+        "the joy of learning",
+        "the meaning of helping others",
+        "the courage to pursue dreams",
+        "to listen to one's inner voice",
+        "that sometimes giving up is a form of wisdom",
+        "that true strength comes from within"
+    ],
+    "resolution": [
+        "Finally, they successfully achieved their goal",
+        "Through effort, the problem was perfectly solved",
+        "Through cooperation, they realized their shared dream",
+        "With wisdom and courage, they overcame difficulties",
+        "The riddle was solved, and order was restored",
+        "They found the long-awaited answer",
+        "The crisis was averted, and peace returned to the world"
+    ],
+    "final_thought": [
+        "This experience made them more confident",
+        "This success gave them more motivation",
+        "This achievement made them feel proud",
+        "This process made them more mature",
+        "They realized the journey itself was more important than the destination",
+        "This memory would be forever etched in their hearts",
+        "They gained a new perspective on the world"
+    ],
+    "future_hope": [
+        "They look forward to more adventures and challenges",
+        "She plans to apply this experience to more fields",
+        "They hope to help more people",
+        "She decided to continue pursuing higher goals",
+        "They decided to pass this story down",
+        "A new chapter was waiting for them to write",
+        "They knew that as long as there is hope, anything is possible"
+    ],
+    "conclusion": [
+        "This story tells us",
+        "This experience proves",
+        "This success demonstrates",
+        "And that is the legend of the #character_role#",
+        "And so the legend was passed down"
+    ],
+    "wisdom_gained": [
+        "dreams need action to be realized",
+        "difficulties are opportunities for growth",
+        "cooperation can create miracles",
+        "learning is a lifelong journey",
+        "innovation comes from daring to try",
+        "success comes from continuous effort",
+        "the real treasures are knowledge and friendship",
+        "the greatest enemy is often oneself",
+        "courage is not the absence of fear, but moving forward despite it"
+    ],
+    "positive_ending": [
+        "the future is full of infinite possibilities",
+        "a new journey is about to begin",
+        "a better tomorrow awaits them",
+        "this is just the beginning of success",
+        "bigger dreams are calling",
+        "life becomes more exciting",
+        "Their story inspired countless people who came after",
+        "The world became a slightly better place because of it",
+        "And the adventure had only just begun"
+    ],
+    "achievement": [
+        "Their efforts were recognized",
+        "This project achieved great success",
+        "Their innovation was rewarded",
+        "This result exceeded expectations",
+        "Their discovery was recorded in the annals of history",
+        "They became household heroes",
+        "They protected everything they cherished"
+    ],
+    "celebration": [
+        "the whole team celebrated this victory together",
+        "friends were proud of them",
+        "this success was worth commemorating",
+        "this was a moment worth sharing",
+        "The city held a grand celebration for them",
+        "Their names echoed among the stars",
+        "Around the campfire, they shared their stories"
+    ],
+    "new_beginning": [
+        "This ending is also a new beginning",
+        "More opportunities await ahead",
+        "A new adventure is about to start",
+        "A bigger stage is calling them",
+        "They packed their bags and looked towards a farther horizon",
+        "On the horizon, new challenges had already appeared",
+        "The story never ends, it just turns a new page"
+    ],
+    "effort_style": ["continuous effort", "relentless practice", "tireless research"],
+    "collaboration_style": ["collaboration with like-minded friends", "strong support from team members", "help from a mysterious ally"],
+    "personal_skill": ["extraordinary logical reasoning", "keen intuition", "vast experience"],
+    "tech_style": ["the help of modern technology", "wisdom left by ancestors", "cutting-edge technology"],
+    "theory_style": ["classic theories", "a disruptive new idea", "patterns summarized from failures"],
+    "practice_style": ["extensive practice", "repeated experiments", "bold attempts"],
+    "thinking_style": ["innovative thinking", "reverse thinking", "interdisciplinary thinking"],
+    "verb_solve": ["solve", "overcome", "tackle", "handle"],
+    "noun_problem": ["a problem", "a bottleneck", "a challenge"],
+    "adj_positive_feeling": ["excited", "thrilled", "satisfied", "proud"],
+    "noun_positive_state": ["satisfaction", "peace", "confidence", "accomplishment"],
+    "noun_growth": ["growth", "transformation", "progress"],
+    "adj_valuable": ["valuable", "precious", "unique"],
+    "noun_gain": ["experience", "friendship", "knowledge"],
+    "noun_emotion": ["friendship", "family bonds", "love"],
+    "noun_abstract": ["life", "the world", "human nature"],
+    "adj_beautiful": ["beauty", "complexity", "true meaning"],
+    "noun_character": ["ally", "adversary", "companion", "stranger"],
+    "adj_startling": ["startling", "terrifying", "unbelievable"],
+    "noun_truth": ["truth", "secret", "conspiracy"],
+    "adj_technical": ["a technical", "a logical", "a cognitive"],
+    "noun_difficulty": ["difficulty", "dilemma", "paradox"],
+    "phrase_persistence": ["they didn't give up", "they grew more resilient", "they chose to face it head-on"],
+    "noun_pressure": ["immense time pressure", "widespread external doubt", "internal self-doubt"],
+    "adj_focused": ["focused", "united", "calm"],
+    "noun_setback": ["an unexpected setback", "a devastating failure", "a betrayal from an ally"],
+    "noun_lesson": ["lesson", "experience"],
+    "adj_powerful": ["powerful", "mysterious", "unexpected"],
+    "noun_adversary": ["adversary", "enemy", "opponent"],
+    "verb_obstruct": ["obstruct", "sabotage", "interfere with"],
+    "noun_crisis": ["serious crisis", "profound crisis", "crisis of dwindling resources"],
+    "noun_crisis_type": ["of trust", "of faith"],
+    "adj_difficult": ["difficult", "painful", "momentous"],
+    "noun_choice": ["choice", "decision", "trade-off"],
+    "adj_critical": ["critical", "decisive"],
+    "noun_secret": ["a secret", "a conspiracy", "the truth"],
+    "noun_code": ["code", "cipher", "riddle"],
+    "noun_treasure": ["treasure", "legacy", "power"],
+    "noun_material_wealth": ["material wealth", "status"],
+    "noun_mastermind": ["mastermind", "culprit", "key figure"],
+    "adj_simple": ["surprisingly simple", "unexpectedly mundane"],
+    "noun_small_thing": ["small thing", "coincidence", "misunderstanding"],
+    "noun_discovery": ["discovery", "invention", "creation"],
+    "noun_world": ["world", "history", "future"]
+} 
