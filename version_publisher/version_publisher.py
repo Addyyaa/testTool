@@ -75,7 +75,7 @@ class DataInfo:
         "6": f"{env_info}/13_1920_1080_nv156fhm/{package_name}",
         "7": f"{env_info}/10_800_1280_fp7721bx2_innolux/{package_name}",
         "8": f"{env_info}/10_800_1280_fp7721bx2_boe/{package_name}",
-        "10": f"{env_info}/16_1920_1200_vvx10f002a/{package_name}",
+        "9": f"{env_info}/16_1920_1200_vvx10f002a/{package_name}",
     }
 
     def set_base_dir(self, new_base_dir: str):
@@ -113,7 +113,8 @@ class DataInfo:
         "6": "1920*1080 64G",
         "7": "800*1280 群创",
         "8": "800*1280 BOE",
-        "10": "1920*1200 16寸",
+        # 同名显示，兼容键9和10
+        "9": "1920*1200 16寸",
     }
     version_info = {
         "1": None,
@@ -124,7 +125,7 @@ class DataInfo:
         "6": None,
         "7": None,
         "8": None,
-        "10": None,
+        "9": None,
     }
     file_md5 = {
         "1": None,
@@ -135,7 +136,7 @@ class DataInfo:
         "6": None,
         "7": None,
         "8": None,
-        "10": None,
+        "9": None,
     }
     region_path = "public-files-en" if env_info == "en" else "public-files-cn"
     remote_package_middle_str = {
@@ -169,7 +170,7 @@ class DataInfo:
             "6": None,
             "7": None,
             "8": None,
-            "10": None,
+            "9": None,
         },
         "port": 8082 if env_info == "ts" else 8080,
     }
@@ -188,6 +189,8 @@ class GetfirewareInfo(QObject):
 
     def get_fireware_version(self, lcd_type: str):
         path = self.data_info.get_local_path(lcd_type)
+        if not path or not os.path.isfile(path):
+            raise FileNotFoundError(f"固件文件不存在: {path}")
         mode = "r:gz" if path.endswith(".gz") else "r"
         try:
             with tarfile.open(path, mode) as tar:
@@ -509,26 +512,37 @@ class Uploader(QObject):
         # 去重分组，得到代表类型集合
         reps: set[str] = set(self._group_rep(x) for x in selected_lcd_types)
 
-        # 为代表类型准备版本、md5、上传ID并上传一次，得到 download_url
+        # 为代表类型准备版本、md5、上传ID并上传一次，得到 download_url（并发，最多5个）
         rep_to_url: dict[str, str] = {}
-        for rep in reps:
-            # 生成远程路径base64与版本
-            self.update_remote_path_base64(rep)
-            # 计算MD5（用于后续各成员）
-            self.fw_getter.get_file_md5(rep)
-            # 获取 uploadId 并上传
-            await self.get_qiniu_uploadID(rep)
-            download_url = await self.upload_file(rep)
-            rep_to_url[rep] = download_url
+        rep_sem = asyncio.Semaphore(5)
+
+        async def _process_rep(rep: str):
+            async with rep_sem:
+                # 生成远程路径base64与版本（内部可能抛出文件不存在错误）
+                self.update_remote_path_base64(rep)
+                # 计算MD5（用于后续各成员）
+                self.fw_getter.get_file_md5(rep)
+                # 获取 uploadId 并上传
+                await self.get_qiniu_uploadID(rep)
+                download_url = await self.upload_file(rep)
+                rep_to_url[rep] = download_url
+
+        await asyncio.gather(*[_process_rep(rep) for rep in reps])
 
         # 对每个被选中的 lcd_type，使用对应代表的 download_url 逐一更新服务端记录
-        for lcd in selected_lcd_types:
-            rep = self._group_rep(lcd)
-            # 确保版本号（同一物理包，路径相同，直接复用或读取）
-            self.fw_getter.get_fireware_version(lcd)
-            # 对齐 MD5（同链路复用代表）
-            self.data_info.file_md5[lcd] = self.data_info.file_md5[rep]
-            await self.post_ota_update(lcd, rep_to_url[rep], remark_cn, remark_en)
+        # 并发提交更新（最多5个）
+        upd_sem = asyncio.Semaphore(5)
+
+        async def _process_update(lcd: str):
+            async with upd_sem:
+                rep = self._group_rep(lcd)
+                # 确保版本号（同一物理包，路径相同，直接复用或读取）
+                self.fw_getter.get_fireware_version(lcd)
+                # 对齐 MD5（同链路复用代表）
+                self.data_info.file_md5[lcd] = self.data_info.file_md5[rep]
+                await self.post_ota_update(lcd, rep_to_url[rep], remark_cn, remark_en)
+
+        await asyncio.gather(*[_process_update(lcd) for lcd in selected_lcd_types])
 
     async def main(self):
         # 示例：GUI会调用 publish_selected，这里保留最小演示
