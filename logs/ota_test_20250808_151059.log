@@ -1,0 +1,1391 @@
+2025-08-08 15:10:59,859 - [INFO] - ota_test:ota_test.py:30 - <module>() - OTA测试程序启动
+2025-08-08 15:12:23,641 - [INFO] - ota_test:ota_test.py:390 - main() - 将执行 1000 次测试
+2025-08-08 15:12:23,641 - [INFO] - ota_test:ota_test.py:393 - main() - 开始执行第 1 轮测试
+2025-08-08 15:12:23,647 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.8 23>
+2025-08-08 15:12:23,650 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.3 23>
+2025-08-08 15:12:23,652 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.9 23>
+2025-08-08 15:12:27,180 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:12:27,181 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:12:27,181 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:12:28,703 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:12:28,706 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:12:28,720 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:12:30,221 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:12:30,223 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:12:30,225 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:12:41,035 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:12:41,189 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:12:41,278 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.01.34.0
+2025-08-08 15:12:51,835 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.9：屏幕ID：PinturaV2test09529
+2025-08-08 15:12:51,918 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:12:51,982 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:12:52,001 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.8：屏幕ID：PSd4117cL000289
+2025-08-08 15:12:52,067 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:12:52,121 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:12:52,122 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.3：屏幕ID：PSe5f3ffL006895
+2025-08-08 15:12:52,188 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:12:52,244 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:14:02,759 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:14:02,764 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.9：升级成功
+2025-08-08 15:14:02,851 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:14:02,852 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.8：升级成功
+2025-08-08 15:14:02,988 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.01.34.0
+2025-08-08 15:14:02,992 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.3：升级成功
+2025-08-08 15:14:15,374 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.9：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:14:19,452 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:14:19.452546] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:14:19.452546] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:14:19,454 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:14:19.452546] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:14:19,454 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.9：更新设备 PinturaV2test09529 的OTA状态成功
+2025-08-08 15:14:19,454 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.8：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:14:23,510 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:14:23.510612] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:14:23.510612] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:14:23,511 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:14:23.510612] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:14:23,512 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.8：更新设备 PSd4117cL000289 的OTA状态成功
+2025-08-08 15:14:23,521 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.3：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:14:27,603 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:14:27.603669] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:14:27.603669] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:14:27,605 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:14:27.603669] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:14:27,605 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.3：更新设备 PSe5f3ffL006895 的OTA状态成功
+2025-08-08 15:14:27,605 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.3 23>
+2025-08-08 15:14:28,036 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.9 23>
+2025-08-08 15:14:42,824 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.8 23>
+2025-08-08 15:16:19,453 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.9：尝试重新连接设备，第1次尝试...
+2025-08-08 15:16:19,453 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.9：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:16:23,509 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.8：尝试重新连接设备，第1次尝试...
+2025-08-08 15:16:23,509 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.8：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:16:27,620 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.3：尝试重新连接设备，第1次尝试...
+2025-08-08 15:16:27,620 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.3：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:16:27,621 - [INFO] - ota_test:ota_test.py:416 - main() - 第 1 轮测试完成---【3/1000】
+2025-08-08 15:16:27,621 - [INFO] - ota_test:ota_test.py:393 - main() - 开始执行第 2 轮测试
+2025-08-08 15:16:27,625 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.3 23>
+2025-08-08 15:16:27,665 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.8 23>
+2025-08-08 15:16:28,486 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.9 23>
+2025-08-08 15:16:31,140 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:16:31,185 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:16:32,010 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:16:32,648 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:16:32,693 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:16:33,589 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:16:34,152 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:16:34,214 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:16:35,080 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:16:44,954 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.01.34.0
+2025-08-08 15:16:45,000 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:16:45,845 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:16:55,727 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.3：屏幕ID：PSe5f3ffL006895
+2025-08-08 15:16:55,803 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:16:55,861 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:16:55,862 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.8：屏幕ID：PSd4117cL000289
+2025-08-08 15:16:55,932 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:16:55,989 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:16:56,618 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.9：屏幕ID：PinturaV2test09529
+2025-08-08 15:16:56,683 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:16:56,737 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:18:06,621 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.01.34.0
+2025-08-08 15:18:06,621 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.3：升级成功
+2025-08-08 15:18:06,803 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:18:06,804 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.8：升级成功
+2025-08-08 15:18:07,550 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:18:07,554 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.9：升级成功
+2025-08-08 15:18:19,096 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.3：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:18:23,183 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:18:23.182456] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:18:23.182456] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:18:23,184 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:18:23.182456] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:18:23,184 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.3：更新设备 PSe5f3ffL006895 的OTA状态成功
+2025-08-08 15:18:23,184 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.8：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:18:27,213 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:18:27.213357] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:18:27.213357] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:18:27,214 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:18:27.213357] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:18:27,214 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.8：更新设备 PSd4117cL000289 的OTA状态成功
+2025-08-08 15:18:27,215 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.9：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:18:31,275 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:18:31.275434] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:18:31.275434] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:18:31,278 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:18:31.275434] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:18:31,279 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.9：更新设备 PinturaV2test09529 的OTA状态成功
+2025-08-08 15:18:31,296 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.3 23>
+2025-08-08 15:18:32,721 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.9 23>
+2025-08-08 15:18:46,243 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.8 23>
+2025-08-08 15:20:23,194 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.3：尝试重新连接设备，第1次尝试...
+2025-08-08 15:20:23,194 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.3：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:20:27,223 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.8：尝试重新连接设备，第1次尝试...
+2025-08-08 15:20:27,223 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.8：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:20:31,293 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.9：尝试重新连接设备，第1次尝试...
+2025-08-08 15:20:31,293 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.9：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:20:31,294 - [INFO] - ota_test:ota_test.py:416 - main() - 第 2 轮测试完成---【6/1000】
+2025-08-08 15:20:31,294 - [INFO] - ota_test:ota_test.py:393 - main() - 开始执行第 3 轮测试
+2025-08-08 15:20:31,380 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.3 23>
+2025-08-08 15:20:31,381 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.8 23>
+2025-08-08 15:20:31,388 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.9 23>
+2025-08-08 15:20:32,548 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.3 23>
+2025-08-08 15:20:32,549 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:20:32,550 - [WARNING] - telnet_connecter:telnet_connecter.py:201 - _auto_login() - 登录尝试 1 失败: 'NoneType' object has no attribute 'write'
+2025-08-08 15:20:33,060 - [WARNING] - telnet_connecter:telnet_connecter.py:201 - _auto_login() - 登录尝试 2 失败: Not connected.
+2025-08-08 15:20:33,577 - [WARNING] - telnet_connecter:telnet_connecter.py:201 - _auto_login() - 登录尝试 3 失败: Not connected.
+2025-08-08 15:20:33,577 - [ERROR] - telnet_connecter:telnet_connecter.py:205 - _auto_login() - 自动登录失败
+2025-08-08 15:20:33,577 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.3：测试过程中发生错误：Failed to connect: Not connected.
+2025-08-08 15:20:34,895 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:20:34,896 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:20:36,399 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:20:36,445 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:20:37,935 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:20:37,935 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:20:48,856 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:20:48,857 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:20:59,707 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.8：屏幕ID：PSd4117cL000289
+2025-08-08 15:20:59,783 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:20:59,848 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:20:59,850 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.9：屏幕ID：PinturaV2test09529
+2025-08-08 15:20:59,924 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:20:59,984 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:22:10,827 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:22:10,828 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.9：升级成功
+2025-08-08 15:22:10,873 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:22:10,874 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.8：升级成功
+2025-08-08 15:22:23,351 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.8：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:22:27,458 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:22:27.458440] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:22:27.458440] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:22:27,459 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:22:27.458440] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:22:27,460 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.8：更新设备 PSd4117cL000289 的OTA状态成功
+2025-08-08 15:22:27,460 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.9：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:22:31,525 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:22:31.525116] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:22:31.525116] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:22:31,526 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:22:31.525116] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:22:31,526 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.9：更新设备 PinturaV2test09529 的OTA状态成功
+2025-08-08 15:22:35,970 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.9 23>
+2025-08-08 15:22:50,470 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.8 23>
+2025-08-08 15:24:27,459 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.8：尝试重新连接设备，第1次尝试...
+2025-08-08 15:24:27,459 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.8：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:24:31,524 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.9：尝试重新连接设备，第1次尝试...
+2025-08-08 15:24:31,525 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.9：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:24:31,526 - [INFO] - ota_test:ota_test.py:416 - main() - 第 3 轮测试完成---【8/1000】
+2025-08-08 15:24:31,526 - [INFO] - ota_test:ota_test.py:393 - main() - 开始执行第 4 轮测试
+2025-08-08 15:24:31,615 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.3 23>
+2025-08-08 15:24:31,617 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.9 23>
+2025-08-08 15:24:31,671 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.8 23>
+2025-08-08 15:24:35,116 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:24:35,147 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:24:35,193 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:24:36,669 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:24:36,669 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:24:36,670 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:24:38,186 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:24:38,187 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:24:38,188 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:24:48,973 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:24:49,064 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:24:49,217 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.01.34.0
+2025-08-08 15:24:59,722 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.8：屏幕ID：PSd4117cL000289
+2025-08-08 15:24:59,805 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:24:59,868 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:24:59,869 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.9：屏幕ID：PinturaV2test09529
+2025-08-08 15:24:59,960 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:25:00,027 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:25:00,028 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.3：屏幕ID：PSe5f3ffL006895
+2025-08-08 15:25:00,102 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:25:00,159 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:26:10,605 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:26:10,605 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.8：升级成功
+2025-08-08 15:26:10,863 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:26:10,863 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.9：升级成功
+2025-08-08 15:26:10,954 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.01.34.0
+2025-08-08 15:26:10,954 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.3：升级成功
+2025-08-08 15:26:23,230 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.8：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:26:27,266 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:26:27.266672] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:26:27.266672] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:26:27,267 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:26:27.266672] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:26:27,267 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.8：更新设备 PSd4117cL000289 的OTA状态成功
+2025-08-08 15:26:27,267 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.9：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:26:31,346 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:26:31.346253] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:26:31.346253] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:26:31,347 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:26:31.346253] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:26:31,347 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.9：更新设备 PinturaV2test09529 的OTA状态成功
+2025-08-08 15:26:31,349 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.3：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:26:35,426 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:26:35.425839] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:26:35.425839] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:26:35,427 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:26:35.425839] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:26:35,427 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.3：更新设备 PSe5f3ffL006895 的OTA状态成功
+2025-08-08 15:26:35,448 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.3 23>
+2025-08-08 15:26:35,903 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.9 23>
+2025-08-08 15:26:50,272 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.8 23>
+2025-08-08 15:28:27,282 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.8：尝试重新连接设备，第1次尝试...
+2025-08-08 15:28:27,283 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.8：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:28:31,356 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.9：尝试重新连接设备，第1次尝试...
+2025-08-08 15:28:31,356 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.9：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:28:35,450 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.3：尝试重新连接设备，第1次尝试...
+2025-08-08 15:28:35,451 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.3：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:28:35,451 - [INFO] - ota_test:ota_test.py:416 - main() - 第 4 轮测试完成---【11/1000】
+2025-08-08 15:28:35,451 - [INFO] - ota_test:ota_test.py:393 - main() - 开始执行第 5 轮测试
+2025-08-08 15:28:35,531 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.3 23>
+2025-08-08 15:28:35,533 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.8 23>
+2025-08-08 15:28:39,057 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:28:39,057 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:28:40,633 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:28:40,634 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:28:42,160 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:28:42,161 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:28:45,467 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.9：测试过程中发生错误：Connection timed out to 192.168.1.9
+2025-08-08 15:28:52,938 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:28:52,973 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.01.34.0
+2025-08-08 15:29:03,789 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.3：屏幕ID：PSe5f3ffL006895
+2025-08-08 15:29:03,875 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:29:03,930 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:29:03,930 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.8：屏幕ID：PSd4117cL000289
+2025-08-08 15:29:03,997 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:29:04,051 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:30:14,813 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:30:14,813 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.8：升级成功
+2025-08-08 15:30:14,858 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.01.34.0
+2025-08-08 15:30:14,858 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.3：升级成功
+2025-08-08 15:30:27,485 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.8：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:30:31,617 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:30:31.617190] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:30:31.617190] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:30:31,620 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:30:31.617190] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:30:31,620 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.8：更新设备 PSd4117cL000289 的OTA状态成功
+2025-08-08 15:30:31,620 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.3：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:30:35,716 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:30:35.716510] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:30:35.716510] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:30:35,717 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:30:35.716510] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:30:35,717 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.3：更新设备 PSe5f3ffL006895 的OTA状态成功
+2025-08-08 15:30:37,134 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.3 23>
+2025-08-08 15:30:54,242 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.8 23>
+2025-08-08 15:32:31,627 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.8：尝试重新连接设备，第1次尝试...
+2025-08-08 15:32:31,627 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.8：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:32:35,732 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.3：尝试重新连接设备，第1次尝试...
+2025-08-08 15:32:35,732 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.3：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:32:35,732 - [INFO] - ota_test:ota_test.py:416 - main() - 第 5 轮测试完成---【13/1000】
+2025-08-08 15:32:35,733 - [INFO] - ota_test:ota_test.py:393 - main() - 开始执行第 6 轮测试
+2025-08-08 15:32:35,981 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.8 23>
+2025-08-08 15:32:35,983 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.9 23>
+2025-08-08 15:32:36,380 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.3 23>
+2025-08-08 15:32:39,513 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:32:39,513 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:32:39,906 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:32:41,024 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:32:41,025 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:32:41,417 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:32:42,551 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:32:42,552 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:32:42,930 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:32:53,348 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:32:53,349 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:32:53,772 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.01.34.0
+2025-08-08 15:33:04,201 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.9：屏幕ID：PinturaV2test09529
+2025-08-08 15:33:04,285 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:33:04,349 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:33:04,349 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.8：屏幕ID：PSd4117cL000289
+2025-08-08 15:33:04,422 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:33:04,477 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:33:04,656 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.3：屏幕ID：PSe5f3ffL006895
+2025-08-08 15:33:04,735 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:33:04,796 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:34:15,064 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:34:15,064 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.9：升级成功
+2025-08-08 15:34:15,293 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:34:15,293 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.8：升级成功
+2025-08-08 15:34:15,765 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.01.34.0
+2025-08-08 15:34:15,765 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.3：升级成功
+2025-08-08 15:34:27,589 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.9：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:34:31,674 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:34:31.674863] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:34:31.674863] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:34:31,676 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:34:31.674863] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:34:31,676 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.9：更新设备 PinturaV2test09529 的OTA状态成功
+2025-08-08 15:34:31,677 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.8：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:34:35,759 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:34:35.759252] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:34:35.759252] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:34:35,761 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:34:35.759252] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:34:35,761 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.8：更新设备 PSd4117cL000289 的OTA状态成功
+2025-08-08 15:34:35,761 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.3：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:34:39,859 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:34:39.859543] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:34:39.859543] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:34:39,862 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:34:39.859543] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:34:39,863 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.3：更新设备 PSe5f3ffL006895 的OTA状态成功
+2025-08-08 15:34:39,881 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.3 23>
+2025-08-08 15:34:40,201 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.9 23>
+2025-08-08 15:34:54,844 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.8 23>
+2025-08-08 15:36:31,681 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.9：尝试重新连接设备，第1次尝试...
+2025-08-08 15:36:31,681 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.9：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:36:35,766 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.8：尝试重新连接设备，第1次尝试...
+2025-08-08 15:36:35,766 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.8：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:36:39,865 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.3：尝试重新连接设备，第1次尝试...
+2025-08-08 15:36:39,865 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.3：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:36:39,865 - [INFO] - ota_test:ota_test.py:416 - main() - 第 6 轮测试完成---【16/1000】
+2025-08-08 15:36:39,866 - [INFO] - ota_test:ota_test.py:393 - main() - 开始执行第 7 轮测试
+2025-08-08 15:36:39,896 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.9 23>
+2025-08-08 15:36:42,962 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.3 23>
+2025-08-08 15:36:43,406 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:36:44,920 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:36:46,437 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:36:46,483 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:36:48,041 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:36:49,559 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:36:49,859 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.8：测试过程中发生错误：Connection timed out to 192.168.1.8
+2025-08-08 15:36:57,335 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:37:00,604 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.01.34.0
+2025-08-08 15:37:08,291 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.9：屏幕ID：PinturaV2test09529
+2025-08-08 15:37:08,371 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:37:08,431 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:37:11,560 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.3：屏幕ID：PSe5f3ffL006895
+2025-08-08 15:37:11,638 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:37:11,697 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:38:19,293 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:38:19,293 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.9：升级成功
+2025-08-08 15:38:22,775 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.01.34.0
+2025-08-08 15:38:22,775 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.3：升级成功
+2025-08-08 15:38:32,383 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.9：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:38:36,488 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:38:36.487829] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:38:36.487829] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:38:36,490 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:38:36.487829] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:38:36,490 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.9：更新设备 PinturaV2test09529 的OTA状态成功
+2025-08-08 15:38:38,501 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.3：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:38:42,615 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:38:42.614214] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:38:42.614214] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:38:42,616 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:38:42.614214] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:38:42,616 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.3：更新设备 PSe5f3ffL006895 的OTA状态成功
+2025-08-08 15:38:45,030 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.3 23>
+2025-08-08 15:38:46,719 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.9 23>
+2025-08-08 15:40:36,497 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.9：尝试重新连接设备，第1次尝试...
+2025-08-08 15:40:36,498 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.9：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:40:42,619 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.3：尝试重新连接设备，第1次尝试...
+2025-08-08 15:40:42,619 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.3：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:40:42,619 - [INFO] - ota_test:ota_test.py:416 - main() - 第 7 轮测试完成---【18/1000】
+2025-08-08 15:40:42,620 - [INFO] - ota_test:ota_test.py:393 - main() - 开始执行第 8 轮测试
+2025-08-08 15:40:42,637 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.3 23>
+2025-08-08 15:40:42,788 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.8 23>
+2025-08-08 15:40:46,149 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:40:46,315 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:40:47,190 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.3 23>
+2025-08-08 15:40:47,190 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:40:47,190 - [WARNING] - telnet_connecter:telnet_connecter.py:201 - _auto_login() - 登录尝试 1 失败: 'NoneType' object has no attribute 'write'
+2025-08-08 15:40:47,693 - [WARNING] - telnet_connecter:telnet_connecter.py:201 - _auto_login() - 登录尝试 2 失败: Not connected.
+2025-08-08 15:40:47,889 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:40:48,192 - [WARNING] - telnet_connecter:telnet_connecter.py:201 - _auto_login() - 登录尝试 3 失败: Not connected.
+2025-08-08 15:40:48,192 - [ERROR] - telnet_connecter:telnet_connecter.py:205 - _auto_login() - 自动登录失败
+2025-08-08 15:40:48,192 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.3：测试过程中发生错误：Failed to connect: Not connected.
+2025-08-08 15:40:49,418 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:40:52,611 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.9：测试过程中发生错误：Connection timed out to 192.168.1.9
+2025-08-08 15:41:00,241 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:41:11,055 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.8：屏幕ID：PSd4117cL000289
+2025-08-08 15:41:11,131 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:41:11,188 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:42:22,028 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:42:22,028 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.8：升级成功
+2025-08-08 15:42:34,665 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.8：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:42:38,771 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:42:38.771808] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:42:38.771808] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:42:38,772 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:42:38.771808] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:42:38,773 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.8：更新设备 PSd4117cL000289 的OTA状态成功
+2025-08-08 15:43:01,907 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.8 23>
+2025-08-08 15:44:38,770 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.8：尝试重新连接设备，第1次尝试...
+2025-08-08 15:44:38,771 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.8：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:44:38,771 - [INFO] - ota_test:ota_test.py:416 - main() - 第 8 轮测试完成---【19/1000】
+2025-08-08 15:44:38,772 - [INFO] - ota_test:ota_test.py:393 - main() - 开始执行第 9 轮测试
+2025-08-08 15:44:38,922 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.3 23>
+2025-08-08 15:44:38,925 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.9 23>
+2025-08-08 15:44:42,435 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:44:42,436 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:44:43,949 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:44:43,950 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:44:45,477 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:44:45,477 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:44:48,775 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.8：测试过程中发生错误：Connection timed out to 192.168.1.8
+2025-08-08 15:44:56,393 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.01.34.0
+2025-08-08 15:44:56,394 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:45:07,146 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.3：屏幕ID：PSe5f3ffL006895
+2025-08-08 15:45:07,220 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:45:07,279 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:45:07,279 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.9：屏幕ID：PinturaV2test09529
+2025-08-08 15:45:07,343 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:45:07,394 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:46:18,014 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.01.34.0
+2025-08-08 15:46:18,014 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.3：升级成功
+2025-08-08 15:46:18,181 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:46:18,181 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.9：升级成功
+2025-08-08 15:46:30,490 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.3：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:46:34,588 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:46:34.588459] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:46:34.588459] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:46:34,591 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:46:34.588459] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:46:34,591 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.3：更新设备 PSe5f3ffL006895 的OTA状态成功
+2025-08-08 15:46:34,591 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.9：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:46:38,641 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:46:38.641285] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:46:38.641285] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:46:38,642 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:46:38.641285] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:46:38,642 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.9：更新设备 PinturaV2test09529 的OTA状态成功
+2025-08-08 15:46:40,865 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.3 23>
+2025-08-08 15:46:43,038 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.9 23>
+2025-08-08 15:48:34,613 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.3：尝试重新连接设备，第1次尝试...
+2025-08-08 15:48:34,613 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.3：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:48:38,658 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.9：尝试重新连接设备，第1次尝试...
+2025-08-08 15:48:38,660 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.9：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:48:38,660 - [INFO] - ota_test:ota_test.py:416 - main() - 第 9 轮测试完成---【21/1000】
+2025-08-08 15:48:38,660 - [INFO] - ota_test:ota_test.py:393 - main() - 开始执行第 10 轮测试
+2025-08-08 15:48:38,749 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.8 23>
+2025-08-08 15:48:38,751 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.9 23>
+2025-08-08 15:48:38,751 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.3 23>
+2025-08-08 15:48:42,255 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:48:42,256 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:48:42,257 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:48:43,801 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:48:43,847 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:48:43,848 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:48:45,331 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:48:45,376 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:48:45,377 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:48:56,087 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:48:56,193 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:48:56,314 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.00.32.0
+2025-08-08 15:49:06,757 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.3 23>
+2025-08-08 15:49:06,758 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.3：屏幕ID：PSe5f3ffL006895
+2025-08-08 15:49:06,832 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:49:06,894 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:49:06,973 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.9：屏幕ID：PinturaV2test09529
+2025-08-08 15:49:07,046 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:49:07,100 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:49:07,100 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.8：屏幕ID：PSd4117cL000289
+2025-08-08 15:49:07,167 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:49:07,223 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:50:06,900 - [INFO] - ota_test:ota_test.py:148 - cmd_sender() - 192.168.1.3: 连接已关闭，尝试重新连接...
+2025-08-08 15:50:16,893 - [WARNING] - ota_test:ota_test.py:193 - cmd_sender() - 192.168.1.3：连接失败: Connection timed out to 192.168.1.3，等待30秒后重试...
+2025-08-08 15:50:18,088 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:50:18,088 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.9：升级成功
+2025-08-08 15:50:18,133 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:50:18,135 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.8：升级成功
+2025-08-08 15:50:30,654 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.9：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:50:34,754 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:50:34.754856] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:50:34.754856] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:50:34,755 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:50:34.754856] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:50:34,755 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.9：更新设备 PinturaV2test09529 的OTA状态成功
+2025-08-08 15:50:34,755 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.8：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:50:38,846 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:50:38.846680] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:50:38.846680] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:50:38,847 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:50:38.846680] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:50:38,847 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.8：更新设备 PSd4117cL000289 的OTA状态成功
+2025-08-08 15:50:42,923 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.9 23>
+2025-08-08 15:50:46,904 - [INFO] - ota_test:ota_test.py:148 - cmd_sender() - 192.168.1.3: 连接已关闭，尝试重新连接...
+2025-08-08 15:50:46,954 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.3 23>
+2025-08-08 15:50:50,474 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:50:52,051 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:50:53,580 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:50:57,696 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.8 23>
+2025-08-08 15:51:00,742 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.01.34.0
+2025-08-08 15:51:00,742 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.3：升级成功
+2025-08-08 15:51:13,253 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.3：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:51:17,351 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:51:17.351491] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:51:17.351491] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:51:17,352 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:51:17.351491] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:51:17,352 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.3：更新设备 PSe5f3ffL006895 的OTA状态成功
+2025-08-08 15:51:23,862 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.3 23>
+2025-08-08 15:52:34,764 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.9：尝试重新连接设备，第1次尝试...
+2025-08-08 15:52:34,765 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.9：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:52:38,857 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.8：尝试重新连接设备，第1次尝试...
+2025-08-08 15:52:38,857 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.8：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:53:17,349 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.3：尝试重新连接设备，第1次尝试...
+2025-08-08 15:53:17,349 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.3：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:53:17,349 - [INFO] - ota_test:ota_test.py:416 - main() - 第 10 轮测试完成---【24/1000】
+2025-08-08 15:53:17,350 - [INFO] - ota_test:ota_test.py:393 - main() - 开始执行第 11 轮测试
+2025-08-08 15:53:17,481 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.8 23>
+2025-08-08 15:53:17,693 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.3 23>
+2025-08-08 15:53:18,508 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.9 23>
+2025-08-08 15:53:21,006 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:53:21,218 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:53:22,020 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:53:22,520 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:53:23,095 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:53:23,534 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:53:24,019 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:53:24,609 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:53:25,047 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:53:34,841 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:53:35,872 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.00.32.0
+2025-08-08 15:53:35,932 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:53:45,615 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.8：屏幕ID：PSd4117cL000289
+2025-08-08 15:53:45,697 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:53:45,757 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.8-已发送升级请求
+2025-08-08 15:53:46,796 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.9：屏幕ID：PinturaV2test09529
+2025-08-08 15:53:46,886 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:53:46,943 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:53:47,767 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.3：屏幕ID：PSe5f3ffL006895
+2025-08-08 15:53:47,845 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:53:47,904 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:54:16,158 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.3 23>
+2025-08-08 15:54:47,917 - [INFO] - ota_test:ota_test.py:148 - cmd_sender() - 192.168.1.3: 连接已关闭，尝试重新连接...
+2025-08-08 15:54:48,007 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.3 23>
+2025-08-08 15:54:51,536 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:54:53,048 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:54:54,578 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:54:56,515 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.8：本地版本：2.01.34.0
+2025-08-08 15:54:56,516 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.8：升级成功
+2025-08-08 15:54:57,889 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:54:57,889 - [INFO] - ota_test:ota_test.py:94 - test() - 192.168.1.9：升级成功
+2025-08-08 15:55:05,447 - [ERROR] - ota_test:ota_test.py:325 - get_current_local_version() - 192.168.1.3：获取版本号失败: list index out of range
+2025-08-08 15:55:05,447 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.3：测试过程中发生错误：192.168.1.3：获取版本号失败: list index out of range
+2025-08-08 15:55:09,061 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.8：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:55:13,151 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:55:13.151710] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:55:13.151710] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:55:13,153 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:55:13.151710] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:55:13,153 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.8：更新设备 PSd4117cL000289 的OTA状态成功
+2025-08-08 15:55:13,153 - [INFO] - ota_test:ota_test.py:338 - restore_factory_settings() - 192.168.1.9：已执行恢复出厂设置命令，等待设备重启...
+2025-08-08 15:55:17,227 - [ERROR] - sql_connecter:sql_connecter.py:342 - get_connection() - 获取数据库连接失败: [2025-08-08 15:55:17.227644] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 649, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "C:\Users\SHEN\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 641, in connect
+    self.connection = pymysql.connect(
+                      ^^^^^^^^^^^^^^^^
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 361, in __init__
+    self.connect()
+  File "F:\Project\testTool\.venv\Lib\site-packages\pymysql\connections.py", line 716, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "f:\Project\testTool\sql_connecter.py", line 338, in get_connection
+    connector.connect()
+  File "f:\Project\testTool\sql_connecter.py", line 685, in connect
+    raise ConnectionError1(f"MySQL连接失败: {str(e)}", error_code=error_code, original_error=e)
+sql_connecter.ConnectionError1: [2025-08-08 15:55:17.227644] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:55:17,229 - [ERROR] - ota_test:ota_test.py:73 - query_sql() - 数据库查询出错: [2025-08-08 15:55:17.227644] ConnectionError1: MySQL连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)") (错误代码: 2003)
+原始错误: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2025-08-08 15:55:17,229 - [INFO] - ota_test:ota_test.py:290 - set_sql_need_to_update() - 192.168.1.9：更新设备 PinturaV2test09529 的OTA状态成功
+2025-08-08 15:55:20,526 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.3 23>
+2025-08-08 15:55:23,004 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.9 23>
+2025-08-08 15:55:36,232 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.8 23>
+2025-08-08 15:57:13,158 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.8：尝试重新连接设备，第1次尝试...
+2025-08-08 15:57:13,158 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.8：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:57:17,224 - [INFO] - ota_test:ota_test.py:355 - restore_factory_settings() - 192.168.1.9：尝试重新连接设备，第1次尝试...
+2025-08-08 15:57:17,226 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.9：测试过程中发生错误：'NoneType' object has no attribute 'connect'
+2025-08-08 15:57:17,226 - [INFO] - ota_test:ota_test.py:416 - main() - 第 11 轮测试完成---【26/1000】
+2025-08-08 15:57:17,226 - [INFO] - ota_test:ota_test.py:393 - main() - 开始执行第 12 轮测试
+2025-08-08 15:57:17,328 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.3 23>
+2025-08-08 15:57:17,332 - [INFO] - client_base:client_base.py:147 - connection_made() - Connected to <Peer 192.168.1.9 23>
+2025-08-08 15:57:20,855 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:57:20,855 - [INFO] - telnet_connecter:telnet_connecter.py:177 - _auto_login() - 检测到登录提示，发送用户名: root
+2025-08-08 15:57:22,371 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:57:22,764 - [INFO] - telnet_connecter:telnet_connecter.py:184 - _auto_login() - 检测到密码提示，发送密码
+2025-08-08 15:57:23,897 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:57:24,276 - [INFO] - telnet_connecter:telnet_connecter.py:192 - _auto_login() - 登录成功
+2025-08-08 15:57:27,234 - [ERROR] - ota_test:ota_test.py:403 - test_device() - 192.168.1.8：测试过程中发生错误：Connection timed out to 192.168.1.8
+2025-08-08 15:57:34,753 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.9：本地版本：2.01.34.0
+2025-08-08 15:57:35,813 - [INFO] - ota_test:ota_test.py:322 - get_current_local_version() - 192.168.1.3：本地版本：2.00.32.0
+2025-08-08 15:57:45,627 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.9：屏幕ID：PinturaV2test09529
+2025-08-08 15:57:45,703 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:57:45,763 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.9-已发送升级请求
+2025-08-08 15:57:47,237 - [INFO] - ota_test:ota_test.py:333 - get_screenId_from_host() - 192.168.1.3：屏幕ID：PSe5f3ffL006895
+2025-08-08 15:57:47,315 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:57:47,372 - [INFO] - ota_test:ota_test.py:299 - send_ota_request() - 192.168.1.3-已发送升级请求
+2025-08-08 15:58:13,223 - [INFO] - client_base:client_base.py:82 - connection_lost() - Connection closed to <Peer 192.168.1.3 23>
+2025-08-08 15:58:36,785 - [INFO] - ota_test:ota_test.py:425 - <module>() - 测试被用户中断
+2025-08-08 15:58:36,819 - [INFO] - sql_connecter:sql_connecter.py:703 - disconnect() - MySQL连接已关闭
