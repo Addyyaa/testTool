@@ -3,7 +3,7 @@ import os
 import re
 import sys
 import traceback
-from PySide6.QtCore import QObject, Signal, Slot, Qt, QEvent
+from PySide6.QtCore import QObject, Signal, Slot, Qt, QEvent, QTimer
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication,
@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QTextEdit,
     QComboBox,
+    QProgressBar,
 )
 from dataclasses import dataclass
 import threading
@@ -238,6 +239,7 @@ class Uploader(QObject):
     upload_error = Signal(str)
     upload_success = Signal(str)
     upload_progress = Signal(str, int)
+    total_progress = Signal(int, int)
 
     def __init__(self):
         super().__init__()
@@ -248,6 +250,24 @@ class Uploader(QObject):
         self.qiniu_up_server = None
         self.upload_queue = []
         self.remote_upload_info = {}
+        self.total_blocks = 0
+        self.uploaded_blocks = 0
+
+    def _caculate_total_blocks(self, selected_lcd_types: list[str]) -> int:
+        """计算所有固件包的总块数"""
+        total_blocks = 0
+        # 去重分组，得到代表类型集合
+        reps: set[str] = set(self._group_rep(x) for x in selected_lcd_types)
+
+        for rep in reps:
+            file_path = self.data_info.get_local_path(rep)
+            if os.path.exists(file_path):
+                total_size = os.path.getsize(file_path)
+                part_size = 4 * 1024 * 1024  # 4MB
+                part_count = (total_size + part_size - 1) // part_size
+                total_blocks += part_count
+
+        return total_blocks
 
     @Slot(list)
     def receive_file_list(self, file_list: list):
@@ -445,6 +465,13 @@ class Uploader(QObject):
                         )
                         parts.append({"partNumber": part_number, "etag": etag_val})
                         bytes_sent += size
+
+                        # 更新总体进度
+                        self.uploaded_blocks += 1
+                        self.total_progress.emit(
+                            self.uploaded_blocks, self.total_blocks
+                        )
+
                         self.upload_progress.emit(
                             filename, int(bytes_sent * 100 / max(total_size, 1))
                         )
@@ -580,6 +607,12 @@ class Uploader(QObject):
 
         # 预热服务端信息
         await self.get_qiniu_server()
+
+        # 计算总块数并初始化进度
+        self.total_blocks = self._caculate_total_blocks(selected_lcd_types)
+        self.uploaded_blocks = 0
+        # 发送初始进度
+        self.total_progress.emit(0, self.total_blocks)
 
         # 去重分组，得到代表类型集合
         reps: set[str] = set(self._group_rep(x) for x in selected_lcd_types)
@@ -720,12 +753,27 @@ class MainWindow(QMainWindow):
         btn_row.addWidget(self.btn_publish)
         layout.addLayout(btn_row)
 
+        # 新增：总体上传进度条
+        progress_row = QHBoxLayout()
+        progress_row.addWidget(QLabel("总体上传进度:"))
+        self.total_progress_bar = QProgressBar()
+        self.total_progress_bar.setVisible(False)  # 初始隐藏
+        progress_row.addWidget(self.total_progress_bar)
+        self.progress_label = QLabel("0/0 块")
+        self.progress_label.setVisible(False)  # 初始隐藏
+        progress_row.addWidget(self.progress_label)
+        progress_row.addStretch(1)
+        layout.addLayout(progress_row)
+
         self.env_combo.installEventFilter(self)
         self.show()
 
     def connect_signal(self):
         self.uploader.upload_error.connect(self.on_upload_error)
         self.uploader.upload_success.connect(self.on_upload_success)
+        self.cb_select_all.stateChanged.connect(self.on_select_all_changed)
+        # 新增总体进度信号连接
+        self.uploader.total_progress.connect(self.on_total_progress)
         self.cb_select_all.stateChanged.connect(self.on_select_all_changed)
         self.btn_publish.clicked.connect(self.on_publish_clicked)
 
@@ -785,6 +833,10 @@ class MainWindow(QMainWindow):
     def on_publish_clicked(self):
         # 收集选择
         selected = [k for k, cb in self.cb_map.items() if cb.checkState() == Qt.Checked]
+
+        # 重置进度条
+        self.total_progress_bar.setValue(0)
+        self.progress_label.setText("0/0 块")
         # 兜底：若全选被勾选但selected仍为空，则按全选处理
         if self.cb_select_all.isChecked() and not selected:
             selected = list(self.cb_map.keys())
@@ -808,6 +860,26 @@ class MainWindow(QMainWindow):
                 self.uploader.upload_error.emit(f"发布失败：{str(e)}")
 
         threading.Thread(target=_thread_target, daemon=True).start()
+
+    def on_total_progress(self, current_blocks: int, total_blocks: int):
+        """处理总体上传进度"""
+        if total_blocks > 0:
+            percentage = int(current_blocks * 100 / total_blocks)
+            self.total_progress_bar.setValue(percentage)
+            self.progress_label.setText(f"{current_blocks}/{total_blocks} 块")
+
+            # 显示进度条和标签
+            self.total_progress_bar.setVisible(True)
+            self.progress_label.setVisible(True)
+
+            # 如果完成，延迟隐藏进度条
+            if current_blocks >= total_blocks:
+                QTimer.singleShot(3000, self._hide_progress)
+
+    def _hide_progress(self):
+        """隐藏进度条和标签"""
+        self.total_progress_bar.setVisible(False)
+        self.progress_label.setVisible(False)
 
 
 class LoginDialog(QDialog):
