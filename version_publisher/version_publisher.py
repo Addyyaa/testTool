@@ -263,16 +263,64 @@ class Uploader(QObject):
         """
         获取Pintura管理员账号信息
         """
-        env_path = Path("version_publisher/asserts/user.env")
-        load_dotenv(dotenv_path=env_path)
+        # 兼容 PyInstaller 打包与源码运行的 env 文件定位
+        def _resolve_env_path() -> Path:
+            """解析 user.env 的实际路径，兼容打包后的 _MEIPASS 目录与源码目录。
+
+            优先顺序：
+            1) _MEIPASS/version_publisher/asserts/user.env（与 .spec 中 datas 映射一致）
+            2) _MEIPASS/asserts/user.env（兼容可能的目录层级差异）
+            3) 源码目录/version_publisher/asserts/user.env
+            4) 源码目录/asserts/user.env
+            5) CWD/version_publisher/asserts/user.env（最后兜底）
+            """
+            meipass = getattr(sys, "_MEIPASS", None)
+            candidates = []
+            if meipass:
+                candidates.extend(
+                    [
+                        Path(meipass) / "version_publisher" / "asserts" / "user.env",
+                        Path(meipass) / "asserts" / "user.env",
+                    ]
+                )
+            module_dir = Path(__file__).parent
+            candidates.extend(
+                [
+                    module_dir / "version_publisher" / "asserts" / "user.env",
+                    module_dir / "asserts" / "user.env",
+                    Path(os.getcwd()) / "version_publisher" / "asserts" / "user.env",
+                ]
+            )
+            for path in candidates:
+                if path and path.exists():
+                    return path
+            return module_dir / "asserts" / "user.env"
+
+        env_path = _resolve_env_path()
+        load_dotenv(dotenv_path=env_path, override=True)
         account_info = {
             "ts": os.getenv("ts"),
             "cn": os.getenv("cn"),
             "en": os.getenv("en"),
         }
-        env_account_info = json.loads(account_info[self.data_info.env_info])
-        self.pintura_account = env_account_info["username"]
-        self.pintura_password = env_account_info["password"]
+        selected = account_info.get(self.data_info.env_info)
+        if not selected:
+            logger.error(
+                f"未读取到环境 {self.data_info.env_info} 的账号配置，请检查 {env_path} 是否包含对应键(ts/cn/en)。"
+            )
+            sys.exit(1)
+        try:
+            env_account_info = json.loads(selected)
+        except Exception as exc:
+            logger.error(f"解析 {self.data_info.env_info} 账号配置失败，请检查 JSON 格式是否正确: {exc}")
+            sys.exit(1)
+        self.pintura_account = env_account_info.get("username")
+        self.pintura_password = env_account_info.get("password")
+        if not self.pintura_account or not self.pintura_password:
+            logger.error(
+                f"从 {self.data_info.env_info} 环境配置中未获取到 username/password，请检查 {env_path} 内容。"
+            )
+            sys.exit(1)
 
     def _caculate_total_blocks(self, selected_lcd_types: list[str]) -> int:
         """计算所有固件包的总块数"""
@@ -329,6 +377,7 @@ class Uploader(QObject):
                     return res["data"]
         except Exception as e:
             logger.error(f"获取管理员token失败: {e}")
+            self.upload_error.emit(f"获取管理员token失败: {e}")
             sys.exit(1)
 
     async def get_qiniu_token(self):
@@ -778,6 +827,21 @@ class MainWindow(QMainWindow):
         progress_row = QHBoxLayout()
         progress_row.addWidget(QLabel("总体上传进度:"))
         self.total_progress_bar = QProgressBar()
+        self.total_progress_bar.setStyleSheet(
+            """
+            QProgressBar {
+                border: 1px solid #ccc;
+                border-radius: 3px;
+                background-color: #f0f0f0;
+                text-align: center;
+                width: 45em;
+            }
+            QProgressBar::chunk {
+                background-color: #4CAF50;
+                border-radius: 2px;
+            }
+            """
+        )
         self.total_progress_bar.setVisible(False)  # 初始隐藏
         progress_row.addWidget(self.total_progress_bar)
         self.progress_label = QLabel("0/0 块")

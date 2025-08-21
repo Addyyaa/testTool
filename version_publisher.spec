@@ -5,7 +5,7 @@ a = Analysis(
     ['version_publisher\\version_publisher.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('version_publisher/asserts/user.env', 'version_publisher/asserts')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
