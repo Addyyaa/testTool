@@ -3,10 +3,11 @@ import os
 import re
 import sys
 import traceback
-from PySide6.QtCore import QObject, Signal, Slot, Qt, QThread
+from PySide6.QtCore import QObject, Signal, Slot, Qt, QEvent
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication,
+    QDialog,
     QMainWindow,
     QWidget,
     QVBoxLayout,
@@ -644,6 +645,7 @@ class MainWindow(QMainWindow):
         self.uploader = Uploader()
         self.init_ui()
         self.connect_signal()
+        self.is_login = False
 
     def init_ui(self):
         self.setWindowTitle("固件发布工具")
@@ -718,6 +720,7 @@ class MainWindow(QMainWindow):
         btn_row.addWidget(self.btn_publish)
         layout.addLayout(btn_row)
 
+        self.env_combo.installEventFilter(self)
         self.show()
 
     def connect_signal(self):
@@ -753,6 +756,17 @@ class MainWindow(QMainWindow):
         for w in self.findChildren(QPushButton):
             if w.text() == "浏览…":
                 w.clicked.connect(_choose_dir)
+
+    def eventFilter(self, obj, event):
+        if obj == self.env_combo and event.type() == QEvent.MouseButtonPress:
+            if not self.is_login:
+                dialog = LoginDialog(self)
+                if dialog.exec() == QDialog.Accepted:
+                    self.is_login = True
+                    return False  # 登录成功，继续事件处理（打开下拉框）
+                else:
+                    return True  # 登录失败，阻止事件处理（不打开下拉框）
+        return super().eventFilter(obj, event)
 
     def on_upload_error(self, error_message: str):
         QMessageBox.warning(self, "错误", error_message)
@@ -794,6 +808,41 @@ class MainWindow(QMainWindow):
                 self.uploader.upload_error.emit(f"发布失败：{str(e)}")
 
         threading.Thread(target=_thread_target, daemon=True).start()
+
+
+class LoginDialog(QDialog):
+    def __init__(self, parent: MainWindow):
+        super().__init__(parent)
+        self.setWindowTitle("登录")
+        self.setModal(True)
+        self.resize(250, 120)
+
+        self.username_edit = QLineEdit()
+        self.password_edit = QLineEdit()
+        self.password_edit.setEchoMode(QLineEdit.Password)
+        self.login_btn = QPushButton("登录")
+        self.cancel_btn = QPushButton("取消")
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(QLabel("用户名"))
+        self.layout.addWidget(self.username_edit)
+        self.layout.addWidget(QLabel("密码"))
+        self.layout.addWidget(self.password_edit)
+        self.layout.addWidget(self.login_btn)
+        self.layout.addWidget(self.cancel_btn)
+        self.setLayout(self.layout)
+
+        self.login_btn.clicked.connect(self.login)
+        self.cancel_btn.clicked.connect(self.reject)
+
+    def login(self):
+        if (
+            self.username_edit.text() == "addyya"
+            and self.password_edit.text() == "sf123123"
+        ):
+            self.accept()
+        else:
+            QMessageBox.warning(self, "错误", "用户名或密码错误")
+            self.reject()
 
 
 if __name__ == "__main__":
