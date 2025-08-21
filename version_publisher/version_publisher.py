@@ -1,8 +1,10 @@
 import hashlib
 import os
+from pathlib import Path
 import re
 import sys
 import traceback
+import json
 from PySide6.QtCore import QObject, Signal, Slot, Qt, QEvent, QTimer
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
@@ -29,6 +31,7 @@ import asyncio
 import logging
 import base64
 import tarfile
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
@@ -252,6 +255,24 @@ class Uploader(QObject):
         self.remote_upload_info = {}
         self.total_blocks = 0
         self.uploaded_blocks = 0
+        self.pintura_account = None
+        self.pintura_password = None
+        self.get_pintura_account_info()
+
+    def get_pintura_account_info(self):
+        """
+        获取Pintura管理员账号信息
+        """
+        env_path = Path("version_publisher/asserts/user.env")
+        load_dotenv(dotenv_path=env_path)
+        account_info = {
+            "ts": os.getenv("ts"),
+            "cn": os.getenv("cn"),
+            "en": os.getenv("en"),
+        }
+        env_account_info = json.loads(account_info[self.data_info.env_info])
+        self.pintura_account = env_account_info["username"]
+        self.pintura_password = env_account_info["password"]
 
     def _caculate_total_blocks(self, selected_lcd_types: list[str]) -> int:
         """计算所有固件包的总块数"""
@@ -297,10 +318,10 @@ class Uploader(QObject):
                 async with session.post(
                     url,
                     json={
-                        "username": "sysadmin",
-                        "password": "OST139.224.192.36",
+                        "username": self.pintura_account,
+                        "password": self.pintura_password,
                         "loginType": 2,
-                        "account": "sysadmin",
+                        "account": self.pintura_account,
                     },
                 ) as response:
                     res = await response.json()
