@@ -36,6 +36,49 @@ from dotenv import load_dotenv
 logger = logging.getLogger(__name__)
 
 
+# 静态方法，将资源包变成包资源
+def package_resource(resource_path: str, file_name: str):
+    """
+    静态方法，将资源包变成包资源
+    """
+    # 1) 优先：作为包资源（Nuitka/PyInstaller/源码都可）
+    try:
+        from importlib.resources import files, as_file
+
+        res = files(resource_path).joinpath(file_name)
+        with as_file(res) as p:
+            if p.is_file():
+                return p
+    except Exception as e:
+        logger.error(f"将资源包变成包资源失败: {e}")
+
+    # 2) 其次：exe 目录 / _MEIPASS（PyInstaller）/ 模块目录 / CWD
+    exe_dir = Path(sys.argv[0]).resolve().parent  # exe 所在目录（Nuitka/普通运行均可）
+    meipass = Path(getattr(sys, "_MEIPASS", exe_dir))  # PyInstaller 兼容
+    module_dir = Path(__file__).resolve().parent
+    cwd = Path.cwd()
+
+    candidates = [
+        # 打包运行（PyInstaller 可能会命中）
+        meipass / resource_path / file_name,
+        meipass / file_name,
+        # 外置文件：exe 同目录（最常用）
+        exe_dir / file_name,
+        # 源码/临时解包目录
+        module_dir / resource_path / file_name,
+        module_dir / file_name,
+        # 外置文件：当前工作目录
+        cwd / file_name,
+        cwd / resource_path / file_name,
+    ]
+    for p in candidates:
+        if p.is_file():
+            return p
+    raise FileNotFoundError(
+        "未找到 user.env，请确认它位于 asserts 目录（与 exe 同目录或已打包为资源）"
+    )
+
+
 def singleton(cls):
     """单例模式装饰器"""
     _instances = {}
@@ -272,39 +315,7 @@ class Uploader(QObject):
         """
 
         # 兼容 PyInstaller 打包与源码运行的 env 文件定位
-        def _resolve_env_path() -> Path:
-            """解析 user.env 的实际路径，兼容打包后的 _MEIPASS 目录与源码目录。
-
-            优先顺序：
-            1) _MEIPASS/version_publisher/asserts/user.env（与 .spec 中 datas 映射一致）
-            2) _MEIPASS/asserts/user.env（兼容可能的目录层级差异）
-            3) 源码目录/version_publisher/asserts/user.env
-            4) 源码目录/asserts/user.env
-            5) CWD/version_publisher/asserts/user.env（最后兜底）
-            """
-            meipass = getattr(sys, "_MEIPASS", None)
-            candidates = []
-            if meipass:
-                candidates.extend(
-                    [
-                        Path(meipass) / "version_publisher" / "asserts" / "user.env",
-                        Path(meipass) / "asserts" / "user.env",
-                    ]
-                )
-            module_dir = Path(__file__).parent
-            candidates.extend(
-                [
-                    module_dir / "version_publisher" / "asserts" / "user.env",
-                    module_dir / "asserts" / "user.env",
-                    Path(os.getcwd()) / "version_publisher" / "asserts" / "user.env",
-                ]
-            )
-            for path in candidates:
-                if path and path.exists():
-                    return path
-            return module_dir / "asserts" / "user.env"
-
-        env_path = _resolve_env_path()
+        env_path = package_resource("asserts", "user.env")
         load_dotenv(dotenv_path=env_path, override=True)
         account_info = {
             "ts": os.getenv("ts"),
