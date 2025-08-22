@@ -178,21 +178,15 @@ class DataInfo:
     }
 
 
-class Publisher(QObject):
-    def __init__(self):
-        super().__init__()
-        pass
-
-
 @singleton
 class GetfirewareInfo(QObject):
     def __init__(self):
         super().__init__()
         self.data_info = DataInfo()
 
-    def get_fireware_version(self, lcd_type: str):
+    def read_file_content(self, lcd_type: str, file_name: str):
         """
-        获取固件版本号
+        封装读取内容方法
         """
         path = self.data_info.get_local_path(lcd_type)
         if not path or not os.path.isfile(path):
@@ -201,19 +195,26 @@ class GetfirewareInfo(QObject):
         try:
             with tarfile.open(path, mode) as tar:
                 for member in tar.getmembers():
-                    if (
-                        member.isfile()
-                        and os.path.basename(member.name) == "version.ini"
-                    ):
+                    if member.isfile() and os.path.basename(member.name) == file_name:
                         file_obj = tar.extractfile(member)
                         if file_obj:
                             content = file_obj.read().decode("utf-8")
-                            pattern = r"=\s*(.*?)\n"
-                            version = re.search(pattern, content).group(1)
-                            self.data_info.version_info[lcd_type] = version
-                            return version
+                            return content
                 return None
+        except Exception as e:
+            logger.error(f"获取固件版本失败: {e}")
+            sys.exit(1)
 
+    def get_fireware_version(self, lcd_type: str):
+        """
+        获取固件版本号
+        """
+        try:
+            content = self.read_file_content(lcd_type, "version.ini")
+            pattern = r"=\s*(.*?)\n"
+            version = re.search(pattern, content).group(1)
+            self.data_info.version_info[lcd_type] = version
+            return version
         except Exception as e:
             logger.error(f"获取固件版本失败: {e}")
             sys.exit(1)
@@ -236,6 +237,12 @@ class GetfirewareInfo(QObject):
         except Exception as e:
             logger.error(f"获取文件md5失败: {e}")
             sys.exit(1)
+
+    def get_fireware_lcd_type(self, lcd_type: str):
+        """
+        对比固件内部的lcdty与外部传入的lcd_type是否一致 # TODO：无法实现，当前固件升级包中没有任何地方记录lcd_type
+        """
+        pass
 
 
 class Uploader(QObject):
@@ -263,6 +270,7 @@ class Uploader(QObject):
         """
         获取Pintura管理员账号信息
         """
+
         # 兼容 PyInstaller 打包与源码运行的 env 文件定位
         def _resolve_env_path() -> Path:
             """解析 user.env 的实际路径，兼容打包后的 _MEIPASS 目录与源码目录。
@@ -312,7 +320,9 @@ class Uploader(QObject):
         try:
             env_account_info = json.loads(selected)
         except Exception as exc:
-            logger.error(f"解析 {self.data_info.env_info} 账号配置失败，请检查 JSON 格式是否正确: {exc}")
+            logger.error(
+                f"解析 {self.data_info.env_info} 账号配置失败，请检查 JSON 格式是否正确: {exc}"
+            )
             sys.exit(1)
         self.pintura_account = env_account_info.get("username")
         self.pintura_password = env_account_info.get("password")
