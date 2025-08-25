@@ -767,6 +767,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.uploader = Uploader()
+        self.last_fireware_dir = LastFirewareDir()  # 添加这行
         self.init_ui()
         self.connect_signal()
         self.is_login = False
@@ -831,7 +832,16 @@ class MainWindow(QMainWindow):
         # 选择包根目录
         dir_row = QHBoxLayout()
         dir_row.addWidget(QLabel("包根目录:"))
-        self.base_dir_edit = QLineEdit(self.uploader.data_info.base_dir)
+
+        # 尝试加载上次选择的目录
+        last_dir = self.last_fireware_dir.get_last_fireware_dir()
+        initial_dir = (
+            last_dir
+            if last_dir and os.path.exists(last_dir)
+            else self.uploader.data_info.base_dir
+        )
+
+        self.base_dir_edit = QLineEdit(initial_dir)
         btn_browse = QPushButton("浏览…")
         dir_row.addWidget(self.base_dir_edit)
         dir_row.addWidget(btn_browse)
@@ -903,8 +913,11 @@ class MainWindow(QMainWindow):
             if dlg.exec():
                 dirs = dlg.selectedFiles()
                 if dirs:
-                    self.base_dir_edit.setText(dirs[0])
-                    self.uploader.data_info.set_base_dir(dirs[0])
+                    selected_dir = dirs[0]
+                    self.base_dir_edit.setText(selected_dir)
+                    self.uploader.data_info.set_base_dir(selected_dir)
+                    # 保存用户选择的目录
+                    self.last_fireware_dir.save_last_fireware_dir(selected_dir)
 
         # 绑定按钮
         for w in self.findChildren(QPushButton):
@@ -1021,6 +1034,59 @@ class LoginDialog(QDialog):
         else:
             QMessageBox.warning(self, "错误", "用户名或密码错误")
             self.reject()
+
+
+@singleton
+class LastFirewareDir:
+    def __init__(self):
+        self.last_fireware_dir = None
+        self.config_file = os.path.join(
+            os.path.dirname(__file__), "last_fireware_dir.json"
+        )
+        self.load_last_fireware_dir()
+
+    def get_last_fireware_dir(self):
+        """获取最近选择的固件目录"""
+        return self.last_fireware_dir
+
+    def save_last_fireware_dir(self, fireware_dir: str):
+        """保存最近选择的固件目录到JSON文件"""
+        self.last_fireware_dir = fireware_dir
+        try:
+            with open(self.config_file, "w", encoding="utf-8") as f:
+                json.dump(
+                    {"last_fireware_dir": fireware_dir}, f, ensure_ascii=False, indent=2
+                )
+        except Exception as e:
+            logger.warning(f"保存固件目录配置失败: {e}")
+
+    def load_last_fireware_dir(self):
+        """从JSON文件加载最近选择的固件目录"""
+        try:
+            if os.path.exists(self.config_file):
+                with open(self.config_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    self.last_fireware_dir = data.get("last_fireware_dir")
+                    # 验证目录是否仍然存在
+                    if self.last_fireware_dir and not os.path.exists(
+                        self.last_fireware_dir
+                    ):
+                        logger.info(
+                            f"保存的固件目录不存在，已清除: {self.last_fireware_dir}"
+                        )
+                        self.last_fireware_dir = None
+        except Exception as e:
+            logger.warning(f"加载固件目录配置失败: {e}")
+            self.last_fireware_dir = None
+
+    def clear_last_fireware_dir(self):
+        """清除最近选择的固件目录"""
+        self.last_fireware_dir = None
+        try:
+            if os.path.exists(self.config_file):
+                os.remove(self.config_file)
+        except Exception as e:
+            logger.warning(f"删除固件目录配置文件失败: {e}")
 
 
 if __name__ == "__main__":
