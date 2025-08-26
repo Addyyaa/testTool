@@ -99,29 +99,40 @@ class DataInfo:
     package_name = "SStarOta.bin.gz"
     current_path = os.path.dirname(os.path.abspath(__file__))
     # 用户可在GUI中选择的包根目录（默认与脚本同级的 package/{env_info} 根）
-    base_dir = os.path.join(current_path, f"package/{env_info}")
+    base_dir = current_path
+    print(f"DataInfo实例化时: {base_dir}")
+    tmp_remote_path_base64 = {}
     id_lcd_type_mapping_table = {}
+
     # 相对 base_dir 的相对路径；1/3/5共用，2/4/6共用
-    relative_path_map = {
-        "1": f"{env_info}/10_1920_1200_vvx10f002a/{package_name}",
-        "3": f"{env_info}/10_1920_1200_vvx10f002a/{package_name}",
-        "5": f"{env_info}/10_1920_1200_vvx10f002a/{package_name}",
-        "2": f"{env_info}/13_1920_1080_nv156fhm/{package_name}",
-        "4": f"{env_info}/13_1920_1080_nv156fhm/{package_name}",
-        "6": f"{env_info}/13_1920_1080_nv156fhm/{package_name}",
-        "7": f"{env_info}/10_800_1280_fp7721bx2_innolux/{package_name}",
-        "8": f"{env_info}/10_800_1280_fp7721bx2_boe/{package_name}",
-        "9": f"{env_info}/16_1920_1200_vvx10f002a/{package_name}",
-    }
+    def get_relative_path_map(self):
+        """
+        获取相对路径映射
+        """
+        logger.info(f"self.env_info: {self.env_info}")
+        logger.info(f"self.package_name: {self.package_name}")
+        return {
+            "1": f"{self.env_info}/10_1920_1200_vvx10f002a/{self.package_name}",
+            "3": f"{self.env_info}/10_1920_1200_vvx10f002a/{self.package_name}",
+            "5": f"{self.env_info}/10_1920_1200_vvx10f002a/{self.package_name}",
+            "2": f"{self.env_info}/13_1920_1080_nv156fhm/{self.package_name}",
+            "4": f"{self.env_info}/13_1920_1080_nv156fhm/{self.package_name}",
+            "6": f"{self.env_info}/13_1920_1080_nv156fhm/{self.package_name}",
+            "7": f"{self.env_info}/10_800_1280_fp7721bx2_innolux/{self.package_name}",
+            "8": f"{self.env_info}/10_800_1280_fp7721bx2_boe/{self.package_name}",
+            "9": f"{self.env_info}/16_1920_1200_vvx10f002a/{self.package_name}",
+        }
 
     def set_base_dir(self, new_base_dir: str):
+        logger.info(f"set new_base_dir: {new_base_dir}")
         self.base_dir = new_base_dir
 
     def get_local_path(self, lcd_type: str) -> str:
         """
         根据设备类型获取本地固件路径
         """
-        rel = self.relative_path_map.get(lcd_type)
+        rel = self.get_relative_path_map().get(lcd_type)
+        logger.info(f"rel: {rel}\n{os.path.join(self.base_dir, rel)}")
         if not rel:
             return ""
         return os.path.join(self.base_dir, rel)
@@ -134,19 +145,16 @@ class DataInfo:
             raise ValueError("环境参数错误，应为 ts/cn/en")
         # 更新环境
         type(self).env_info = env_key
-        # 更新派生字段
-        type(self).region_path = (
-            "public-files-en" if env_key == "en" else "public-files-cn"
-        )
-        type(self).remote_package_prefix = (
-            f"apk/clinet/ota/{self.remote_package_middle_str[env_key]}/"
-        )
         # 端口
-        self.server_info["port"] = 8082 if env_key == "ts" else 8080
+        self.get_server_info()["port"] = 8082 if env_key == "ts" else 8080
         # base_dir（若用户未自定义，将指向新环境默认目录）
         default_dir = os.path.join(self.current_path, f"package/{env_key}")
         if os.path.basename(self.base_dir) in {"ts", "cn", "en"}:  # 用户没改过时跟随
             self.base_dir = default_dir
+        logger.info(f"self.base_dir: {self.base_dir}")
+        logger.info(
+            f"base_dir: {self.base_dir}\nenv_key: {env_key}\ndefault_dir: {default_dir}\nregion_path: {self.get_region_path}\nremote_package_prefix: {self.get_remote_package_prefix}"
+        )
 
     product_name = {
         "1": "1920*1200 早期",
@@ -182,43 +190,50 @@ class DataInfo:
         "8": None,
         "9": None,
     }
-    region_path = "public-files-en" if env_info == "en" else "public-files-cn"
+
+    def get_region_path(self):
+        return "public-files-en" if self.env_info == "en" else "public-files-cn"
+
     remote_package_middle_str = {
         "cn": "zh",
         "en": "en",
         "ts": "test",
     }
-    remote_package_prefix = f"apk/clinet/ota/{remote_package_middle_str[env_info]}/"
-    server_info = {
-        "api_server": {
-            "cn": "cloud-service.austinelec.com",
-            "en": "cloud-service-us.austinelec.com",
-            "ts": "139.224.192.36",
-            "qiniu": {
-                "query_path": "api.qiniu.com",
+
+    def get_remote_package_prefix(self):
+        return f"apk/clinet/ota/{self.remote_package_middle_str[self.env_info]}/"
+
+    def get_server_info(self):
+        return {
+            "api_server": {
+                "cn": "cloud-service.austinelec.com",
+                "en": "cloud-service-us.austinelec.com",
+                "ts": "139.224.192.36",
+                "qiniu": {
+                    "query_path": "api.qiniu.com",
+                },
             },
-        },
-        "api": {
-            "qiniuToken": "/api/v1/manage/OTAPackageManage/getUploadToken",
-            "qiniuak": "/v2/query",
-            "qiniu_upload": f"/buckets/{region_path}/objects/",
-            "manager_login": "/api/v1/manage/system/auth/login",
-            "otaPackage_manage": "/api/v1/manage/OTAPackageManage/update",
-            "id_lcd_type_mapping_table": "/api/v1/manage/OTAPackageManage/list",
-        },
-        "remote_path_base64": {
-            "1": None,
-            "2": None,
-            "3": None,
-            "4": None,
-            "5": None,
-            "6": None,
-            "7": None,
-            "8": None,
-            "9": None,
-        },
-        "port": 8082 if env_info == "ts" else 8080,
-    }
+            "api": {
+                "qiniuToken": "/api/v1/manage/OTAPackageManage/getUploadToken",
+                "qiniuak": "/v2/query",
+                "qiniu_upload": f"/buckets/{self.get_region_path()}/objects/",
+                "manager_login": "/api/v1/manage/system/auth/login",
+                "otaPackage_manage": "/api/v1/manage/OTAPackageManage/update",
+                "id_lcd_type_mapping_table": "/api/v1/manage/OTAPackageManage/list",
+            },
+            "remote_path_base64": {
+                "1": self.tmp_remote_path_base64.get("1"),
+                "2": self.tmp_remote_path_base64.get("2"),
+                "3": self.tmp_remote_path_base64.get("3"),
+                "4": self.tmp_remote_path_base64.get("4"),
+                "5": self.tmp_remote_path_base64.get("5"),
+                "6": self.tmp_remote_path_base64.get("6"),
+                "7": self.tmp_remote_path_base64.get("7"),
+                "8": self.tmp_remote_path_base64.get("8"),
+                "9": self.tmp_remote_path_base64.get("9"),
+            },
+            "port": 8082 if self.env_info == "ts" else 8080,
+        }
 
 
 @singleton
@@ -367,7 +382,7 @@ class Uploader(QObject):
                 self.upload_error.emit("请选择要更新固件的设备")
                 return
             for _ in file_list:
-                if str(_) not in self.data_info.relative_path_map.keys():
+                if str(_) not in self.data_info.get_relative_path_map().keys():
                     logger.error(f"用户选择的设备类型{_}不支持:")
                     sys.exit(1)
                 self.update_remote_path_base64(str(_))
@@ -381,7 +396,11 @@ class Uploader(QObject):
         获取Pintura管理员token
         """
         try:
-            url = f"http://{self.data_info.server_info['api_server']['ts']}:{self.data_info.server_info['port']}{self.data_info.server_info['api']['manager_login']}"
+            server_info = self.data_info.get_server_info()
+            url = (
+                f"http://{server_info['api_server'][self.data_info.env_info]}:{server_info['port']}"
+                + f"{server_info['api']['manager_login']}"
+            )
             print(url)
             async with aiohttp.ClientSession() as session:
                 async with session.post(
@@ -394,7 +413,14 @@ class Uploader(QObject):
                     },
                 ) as response:
                     res = await response.json()
+                    if res["code"] != 20:
+                        logger.error(f"获取管理员token失败: {res['message']}")
+                        self.upload_error.emit(
+                            f"获取管理员token失败: {res}\n账户{self.pintura_account}密码{self.pintura_password}"
+                        )
+                        sys.exit(1)
                     self.manager_token = res["data"]
+                    logger.info(f"manager_token: {self.manager_token}\nres: {res}")
                     return res["data"]
         except Exception as e:
             logger.error(f"获取管理员token失败: {e}")
@@ -410,7 +436,11 @@ class Uploader(QObject):
             if headers["x-token"] is None:
                 logger.error("获取管理员token失败")
                 sys.exit(1)
-            url = f"http://{self.data_info.server_info['api_server']['ts']}:{self.data_info.server_info['port']}{self.data_info.server_info['api']['qiniuToken']}"
+            server_info = self.data_info.get_server_info()
+            url = (
+                f"http://{server_info['api_server'][self.data_info.env_info]}:{server_info['port']}"
+                + f"{server_info['api']['qiniuToken']}"
+            )
             async with aiohttp.ClientSession(headers=headers) as session:
                 async with session.get(url) as response:
                     res = await response.json()
@@ -429,10 +459,11 @@ class Uploader(QObject):
         """
         res = await self.get_qiniu_token()
         path_auth = self.extra_partInfo(res)
-        url = f"http://{self.data_info.server_info['api_server']['qiniu']['query_path']}{self.data_info.server_info['api']['qiniuak']}"
+        server_info = self.data_info.get_server_info()
+        url = f"http://{server_info['api_server']['qiniu']['query_path']}{server_info['api']['qiniuak']}"
         params = {
             "ak": path_auth,
-            "bucket": self.data_info.region_path,
+            "bucket": self.data_info.get_region_path(),
         }
         async with aiohttp.ClientSession() as session:
             async with session.get(url, params=params) as response:
@@ -451,16 +482,18 @@ class Uploader(QObject):
         self.fw_getter.get_fireware_version(lcd_type)
         try:
             remote_file_path = (
-                self.data_info.remote_package_prefix
+                self.data_info.get_remote_package_prefix()
                 + lcd_type
+                + "/"
                 + self.data_info.version_info[lcd_type]
                 + "/"
                 + self.data_info.package_name
             )
-            self.data_info.server_info["remote_path_base64"][lcd_type] = (
+            logger.info(f"remote_file_path{"-" * 22}: {remote_file_path}")
+            self.data_info.tmp_remote_path_base64[lcd_type] = (
                 self.remote_file_path_to_base64(remote_file_path)
             )
-            return self.remote_file_path_to_base64(remote_file_path)
+            return self.data_info.tmp_remote_path_base64[lcd_type]
         except Exception as e:
             logger.error(f"更新远程文件路径base64失败: {e}")
             sys.exit(1)
@@ -469,13 +502,18 @@ class Uploader(QObject):
         """
         获取七牛上传ID
         """
-        url = f"https://{self.qiniu_up_server}{self.data_info.server_info['api']['qiniu_upload']}{self.data_info.server_info['remote_path_base64'][lcd_type]}/uploads"
-        logger.info(f"url: {url}")
+        server_info = self.data_info.get_server_info()
+        logger.info(f"server_info: {server_info}")
+        url = f"https://{self.qiniu_up_server}{server_info['api']['qiniu_upload']}{server_info['remote_path_base64'][lcd_type]}/uploads"
         header = {"authorization": "UpToken " + self.qiniu_token}
+        logger.info(f"url: {url}\nheader: {header}\nlcd_type: {lcd_type}")
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, headers=header) as response:
                     res = await response.json()
+                    if res.get("error"):
+                        self.upload_error.emit(f"获取七牛上传ID失败: {res}\n{header}")
+                        sys.exit(1)
                     self.remote_upload_info[lcd_type] = {
                         "uploadId": res["uploadId"],
                         "expireAt": res["expireAt"],
@@ -501,8 +539,8 @@ class Uploader(QObject):
             if not self.qiniu_token:
                 await self.get_qiniu_token()
             if (
-                lcd_type not in self.data_info.server_info["remote_path_base64"]
-                or not self.data_info.server_info["remote_path_base64"][lcd_type]
+                lcd_type not in self.data_info.get_server_info()["remote_path_base64"]
+                or not self.data_info.get_server_info()["remote_path_base64"][lcd_type]
             ):
                 self.update_remote_path_base64(lcd_type)
             if (
@@ -523,8 +561,8 @@ class Uploader(QObject):
 
             base_url = (
                 f"https://{self.qiniu_up_server}"
-                f"{self.data_info.server_info['api']['qiniu_upload']}"
-                f"{self.data_info.server_info['remote_path_base64'][lcd_type]}"
+                f"{self.data_info.get_server_info()['api']['qiniu_upload']}"
+                f"{self.data_info.get_server_info()['remote_path_base64'][lcd_type]}"
                 f"/uploads/{self.remote_upload_info[lcd_type]['uploadId']}"
             )
             headers_common = {
@@ -533,7 +571,6 @@ class Uploader(QObject):
 
             parts = []
             bytes_sent = 0
-
             # 2) 顺序上传每个分块（如需并发可改成并发任务）
             async with aiohttp.ClientSession(headers=headers_common) as session:
                 with open(file_path, "rb") as f:
@@ -652,7 +689,11 @@ class Uploader(QObject):
         """
         提交更新到pintura服务器
         """
-        ota_url = f"http://{self.data_info.server_info['api_server']['ts']}:{self.data_info.server_info['port']}{self.data_info.server_info['api']['otaPackage_manage']}"
+        server_info = self.data_info.get_server_info()
+        ota_url = (
+            f"http://{server_info['api_server'][self.data_info.env_info]}:{server_info['port']}"
+            + f"{server_info['api']['otaPackage_manage']}"
+        )
         data = {
             "appVersion": self.data_info.version_info[lcd_type],
             "downloadUrl": download_url,
@@ -753,7 +794,11 @@ class Uploader(QObject):
         由于不同环境的数据库表的结构不一致，以及后期可能有所变动，所以通过接口获取id和lcdtype映射关系
         """
         header = {"x-token": self.manager_token or await self.get_manager_token()}
-        url = f"http://{self.data_info.server_info['api_server']['ts']}:{self.data_info.server_info['port']}{self.data_info.server_info['api']['id_lcd_type_mapping_table']}"
+        server_info = self.data_info.get_server_info()
+        url = (
+            f"http://{server_info['api_server'][self.data_info.env_info]}:{server_info['port']}"
+            + f"{server_info['api']['id_lcd_type_mapping_table']}"
+        )
         async with aiohttp.ClientSession(headers=header) as session:
             async with session.get(url) as resp:
                 rs = await resp.json()
@@ -835,6 +880,8 @@ class MainWindow(QMainWindow):
 
         # 尝试加载上次选择的目录
         last_dir = self.last_fireware_dir.get_last_fireware_dir()
+        # 更新base_dir
+        self.uploader.data_info.set_base_dir(last_dir)
         initial_dir = (
             last_dir
             if last_dir and os.path.exists(last_dir)
@@ -898,6 +945,31 @@ class MainWindow(QMainWindow):
             env_key = self.env_combo.itemData(index)
             try:
                 self.uploader.data_info.set_env(env_key)
+                # 同步更新环境的账号和密码
+                # 兼容 PyInstaller 打包与源码运行的 env 文件定位
+                env_path = package_resource("asserts", "user.env")
+                load_dotenv(dotenv_path=env_path, override=True)
+                account_info = {
+                    "ts": os.getenv("ts"),
+                    "cn": os.getenv("cn"),
+                    "en": os.getenv("en"),
+                }
+                selected = account_info.get(self.uploader.data_info.env_info)
+                if not selected:
+                    logger.error(
+                        f"未读取到环境 {self.uploader.data_info.env_info} 的账号配置，请检查 {env_path} 是否包含对应键(ts/cn/en)。"
+                    )
+                    sys.exit(1)
+                try:
+                    env_account_info = json.loads(selected)
+                except Exception as exc:
+                    logger.error(
+                        f"解析 {self.uploader.data_info.env_info} 账号配置失败，请检查 JSON 格式是否正确: {exc}"
+                    )
+                    sys.exit(1)
+                self.uploader.pintura_account = env_account_info.get("username")
+                self.uploader.pintura_password = env_account_info.get("password")
+
                 # 切环境时，若base_dir仍为默认结构，自动切到新环境目录
                 self.base_dir_edit.setText(self.uploader.data_info.base_dir)
             except Exception as e:
