@@ -1,4 +1,5 @@
 @echo off
+<<<<<<< HEAD
 chcp 65001 >nul
 echo 开始打包固件发布工具...
 

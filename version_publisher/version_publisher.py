@@ -48,12 +48,13 @@ def package_resource(resource_path: str, file_name: str):
         res = files(resource_path).joinpath(file_name)
         with as_file(res) as p:
             if p.is_file():
+                logger.info(f"将资源包变成包资源成功: {p}")
                 return p
     except Exception as e:
         logger.error(f"将资源包变成包资源失败: {e}")
 
     # 2) 其次：exe 目录 / _MEIPASS（PyInstaller）/ 模块目录 / CWD
-    exe_dir = Path(sys.argv[0]).resolve().parent  # exe 所在目录（Nuitka/普通运行均可）
+    exe_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))  # exe 所在目录（Nuitka/普通运行均可）
     meipass = Path(getattr(sys, "_MEIPASS", exe_dir))  # PyInstaller 兼容
     module_dir = Path(__file__).resolve().parent
     cwd = Path.cwd()
