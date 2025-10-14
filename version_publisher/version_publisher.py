@@ -54,7 +54,11 @@ def package_resource(resource_path: str, file_name: str):
         logger.error(f"将资源包变成包资源失败: {e}")
 
     # 2) 其次：exe 目录 / _MEIPASS（PyInstaller）/ 模块目录 / CWD
-    exe_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))  # exe 所在目录（Nuitka/普通运行均可）
+    exe_dir = (
+        os.path.dirname(sys.executable)
+        if getattr(sys, "frozen", False)
+        else os.path.dirname(os.path.abspath(__file__))
+    )  # exe 所在目录（Nuitka/普通运行均可）
     meipass = Path(getattr(sys, "_MEIPASS", exe_dir))  # PyInstaller 兼容
     module_dir = Path(__file__).resolve().parent
     cwd = Path.cwd()
@@ -126,6 +130,14 @@ class DataInfo:
 
     def set_base_dir(self, new_base_dir: str):
         logger.info(f"set new_base_dir: {new_base_dir}")
+        # 当传入 None 或空串时，回退到默认的 package/{env} 目录
+        if not new_base_dir:
+            fallback = os.path.join(self.current_path, f"package/{self.env_info}")
+            logger.warning(
+                f"传入的 base_dir 无效({new_base_dir})，回退到默认目录: {fallback}"
+            )
+            self.base_dir = fallback
+            return
         self.base_dir = new_base_dir
 
     def get_local_path(self, lcd_type: str) -> str:
@@ -150,7 +162,15 @@ class DataInfo:
         self.get_server_info()["port"] = 8082 if env_key == "ts" else 8080
         # base_dir（若用户未自定义，将指向新环境默认目录）
         default_dir = os.path.join(self.current_path, f"package/{env_key}")
-        if os.path.basename(self.base_dir) in {"ts", "cn", "en"}:  # 用户没改过时跟随
+        # 防御：self.base_dir 可能为 None 或非法
+        base_dir_name = None
+        try:
+            if self.base_dir:
+                base_dir_name = os.path.basename(self.base_dir)
+        except Exception:
+            base_dir_name = None
+        if base_dir_name in {"ts", "cn", "en"} or not self.base_dir:
+            # 用户没改过或无效时跟随环境目录
             self.base_dir = default_dir
         logger.info(f"self.base_dir: {self.base_dir}")
         logger.info(
@@ -193,7 +213,7 @@ class DataInfo:
     }
 
     def get_region_path(self):
-        return "public-files-en" if self.env_info == "en" else "public-files-cn"
+        return "files-us" if self.env_info == "en" else "public-files-cn"
 
     remote_package_middle_str = {
         "cn": "zh",
@@ -881,13 +901,10 @@ class MainWindow(QMainWindow):
 
         # 尝试加载上次选择的目录
         last_dir = self.last_fireware_dir.get_last_fireware_dir()
-        # 更新base_dir
+        # 更新base_dir（含 None 回退）
         self.uploader.data_info.set_base_dir(last_dir)
-        initial_dir = (
-            last_dir
-            if last_dir and os.path.exists(last_dir)
-            else self.uploader.data_info.base_dir
-        )
+        # 始终保证传入 QLineEdit 的是有效字符串
+        initial_dir = self.uploader.data_info.base_dir
 
         self.base_dir_edit = QLineEdit(initial_dir)
         btn_browse = QPushButton("浏览…")
